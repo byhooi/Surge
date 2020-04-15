@@ -1,0 +1,6 @@
+#!name=MitM All Hostnames
+#!desc=All Hostnames
+#!system=ios
+
+[MITM]
+hostname = -*.apple.com, -*.icloud.com, -*.mzstatic.com, -*.crashlytics.com, -*.facebook.com, -*.instagram.com,-*.twitter.com,*

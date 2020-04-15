@@ -1,0 +1,19 @@
+#!name=Cookie
+#!desc=Get Cookie
+
+[Script]
+# 京东
+JD_DailyBonus.js = max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/JD-DailyBonus/JD_DailyBonus.js,pattern=https:\/\/api\.m\.jd\.com\/client\.action.*functionId=signBean,type=http-request
+# 京东到家
+jddj.cookie.js = type=http-request,pattern=^https:\/\/daojia.jd.com/client(.*?)functionId=signin(.*?)userSigninNew,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/jddj/jddj.cookie.js,script-update-interval=0
+# 叮咚买菜
+mcdd.cookie.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/mcdd/mcdd.cookie.js,pattern=^https:\/\/maicai.api.ddxq.mobi\/point\/home,type=http-request
+# 海底捞
+hdl.js = requires-body=true,max-size=0,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/haidilao/hdl.js,pattern=^https:\/\/activity-1\.m\.duiba\.com\.cn\/signactivity\/doSign$,type=http-request
+# 吾易论坛
+Get-Cookie.js = script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/52pojieDailyBonus/Get-Cookie.js,pattern=https:\/\/www\.52pojie\.cn\/home\.php\?,type=http-request
+#什么值得买
+smzdm.cookie.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/smzdm/smzdm.cookie.js,pattern=^https:\/\/www\.smzdm\.com\/?.?,type=http-request
+# 美团外卖(每周更新)
+wmmeituan.cookie.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wmmeituan/wmmeituan.cookie.js,pattern=^https:\/\/promotion.waimai.meituan.com\/playcenter\/signIn\/entry,type=http-request
+wmmeituan.cookie.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wmmeituan/wmmeituan.cookie.js,requires-body=true,pattern=^https:\/\/promotion.waimai.meituan.com\/playcenter\/signIn\/doaction,type=http-request

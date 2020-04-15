@@ -1,28 +1,37 @@
 #!name=Daily Bonus
-#!desc=京东、京东到家、叮咚买菜签到、海底捞签到、吾易签到、什么值得买签到、美团外卖签到
+#!desc=每日签到
 #!system=ios
 
 [MITM]
-hostname = %APPEND% api.m.jd.com,daojia.jd.com,maicai.api.ddxq.mobi,activity-1.m.duiba.com.cn,www.52pojie.cn,*.smzdm.com,promotion.waimai.meituan.com
+hostname = %APPEND% www.smzdm.com, act.10010.com, m.client.10010.com,api-hdcj.9w9.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,promotion.waimai.meituan.com,daojia.jd.com,maicai.api.ddxq.mobi
 
 [Script]
+# 什么值得买签到
+smzdm.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/smzdm/smzdm.js,cronexp=5 0 * * *,type=cron
+
+# > 中国联通
+10010.js=cron "0 1 0,12 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.js
+
+# > 微信小程序活动抽奖 (By @makexp & @zZPiglet)
+wechatlottery_new.js=cron "30 20 * * *" script-path=https://raw.githubusercontent.com/zZPiglet/Task/master/WeChatLottery/WeChatLottery_new.js
+
 # 京东签到
 JD_DailyBonus.js = script-path=https://raw.githubusercontent.com/NobyDa/Script/master/JD-DailyBonus/JD_DailyBonus.js,script-update-interval=0,cronexp=5 0 * * *,type=cron
+
+# > 饿了么
+elemSign.js=cron "0 5 0 * * *" script-path=https://raw.githubusercontent.com/songyangzz/QuantumultX/master/elem/elemSign.js
+
+# 吾易签到
+52pojie.js = script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/52pojieDailyBonus/52pojie.js,cronexp=5 0 * * *,type=cron
+
+# 海底捞签到
+hdl.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/haidilao/hdl.js,cronexp=5 0 * * *,type=cron
+
+# 美团外卖签到
+wmmeituan.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wmmeituan/wmmeituan.js,cronexp=5 0 * * *,type=cron
 
 # 京东到家签到
 jddj.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/jddj/jddj.js,cronexp=5 0 * * *,type=cron
 
 # 叮咚买菜签到
 mcdd.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/mcdd/mcdd.js,script-update-interval=0,cronexp=5 0 * * *,type=cron
-
-# 海底捞签到
-hdl.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/haidilao/hdl.js,cronexp=5 0 * * *,type=cron
-
-# 吾易签到
-52pojie.js = script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/52pojieDailyBonus/52pojie.js,cronexp=5 0 * * *,type=cron
-
-# 什么值得买签到
-smzdm.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/smzdm/smzdm.js,cronexp=5 0 * * *,type=cron
-
-# 美团外卖签到
-wmmeituan.js = script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wmmeituan/wmmeituan.js,cronexp=5 0 * * *,type=cron

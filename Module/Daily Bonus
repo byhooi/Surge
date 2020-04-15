@@ -3,7 +3,7 @@
 #!system=ios
 
 [MITM]
-hostname =api.m.jd.com,daojia.jd.com,maicai.api.ddxq.mobi,activity-1.m.duiba.com.cn,www.52pojie.cn,*.smzdm.com,promotion.waimai.meituan.com
+hostname = %APPEND% api.m.jd.com,daojia.jd.com,maicai.api.ddxq.mobi,activity-1.m.duiba.com.cn,www.52pojie.cn,*.smzdm.com,promotion.waimai.meituan.com
 
 [Script]
 # 京东签到

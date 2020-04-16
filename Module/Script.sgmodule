@@ -2,11 +2,11 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %APPEND% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com, api.zhihu.com, r.inews.qq.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net, api.gotokeep.com, www.luqijianggushi.com, sp.kaola.com, vsco.co, api.faceapp.io, api.picsart.c*, api.meiease.c*, photos.adobe.io, buy.itunes.apple.com, viva.v21xy.com, api.vuevideo.net, splice.oracle.*.com, note.youdao.com, api.termius.com, pan.baidu.com,*.xiaoxiao*.com, api.rr.tv, api.mvmtv.com, api.diyidan.net, vsco.co, m.pearkin.com
+hostname = %APPEND% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com, api.zhihu.com, r.inews.qq.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net, api.gotokeep.com, www.luqijianggushi.com, sp.kaola.com, vsco.co, api.faceapp.io, api.picsart.c*, api.meiease.c*, photos.adobe.io, buy.itunes.apple.com, viva.v21xy.com, api.vuevideo.net, splice.oracle.*.com, note.youdao.com, api.termius.com, pan.baidu.com,*.xiaoxiao*.com, api.rr.tv, api.mvmtv.com, api.diyidan.net, m.pearkin.com
+
 
 [Script]
 # Remove Ads + Unlock Premium.
-
 # > YouTube 
 YouTube.js = script-path=https://Choler.github.io/Surge/Script/YouTube.js,pattern=^https://[\s\S]*\.googlevideo\.com/.*&(oad|ctier),type=http-request
 
@@ -47,7 +47,7 @@ Keep.js = requires-body=1,script-path=https://raw.githubusercontent.com/NobyDa/S
 # > Luqi jiang gu shi
 http-response https:\/\/www\.luqijianggushi\.com\/api\/v2\/user\/get requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/luqi.js
 
-# > Netease koala removes ads
+# > Netease kaola removes ads
 http-response ^https://sp\.kaola\.com/api/openad$ requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/wykaola.js
 
 # > VSCO unlock vip
@@ -95,10 +95,6 @@ http-response ^https:\/\/api\.mvmtv\.com\/index\.php.*(c=user.*a=info|a=addr.*vi
 
 # > 第一弹 (By Miao Miao)
 http-response ^https:\/\/api\.diyidan\.net\/v0\.3\/(user\/personal_homepage|vip_user\/info|tv_series\/index\?appChanne) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Script/Diyidan.js
-
-# > 91 short video Unlock vip
-# app download link : http://i91.porn
-http-response ^https?:\/\/.+\.(my10api|(.*91.*))\.(com|tips|app|xyz)(:\d{2,5})?\/api.php$ requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/91ShortVideo.js
 
 # > pear Unlock vip
 http-response ^https:\/\/m\.pearkin\.com\/(api\/Movie\/WatchMovie|api\/Account\/CheckVip|api\/account\/IndexDetail) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Script/pear.js

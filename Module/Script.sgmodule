@@ -2,7 +2,7 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %APPEND% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com,*.amemv.com,api.zhihu.com, r.inews.qq.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net, api.gotokeep.com, www.luqijianggushi.com, sp.kaola.com, vsco.co, api.faceapp.io, api.picsart.c*, api.meiease.c*, photos.adobe.io, buy.itunes.apple.com, viva.v21xy.com, api.vuevideo.net, splice.oracle.*.com, note.youdao.com, api.termius.com, pan.baidu.com,*.xiaoxiao*.com, api.rr.tv, api.mvmtv.com, api.diyidan.net, m.pearkin.com
+hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com,*.amemv.com,api.zhihu.com, r.inews.qq.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net, api.gotokeep.com, www.luqijianggushi.com, sp.kaola.com, vsco.co, api.faceapp.io, api.picsart.c*, api.meiease.c*, photos.adobe.io, buy.itunes.apple.com, viva.v21xy.com, api.vuevideo.net, splice.oracle.*.com, note.youdao.com, api.termius.com, pan.baidu.com,*.xiaoxiao*.com, api.rr.tv, api.mvmtv.com, api.diyidan.net, m.pearkin.com
 
 
 [Script]

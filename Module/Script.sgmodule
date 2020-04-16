@@ -2,7 +2,7 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com,*.amemv.com,api.zhihu.com, r.inews.qq.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net, api.gotokeep.com, www.luqijianggushi.com, sp.kaola.com, vsco.co, api.faceapp.io, api.picsart.c*, api.meiease.c*, photos.adobe.io, buy.itunes.apple.com, viva.v21xy.com, api.vuevideo.net, splice.oracle.*.com, note.youdao.com, api.termius.com, pan.baidu.com,*.xiaoxiao*.com, api.rr.tv, api.mvmtv.com, api.diyidan.net, m.pearkin.com
+hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com,*.amemv.com,api.zhihu.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net,api.vuevideo.net
 
 
 [Script]
@@ -25,9 +25,6 @@ Aweme.js = requires-body=true,script-path=https://Choler.github.io/Surge/Script/
 # > 知乎 (By Primovist)
 http-response ^https?:\/\/api\.zhihu\.com\/(moments\?|topstory\/recommend|.*\/questions|market\/header) requires-body=1,max-size=-1,script-path=https://raw.githubusercontent.com/ydzydzydz/Rules/master/Surge/resources/script/zhihu.js
 
-# > QQ News
-http-response https://r\.inews\.qq.com\/get(QQNewsUnreadList|RecommendList) requires-body=1,max-size=-1,script-path=https://Choler.github.io/Surge/Script/QQNews.js
-
 # > 微信公众号 (By Choler)
 http-request ^https://mp\.weixin\.qq\.com/mp/getappmsgad script-path=https://Choler.github.io/Surge/Script/WeChat.js
 
@@ -42,60 +39,5 @@ tb_price.js = requires-body=1,script-path=https://raw.githubusercontent.com/yich
 # > CamScanner unlocks pro, Cloud scanning is not available.
 CamScanner.js = requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/CamScanner.js,script-update-interval=0,pattern=^https:\/\/(api|api-cs)\.intsig\.net\/purchase\/cs\/query_property\?,type=http-response
 
-# > Keep app unlock private lessons and action libraries.
-Keep.js = requires-body=1,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/Keep.js,type=http-response,pattern=^https:\/\/api\.gotokeep\.com\/(.+\/subject|.+\/dynamic)
-
-# > Luqi jiang gu shi
-http-response https:\/\/www\.luqijianggushi\.com\/api\/v2\/user\/get requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/luqi.js
-
-# > Netease kaola removes ads
-http-response ^https://sp\.kaola\.com/api/openad$ requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/wykaola.js
-
-# > VSCO unlock vip
-http-response ^https?:\/\/vsco\.co\/api\/subscriptions\/2.1\/user-subscriptions\/ requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/vsco.js
-
-# > FaceAPP
-http-response ^https?:\/\/api\.faceapp\.io(.*)\/api\/v.*\/auth\/user\/credentials requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/FaceApp.js
-
-# > PicsArt
-http-response https:\/\/api\.(picsart|meiease)\.c(n|om)\/users\/show\/me\.json requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/PicsArt.js
-
-# > Lightroom
-http-response ^https:\/\/photos\.adobe\.io\/v2\/accounts* requires-body=1,max-size=0,script-path=https://sub.jiaowoy.top/js/Lightroom.js
-
-# > inshot
-http-response https://buy.itunes.apple.com/verifyReceipt requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/Alex0510/surge/master/Script/inshot.js
-
-# > 小影
-http-response ^https:\/\/viva\.v21xy\.com\/api\/rest\/u\/vip requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/vivavideo.js
-
 # > VUE video
 http-response https:\/\/api\.vuevideo\.net\/api\/v1\/(users\/.+\/profile|subtitle\/prepare) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/VUE.js
-
-# > Splice
-http-response https:\/\/splice\.oracle\.\w+\.com\/devices\/me requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/Splice.js
-
-
-# > Youdao note unlock vip (By Alex0510)
-http-response https://note.youdao.com/yws/(mapi/payment|api/self) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/Alex0510/Eric/master/surge/Script/ydybj.js
-
-# > Termius
-Termius.js = requires-body=1,max-size=0,script-update-interval=0,pattern=https:\/\/api\.termius\.com\/api\/v3\/bulk\/account\/,type=http-response,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/Termius.js
-
-# > Baidu netdisc unlocks online video play speed.
-http-response https:\/\/pan\.baidu\.com\/rest\/2\.0\/membership\/user requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/BaiduCloud.js
-
-# > 小小影视 Unlock vip
-http-response https:\/\/ios\.xiaoxiaoapps\.com\/(vod\/reqplay\/|ucp/index|getGlobalData) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/xxys.js
-
-# > rrTV (by george Jiang)
-http-response ^https:\/\/api\.rr\.tv(\/user\/privilege\/list|\/ad\/getAll|\/rrtv-video\/v4plus\/season\/detail) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Script/rrtv.js
-
-# > DaQianShiJie Unlock
-http-response ^https:\/\/api\.mvmtv\.com\/index\.php.*(c=user.*a=info|a=addr.*vid=.*) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/dqsj.js
-
-# > 第一弹
-http-response ^https:\/\/api\.diyidan\.net\/v0\.3\/(user\/personal_homepage|vip_user\/info|tv_series\/index\?appChanne) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Script/Diyidan.js
-
-# > pear Unlock vip
-http-response ^https:\/\/m\.pearkin\.com\/(api\/Movie\/WatchMovie|api\/Account\/CheckVip|api\/account\/IndexDetail) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Script/pear.js

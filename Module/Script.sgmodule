@@ -2,7 +2,7 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com,*.amemv.com,api.zhihu.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net,api.vuevideo.net
+hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, *.snssdk.com,*.amemv.com,api.zhihu.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net,api.vuevideo.net, api.faceapp.io
 
 
 [Script]
@@ -41,3 +41,6 @@ CamScanner.js = requires-body=1,max-size=0,script-path=https://raw.githubusercon
 
 # > VUE video
 http-response https:\/\/api\.vuevideo\.net\/api\/v1\/(users\/.+\/profile|subtitle\/prepare) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/VUE.js
+
+# > FaceAPP
+http-response ^https?:\/\/api\.faceapp\.io(.*)\/api\/v.*\/auth\/user\/credentials requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/FaceApp.js

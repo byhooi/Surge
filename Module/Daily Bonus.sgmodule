@@ -46,4 +46,4 @@ cron "0 9 * * *" script-path=https://raw.githubusercontent.com/NobyDa/Script/mas
 cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wmmeituan/wmmeituan.js
 
 # 招商银行信用卡公众号
-cron 5 5 0 * * * script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Task/cmbchina.js
+cron "5 5 0 * * *" script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Task/cmbchina.js

@@ -3,7 +3,7 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,promotion.waimai.meituan.com,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com
+hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,promotion.waimai.meituan.com,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com
 
 [Script]
 # > 什么值得买
@@ -44,3 +44,9 @@ mcdd.cookie.js = script-path=https://raw.githubusercontent.com/chavyleung/script
 # 顺丰快递
 http-request ^https:\/\/sf-integral-sign-in.weixinjia.net\/app\/index script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/sfexpress/sfexpress.cookie.js
 http-request ^https:\/\/mcs-mimp-web.sf-express.com\/mcs-mimp\/share\/(.*?)Redirect script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/sfexpress/sfexpress.cookie.js
+
+# 腾讯视频
+http-request ^https:\/\/access.video.qq.com\/user\/auth_refresh script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/videoqq/videoqq.cookie.js
+
+# 芒果TV
+http-request ^https:\/\/credits.bz.mgtv.com\/user\/creditsTake script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/mgtv/mgtv.cookie.js

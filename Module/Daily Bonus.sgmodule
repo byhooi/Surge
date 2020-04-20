@@ -3,7 +3,7 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,promotion.waimai.meituan.com,daojia.jd.com,maicai.api.ddxq.mobi,sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com
+hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,promotion.waimai.meituan.com,daojia.jd.com,maicai.api.ddxq.mobi,sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com,api.1sapp.com
 
 [Script]
 # 什么值得买签到
@@ -41,3 +41,6 @@ cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scr
 
 # 芒果TV
 cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/mgtv/mgtv.js
+
+# 趣头条
+cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.js

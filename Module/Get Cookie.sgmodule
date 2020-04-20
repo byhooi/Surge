@@ -3,7 +3,7 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com,api.1sapp.com,*.iqiyi.com,promotion.waimai.meituan.com,weclub.ccc.cmbchina.com
+hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com,api.1sapp.com
 
 # 什么值得买
 # 登录: https://zhiyou.smzdm.com/user/login
@@ -61,13 +61,3 @@ http-request ^https:\/\/credits.bz.mgtv.com\/user\/creditsTake script-path=https
 http-request ^https:\/\/api\.1sapp\.com\/sign\/info? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js
 http-request ^https:\/\/api\.1sapp\.com\/content\/readV2? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js
 http-request ^https:\/\/api\.1sapp\.com\/x\/feed\/getReward? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js
-
-# 爱奇艺
-http-request https?:\/\/.*\.iqiyi\.com\/.*authcookie= script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/iQIYI-DailyBonus/iQIYI_GetCookie.js
-
-# 美团外卖
-http-request ^https:\/\/promotion.waimai.meituan.com\/playcenter\/signIn\/entry script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wmmeituan/wmmeituan.cookie.js
-http-request ^https:\/\/promotion.waimai.meituan.com\/playcenter\/signIn\/doaction script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wmmeituan/wmmeituan.cookie.js,requires-body=true
-
-# 招商银行信用卡公众号
-http-request https://weclub\.ccc\.cmbchina.com/SCRMCustomActivityFront/checkin/request/get-home-data\.json\?activityCode=checkin script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Task/cmbchina.js

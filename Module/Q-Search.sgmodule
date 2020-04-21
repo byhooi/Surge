@@ -24,7 +24,7 @@
 # zh: 知乎
 # wb: 微博
 # wx: 微信
-
+# zdm: 什么值得买
 # jd: 京东
 # tb: 淘宝
 # tm: 天猫
@@ -65,6 +65,8 @@
 ^https:\/\/duckduckgo.com\/\?q=tw\+([^&]+).+ https://twitter.com/search?q=$1 302
 
 # > 购物
+# zdm: 什么值得买
+^https:\/\/duckduckgo.com\/\?q=zdm\+([^&]+).+ https://search.m.smzdm.com/?v=b&s=$1 302
 
 # jd : 京东
 ^https:\/\/duckduckgo.com\/\?q=jd\+([^&]+).+ https://so.m.jd.com/ware/search.action?keyword=$1 302

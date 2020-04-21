@@ -1,0 +1,94 @@
+#!name=🔍Q-Search-All in one Modified
+#!desc=Browser Search Add-ons, Modified from module by Neurogram
+#!system=ios
+
+# Q-Search 
+# Modified by nzw9314 
+# From Neurogram (https://raw.githubusercontent.com/Neurogram-R/Surge/master/module/Q-Search.sgmodule)
+
+# - Safari 内输入 命令 + 空格 + 关键词 快速指定搜索引擎搜索
+
+#  注：先进入设置更改 Safari 默认搜索为 DuckDuckGO
+
+# 可自行修改指令或者添加搜索引擎
+
+# gh：GitHub 搜索
+# gm：Google 图片搜索
+
+
+# trc: Google 译至中
+# tre: Google 译至英
+
+
+# db：豆瓣搜索
+# zh: 知乎
+# wb: 微博
+# wx: 微信
+
+# jd: 京东
+# tb: 淘宝
+# tm: 天猫
+
+# ytb: YouTube
+ 
+# bd：百度搜索
+# 无指令则转 Google 搜索
+
+[URL Rewrite]
+
+#gm   (Google图片)
+^https:\/\/duckduckgo.com\/\?q=gm\+([^&]+).+ https://www.google.com/search?&tbm=isch&q=$1 302
+# gh   (GitHub)
+^https:\/\/duckduckgo.com\/\?q=gh\+([^&]+).+ https://github.com/search?q=$1 302
+
+# > 翻译
+# trc  (Google 译至中)
+^https:\/\/duckduckgo.com\/\?q=trc\+([^&]+).+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=$1 302
+
+# tre  (Google 译至英)
+^https:\/\/duckduckgo.com\/\?q=tre\+([^&]+).+ https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=$1 302
+
+# 社区
+# db：豆瓣
+^https:\/\/duckduckgo.com\/\?q=db\+([^&]+).+ https://m.douban.com/search/?query=$1 302
+
+# zh: 知乎
+^https:\/\/duckduckgo.com\/\?q=zh\+([^&]+).+ https://www.zhihu.com/search?type=content&q=$1 302
+
+# wb: 微博
+^https:\/\/duckduckgo.com\/\?q=wb\+([^&]+).+ https://s.weibo.com/weibo/$1 302
+
+# wx: 微信
+^https:\/\/duckduckgo.com\/\?q=wx\+([^&]+).+ https://weixin.sogou.com/weixinwap?query=$1 302
+
+# tw (Twitter)
+^https:\/\/duckduckgo.com\/\?q=tw\+([^&]+).+ https://twitter.com/search?q=$1 302
+
+# > 购物
+
+# jd : 京东
+^https:\/\/duckduckgo.com\/\?q=jd\+([^&]+).+ https://so.m.jd.com/ware/search.action?keyword=$1 302
+
+# tb: 淘宝
+^https:\/\/duckduckgo.com\/\?q=tb\+([^&]+).+ https://s.m.taobao.com/h5?q=$1 302
+
+# tm: 天猫
+^https:\/\/duckduckgo.com\/\?q=tm\+([^&]+).+ https://s.m.tmall.com/m/search.htm?q=$1 302
+
+# 视频资源
+
+# ytb  (YouTube)
+^https:\/\/duckduckgo.com\/\?q=ytb\+([^&]+).+ https://www.youtube.com/results?search_query=$1 302
+
+
+# 默认搜索
+
+# bd: 百度
+^https:\/\/duckduckgo.com\/\?q=bd\+([^&]+).+ https://www.baidu.com/s?wd=$1 302
+
+# 无指令: 谷歌
+^https:\/\/duckduckgo.com\/\?q=([^&]+).+ https://www.google.com/search?q=$1 302
+
+
+[MITM]
+hostname = %APPEND% duckduckgo.com

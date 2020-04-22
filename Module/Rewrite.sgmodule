@@ -2,7 +2,7 @@
 #!desc=URL Rewrite(302 Redirect & Ad Block). 仅会解密这里指定的主机名 - 默认发往 433 端口上的请求执行 MitM 解密，您任然需要配置 CA 证书并启用 MitM 开关。
 
 [MITM]
-hostname= %APPEND% *.musical.ly,*.tiktokv.com,*.byteoversea.com,*.snssdk.com,acs.m.taobao.com,m*.amap.com,act.vip.iqiyi.com,iface.iqiyi.com,api.chelaile.net.cn,pic*.chelaile.net.cn,atrace.chelaile.net.cn,atrace.chelaile.net.cn,bdsp-x.jd.com,dsp-x.jd.com,ms.jr.jd.com,api.yangkeduo.com,api.smzdm.com,app-api.smzdm.com,s*.zdmimg.com,business-cdn.shouji.sogou.com, api.xiachufang.com, app.mixcapp.com,app.yinxiang.com,pic1cdn.cmbchina.com,m.client.10010.com
+hostname= %APPEND% *.musical.ly,*.tiktokv.com,*.byteoversea.com,*.snssdk.com,acs.m.taobao.com,m*.amap.com,api.chelaile.net.cn,pic*.chelaile.net.cn,atrace.chelaile.net.cn,atrace.chelaile.net.cn,bdsp-x.jd.com,dsp-x.jd.com,ms.jr.jd.com,api.yangkeduo.com,api.smzdm.com,app-api.smzdm.com,s*.zdmimg.com,business-cdn.shouji.sogou.com, api.xiachufang.com, app.mixcapp.com,app.yinxiang.com,pic1cdn.cmbchina.com,m.client.10010.com
 
 [URL Rewrite]
 # Redirect Google Search Service
@@ -24,12 +24,6 @@ hostname= %APPEND% *.musical.ly,*.tiktokv.com,*.byteoversea.com,*.snssdk.com,acs
 
 # >> 高德地图
 ^https?:\/\/m\d\.amap\.com\/ws\/valueadded\/alimama\/splash_screen\/ - reject
-
-# >> 爱奇艺
-^https?:\/\/iface\.iqiyi\.com\/api\/getNewAdInfo - reject
-^https?:\/\/.+\/(mixer|track2)\? - reject
-^https?:\/\/act\.vip\.iqiyi\.com\/interact\/api\/show.do - reject
-^https?:\/\/act\.vip\.iqiyi\.com\/interact\/api\/v2\/show - reject
 
 # > 车来了
 ^https?:\/\/api\.chelaile\.net\.cn\/adpub\/ - reject

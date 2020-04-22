@@ -2,7 +2,7 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com,*.amemv.com, *.musical.ly,api.zhihu.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net,api.vuevideo.net
+hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com, api*.tiktokv.com,*.amemv.com, *.musical.ly,api.zhihu.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net,api.vuevideo.net
 
 [Script]
 # Remove Ads + Unlock Premium.

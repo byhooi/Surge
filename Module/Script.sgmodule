@@ -2,7 +2,7 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com,*.amemv.com,api.zhihu.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net,api.vuevideo.net
+hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com,*.amemv.com,api.zhihu.com, mp.weixin.qq.com, api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net,api.vuevideo.net,i.weread.qq.com
 
 [Script]
 # Remove Ads + Unlock Premium.
@@ -36,3 +36,6 @@ CamScanner.js = requires-body=1,max-size=0,script-path=https://raw.githubusercon
 
 # > VUE video
 http-response https:\/\/api\.vuevideo\.net\/api\/v1\/(users\/.+\/profile|subtitle\/prepare) requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/VUE.js
+
+# 微信读书
+weixinyuedu.js = type=http-response,pattern="^https?:\/\/i\.weread\.qq\.com\/pay\/memberCardSummary",requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/imxh/js/master/weixinyuedu.js,script-update-interval=0

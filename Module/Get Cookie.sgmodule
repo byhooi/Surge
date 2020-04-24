@@ -3,7 +3,7 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com
+hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com,api.1sapp.com
 
 [Script]
 # 什么值得买
@@ -57,3 +57,8 @@ http-request ^https:\/\/credits.bz.mgtv.com\/user\/creditsTake script-path=https
 
 # 爱奇艺
 http-request https?:\/\/.*\.iqiyi\.com\/.*authcookie= script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/iQIYI-DailyBonus/iQIYI_GetCookie.js
+
+# > 趣头条
+http-request ^https:\/\/api\.1sapp\.com\/sign\/info? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js
+http-request ^https:\/\/api\.1sapp\.com\/content\/readV2? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js
+http-request ^https:\/\/api\.1sapp\.com\/x\/feed\/getReward? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js

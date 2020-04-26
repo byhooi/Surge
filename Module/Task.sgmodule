@@ -40,4 +40,4 @@ cron "11 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scrip
 cron "12 0 * * *" script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/iQIYI-DailyBonus/iQIYI_DailyBonus.js
 
 # 趣头条
-cron "* */60 * * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.js
+cron "32/60 * * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.js

@@ -1,9 +1,9 @@
 #!name=Get Cookie
-#!desc=签到脚本获取 Cookie. 您可以在使用后将其禁用，以免产生不必要的 MitM.
+#!desc=签到脚本获取 Cookie. 
 #!system=ios
 
 [MITM]
-hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com,api.1sapp.com
+hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net, mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com
 
 [Script]
 # 什么值得买
@@ -43,9 +43,10 @@ mcdd.cookie.js = script-path=https://raw.githubusercontent.com/chavyleung/script
 
 # 顺丰快递
 # 打开 APP, 访问下`我的顺丰` > `去签到` (访问下`去签到`的页面即可, 不用点`签到`)
-# 打开 APP或小程序, 访问下`27周年庆`
+# 打开APP,访问下27周年
 http-request ^https:\/\/sf-integral-sign-in.weixinjia.net\/app\/index script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/sfexpress/sfexpress.cookie.js
 http-request ^https:\/\/mcs-mimp-web.sf-express.com\/mcs-mimp\/share\/(.*?)Redirect script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/sfexpress/sfexpress.cookie.js
+
 
 # 腾讯视频
 # 手机浏览器访问并登录: https://film.qq.com/
@@ -57,8 +58,3 @@ http-request ^https:\/\/credits.bz.mgtv.com\/user\/creditsTake script-path=https
 
 # 爱奇艺
 http-request https?:\/\/.*\.iqiyi\.com\/.*authcookie= script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/iQIYI-DailyBonus/iQIYI_GetCookie.js
-
-# > 趣头条
-http-request ^https:\/\/api\.1sapp\.com\/sign\/info? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js
-http-request ^https:\/\/api\.1sapp\.com\/content\/readV2? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js
-http-request ^https:\/\/api\.1sapp\.com\/x\/feed\/getReward? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/qtt/qtt.cookie.js

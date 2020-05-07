@@ -3,7 +3,7 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net,mcs-mimp-web.sf-express.com,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com,*.bilibili.com
+hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com,*.bilibili.com
 
 [Script]
 # 什么值得买
@@ -14,9 +14,9 @@ smzdm.cookie.js = type=http-request,pattern=^https:\/\/www\.smzdm\.com\/?.?,scri
 # > 中国联通
 # 打开 APP , 进入签到页面, 系统提示: `获取刷新链接: 成功`,然后手动签到 1 次
 # 首页>天天抽奖, 系统提示 `2` 次: `获取Cookie: 成功 (登录抽奖)` 和 `获取Cookie: 成功 (抽奖次数)`
-10010.cookie.js = type=http-request,pattern=^https:\/\/act.10010.com\/SigninApp\/signin\/querySigninActivity.htm,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
-10010.cookie.js = type=http-request,pattern=^https:\/\/act.10010.com\/SigninApp(.*?)\/signin\/daySign.do,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
-10010.cookie.js = type=http-request,pattern=^https:\/\/m.client.10010.com\/dailylottery\/static\/(textdl\/userLogin|active\/findActivityInfo),script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
+http-request ^https:\/\/act.10010.com\/SigninApp\/signin\/querySigninActivity.htm script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
+http-request ^https:\/\/act.10010.com\/SigninApp(.*?)\/signin\/daySign script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
+http-request ^https:\/\/m.client.10010.com\/dailylottery\/static\/(textdl\/userLogin|active\/findActivityInfo) script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
 
 # > 京东
 # 浏览器登录 https://bean.m.jd.com 点击签到并且出现签到日历
@@ -43,9 +43,7 @@ mcdd.cookie.js = script-path=https://raw.githubusercontent.com/chavyleung/script
 
 # 顺丰快递
 # 打开 APP, 访问下`我的顺丰` > `去签到` (访问下`去签到`的页面即可, 不用点`签到`)
-# 打开APP,访问下27周年
 http-request ^https:\/\/sf-integral-sign-in.weixinjia.net\/app\/index script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/sfexpress/sfexpress.cookie.js
-http-request ^https:\/\/mcs-mimp-web.sf-express.com\/mcs-mimp\/share\/(.*?)Redirect script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/sfexpress/sfexpress.cookie.js
 
 # 腾讯视频
 # 手机浏览器访问并登录: https://film.qq.com/

@@ -28,8 +28,8 @@ http-request ^https://mp\.weixin\.qq\.com/mp/getappmsgad script-path=https://Cho
 jd_price.js = requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/jd_price.js,script-update-interval=0,pattern=^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig),type=http-response
 
 # > Display taobao historical price
-tb_price.js = requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js,pattern=^https?://amdc\.m\.taobao\.com/amdc/mobileDispatch,type=http-response
-tb_price.js = requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js,pattern=^https://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail,type=http-response
+http-request ^http://.+/amdc/mobileDispatch requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
+http-response ^https?://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
 
 # > CamScanner unlocks pro, Cloud scanning is not available.
 CamScanner.js = requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/CamScanner.js,script-update-interval=0,pattern=^https:\/\/(api|api-cs)\.intsig\.net\/purchase\/cs\/query_property\?,type=http-response

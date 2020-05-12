@@ -1,5 +1,5 @@
 #!name=Rewrite
-#!desc=URL Rewrite(302 Redirect & Ad Block). 
+#!desc=URL Rewrite
 
 [MITM]
 hostname= %APPEND% *.musical.ly,*.tiktokv.com,*.byteoversea.com,*.snssdk.com,acs.m.taobao.com,m*.amap.com,api.chelaile.net.cn,pic*.chelaile.net.cn,atrace.chelaile.net.cn,atrace.chelaile.net.cn,bdsp-x.jd.com,dsp-x.jd.com,ms.jr.jd.com,api.yangkeduo.com,api.smzdm.com,app-api.smzdm.com,s*.zdmimg.com,business-cdn.shouji.sogou.com, api.xiachufang.com, app.mixcapp.com,app.yinxiang.com,pic1cdn.cmbchina.com,m.client.10010.com
@@ -10,8 +10,8 @@ hostname= %APPEND% *.musical.ly,*.tiktokv.com,*.byteoversea.com,*.snssdk.com,acs
 
 # tiktok
 (?<=_region=)CN(?=&) TW 307
-(?<=&app_version=)15..(?=.?.?&) 1 307
-(?<=\?version_code=)15..(?=.?.?&) 1 307
+(?<=&app_version=)16..(?=.?.?&) 1 307
+(?<=\?version_code=)16..(?=.?.?&) 1 307
 
 # >> 闲鱼
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idle\.home\.welcome\/ - reject

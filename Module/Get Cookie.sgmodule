@@ -5,6 +5,7 @@
 [MITM]
 hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,www.52pojie.cn, activity-1.m.duiba.com.cn,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com
 
+
 [Script]
 # 什么值得买
 # 登录: https://zhiyou.smzdm.com/user/login

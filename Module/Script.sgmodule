@@ -2,22 +2,11 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %INSERT% *.googlevideo.com,api.weibo.cn, mapi.weibo.com, *.uve.weibo.com,*.amemv.com,api.zhihu.com,api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net
+hostname = %INSERT% *.googlevideo.com,api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net
 
 [Script]
 # > YouTube 
-YouTube.js = script-path=https://Choler.github.io/Surge/Script/YouTube.js,pattern=^https://[\s\S]*\.googlevideo\.com/.*&(oad|ctier),type=http-request
-
-# > 微博 (By yichahucha)
-wb_ad.js = requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/wb_ad.js,pattern=^https?://m?api\.weibo\.c(n|om)/2/(statuses/(unread|extend|positives/get|(friends|video)(/|_)timeline)|stories/(video_stream|home_list)|(groups|fangle)/timeline|profile/statuses|comments/build_comments|photo/recommend_list|service/picfeed|searchall|cardlist|page|\!/photos/pic_recommend_status),type=http-response
-wb_launch.js = requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/wb_launch.js,pattern=^https?://(sdk|wb)app\.uve\.weibo\.com(/interface/sdk/sdkad.php|/wbapplua/wbpullad.lua),type=http-response
-
-# > 抖音
-Aweme.js = type=http-request,pattern="^https?:\/\/.*\.amemv\.com\/aweme\/v.*\/(feed|post)",script-path=https://Choler.github.io/Surge/Script/Aweme.js,script-update-interval=0
-Aweme.js = type=http-response,pattern="^https?:\/\/.*\.amemv\.com\/aweme\/v.*\/(feed|post)",requires-body=1,max-size=0,script-path=https://Choler.github.io/Surge/Script/Aweme.js,script-update-interval=0
-
-# > 知乎 (By Primovist)
-http-response ^https?:\/\/api\.zhihu\.com\/(moments\?|topstory\/recommend|.*\/questions|market\/header) requires-body=1,max-size=-1,script-path=https://raw.githubusercontent.com/ydzydzydz/Rules/master/Surge/resources/script/zhihu.js
+YouTubeAds = type=http-request,pattern=^https?:\/\/[\s\S]*\.googlevideo\.com\/.*&(oad|ctier),script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/YouTube.js
 
 # > Display jd historical price
 jd_price.js = requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/jd_price.js,script-update-interval=0,pattern=^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig),type=http-response

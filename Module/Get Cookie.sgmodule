@@ -3,20 +3,15 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% *.smzdm.com, act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net,*.video.qq.com,credits.bz.mgtv.com, *.iqiyi.com,webapi.qmai.cn,wx-mini.pagoda.com.cn,superapp.kiwa-tech.com, activity-1.m.duiba.com.cn
+hostname = %APPEND% act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net,*.video.qq.com,credits.bz.mgtv.com,*.iqiyi.com,webapi.qmai.cn,superapp.kiwa-tech.com, activity-1.m.duiba.com.cn,*.m.163.com,music.163.com,*.rrys2020.com, ios.zmzapi.com,*.v2ex.com,*.smzdm.com,music.163.com
 
 [Script]
-# 什么值得买
-# 登录: https://zhiyou.smzdm.com/user/login
-# 打开浏览器访问: https://www.smzdm.com
-smzdm.cookie.js = type=http-request,pattern=^https:\/\/www\.smzdm\.com\/?.?,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/smzdm/smzdm.cookie.js
-
 # > 中国联通
 # 打开 APP , 进入签到页面, 系统提示: `获取刷新链接: 成功`,然后手动签到 1 次
 # 首页>天天抽奖, 系统提示 `2` 次: `获取Cookie: 成功 (登录抽奖)` 和 `获取Cookie: 成功 (抽奖次数)`
-http-request ^https:\/\/act.10010.com\/SigninApp\/signin\/querySigninActivity.htm script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
-http-request ^https:\/\/act.10010.com\/SigninApp(.*?)\/signin\/daySign script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
-http-request ^https:\/\/m.client.10010.com\/dailylottery\/static\/(textdl\/userLogin|active\/findActivityInfo) script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
+http-request ^https?:\/\/act.10010.com\/SigninApp\/signin\/querySigninActivity.htm script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
+http-request ^https?:\/\/act.10010.com\/SigninApp(.*?)\/signin\/daySign script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
+http-request ^https?:\/\/m.client.10010.com\/dailylottery\/static\/(textdl\/userLogin|active\/findActivityInfo) script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
 
 # > 京东
 # 浏览器登录 https://bean.m.jd.com 点击签到并且出现签到日历
@@ -52,9 +47,18 @@ http-request ^https:\/\/credits.bz.mgtv.com\/user\/creditsTake script-path=https
 # 奈雪
 http-request ^https:\/\/webapi\.qmai\.cn\/web\/cy\/v\d\/store\/template-scene script-path=https://raw.githubusercontent.com/zZPiglet/Task/master/Naixue/Naixue.js
 
-# 百果园
-百果园cookie = type=http-request,pattern=^https:\/\/wx-mini.pagoda.com.cn\/api\/v1\/wxmini\/signIn\/customer,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/pagoda/pagoda.cookie.js
+# 网易新闻
+http-request ^https:\/\/(.*?)c\.m\.163\.com\/uc\/api\/sign\/v3\/commit script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/neteasenews/neteasenews.cookie.js,requires-body=true
 
-# 海底捞
-http-request ^https:\/\/superapp\.kiwa-tech\.com\/app\/coupon\/customerLevelShow requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/zZPiglet/Task/master/Haidilao/Haidilao.js
-http-request ^https:\/\/activity-1\.m\.duiba\.com\.cn\/signactivity\/getSignInfo script-path=https://raw.githubusercontent.com/zZPiglet/Task/master/Haidilao/Haidilao.js
+# 字幕组
+http-request ^https?:\/\/(www\.)?rrys2020\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zimuzu/zimuzu.cookie.js
+http-request ^http:\/\/ios.zmzapi.com\/index.php.*a=(mobile_)?login script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zimuzu/zimuzu.cookie.js
+
+# v2ex
+http-request ^https:\/\/www\.v2ex\.com\/mission\/daily script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/v2ex/v2ex.cookie.js
+
+# 什么值得买
+http-request ^https:\/\/www\.smzdm\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/smzdm/smzdm.cookie.js
+
+# 网易云音乐
+http-request ^https:\/\/music.163.com\/weapi\/user\/level script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/neteasemusic/neteasemusic.cookie.js,requires-body=true

@@ -3,7 +3,7 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net,*.video.qq.com,credits.bz.mgtv.com,*.iqiyi.com,webapi.qmai.cn,superapp.kiwa-tech.com, activity-1.m.duiba.com.cn,*.m.163.com,music.163.com,*.rrys2020.com, ios.zmzapi.com,*.v2ex.com,*.smzdm.com,music.163.com
+hostname = %APPEND% act.10010.com, m.client.10010.com, api.m.jd.com, h5.ele.me,daojia.jd.com,maicai.api.ddxq.mobi, sf-integral-sign-in.weixinjia.net,*.video.qq.com,credits.bz.mgtv.com,ifac*.iqiyi.com,webapi.qmai.cn,*.rrys2020.com, ios.zmzapi.com,*.v2ex.com,*.smzdm.com
 
 [Script]
 # > 中国联通
@@ -42,13 +42,10 @@ http-request ^https:\/\/access.video.qq.com\/user\/auth_refresh script-path=http
 http-request ^https:\/\/credits.bz.mgtv.com\/user\/creditsTake script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/mgtv/mgtv.cookie.js
 
 # 爱奇艺
-爱奇艺获取Cookie = type=http-request,pattern=https?:\/\/.*\.iqiyi\.com\/.*authcookie=,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/iQIYI-DailyBonus/iQIYI.js
+爱奇艺获取Cookie = type=http-request,pattern=^https?:\/\/iface(\d)?\.iqiyi\.com\/,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/iQIYI-DailyBonus/iQIYI.js
 
 # 奈雪
 http-request ^https:\/\/webapi\.qmai\.cn\/web\/cy\/v\d\/store\/template-scene script-path=https://raw.githubusercontent.com/zZPiglet/Task/master/Naixue/Naixue.js
-
-# 网易新闻
-http-request ^https:\/\/(.*?)c\.m\.163\.com\/uc\/api\/sign\/v3\/commit script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/neteasenews/neteasenews.cookie.js,requires-body=true
 
 # 字幕组
 http-request ^https?:\/\/(www\.)?rrys2020\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zimuzu/zimuzu.cookie.js
@@ -59,6 +56,3 @@ http-request ^https:\/\/www\.v2ex\.com\/mission\/daily script-path=https://raw.g
 
 # 什么值得买
 http-request ^https:\/\/www\.smzdm\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/smzdm/smzdm.cookie.js
-
-# 网易云音乐
-http-request ^https:\/\/music.163.com\/weapi\/user\/level script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/neteasemusic/neteasemusic.cookie.js,requires-body=true

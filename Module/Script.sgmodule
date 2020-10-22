@@ -2,12 +2,9 @@
 #!desc=HTTP Script Module.
 
 [MITM]
-hostname = %INSERT% *.googlevideo.com,api.m.jd.com, trade-acs.m.taobao.com, ap*.intsig.net
+hostname = %INSERT% api.m.jd.com,trade-acs.m.taobao.com,ap*.intsig.net
 
 [Script]
-# > YouTube 
-YouTubeAds = type=http-request,pattern=^https?:\/\/[\s\S]*\.googlevideo\.com\/.*&(oad|ctier),script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/YouTube.js
-
 # > Display jd historical price
 http-response ^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig|basicConfig) requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/jd_price.js
 

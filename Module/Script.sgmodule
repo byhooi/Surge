@@ -1,0 +1,16 @@
+#!name=Script
+#!desc=HTTP Script Module.
+
+[MITM]
+hostname = %INSERT% api.m.jd.com,trade-acs.m.taobao.com,ap*.intsig.net
+
+[Script]
+# > Display jd historical price
+http-response ^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig|basicConfig) requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/jd_price.js
+
+# > Display taobao historical price
+http-request ^http://.+/amdc/mobileDispatch requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
+http-response ^https?://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
+
+# > CamScanner unlocks pro, Cloud scanning is not available.
+CamScanner.js = requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/CamScanner.js,script-update-interval=0,pattern=^https:\/\/(api|api-cs)\.intsig\.net\/purchase\/cs\/query_property\?,type=http-response

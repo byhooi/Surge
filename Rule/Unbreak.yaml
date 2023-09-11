@@ -1,22 +1,23 @@
-# NAME: Unbreak
-# AUTHOR: byhooi
-# REPO: https://github.com/byhooi/Surge/Rule
-# UPDATED: 2023-9-11
-
+# Unbreak
 payload:
-  - DOMAIN-SUFFIX,ai.com
-  - DOMAIN-SUFFIX,auth0.com
-  - DOMAIN-SUFFIX,challenges.cloudflare.com
-  - DOMAIN-SUFFIX,client-api.arkoselabs.com
-  - DOMAIN-SUFFIX,events.statsigapi.net
-  - DOMAIN-SUFFIX,featuregates.org
-  - DOMAIN-SUFFIX,identrust.com
-  - DOMAIN-SUFFIX,intercom.io
-  - DOMAIN-SUFFIX,intercomcdn.com
-  - DOMAIN-SUFFIX,poe.com
-  - DOMAIN-SUFFIX,sentry.io
-  - DOMAIN-SUFFIX,stripe.com
-  - DOMAIN-KEYWORD,openai
+  # > Google
+  - DOMAIN-SUFFIX,blog.google
+  - DOMAIN-SUFFIX,googletraveladservices.com
+  - DOMAIN,clientservices.googleapis.com
+  - DOMAIN,dl.google.com
+  - DOMAIN,dl.l.google.com
+  - DOMAIN,update.googleapis.com
+  # >> Firebase Cloud Messaging
+  - DOMAIN,mtalk.google.com
+  - DOMAIN,alt1-mtalk.google.com
+  - DOMAIN,alt2-mtalk.google.com
+  - DOMAIN,alt3-mtalk.google.com
+  - DOMAIN,alt4-mtalk.google.com
+  - DOMAIN,alt5-mtalk.google.com
+  - DOMAIN,alt6-mtalk.google.com
+  - DOMAIN,alt7-mtalk.google.com
+  - DOMAIN,alt8-mtalk.google.com
+  # >> Cupfox
   - DOMAIN-SUFFIX,cupfox.app
   - DOMAIN-SUFFIX,hdmoli.com
   - DOMAIN-SUFFIX,xiaoluys.me

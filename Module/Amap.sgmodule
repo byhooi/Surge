@@ -1,0 +1,12 @@
+#!name=高德打车
+#!desc=高德打车自动签到
+#!system=ios
+
+[MITM]
+hostname = %APPEND% *.amap.com
+
+[Script]
+# >高德打车签到
+高德打车 = type=cron,cronexp=19 9 * * *,script-path=https://raw.githubusercontent.com/wf021325/qx/master/task/ampDache.js,timeout=60,wake-system=1,script-update-interval=0
+
+高德打车获取Cookie = type=http-response,pattern=^https:\/\/m5(-zb)?\.amap\.com\/ws\/yuece\/(act|openapi)\/(activity\/current\/)?query,requires-body=1,script-path=https://raw.githubusercontent.com/wf021325/qx/master/task/ampDache.js

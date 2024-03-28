@@ -3,9 +3,9 @@
 #!system=ios
 
 [MITM]
-hostname = %APPEND% auth.aliyundrive.com
+hostname = %APPEND% auth.alipan.com
 
 [Script]
 # > 阿里云盘签到
-https://auth.aliyundrive.com/v2/account/token
-阿里云盘签到cookie = requires-body=1,type=http-response,pattern=https:\/\/auth.aliyundrive.com\/v2\/account\/token,script-path=https://raw.githubusercontent.com/lowking/Scripts/master/ali/aliYunPanCheckIn.js
+https://auth.alipan.com/v2/account/token
+阿里云盘签到cookie = requires-body=1,type=http-response,pattern=https:\/\/auth.(aliyundrive|alipan).com\/v2\/account\/token,script-path=https://raw.githubusercontent.com/lowking/Scripts/master/ali/aliYunPanCheckIn.js

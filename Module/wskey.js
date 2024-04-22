@@ -1,16 +1,13 @@
- */
-
 const $ = new Env('京东 WSKEY');
 $.jd_tempKey = 'jd_temp', $.wskeyKey = 'wskeyList';  // 缓存键名
+$.is_debug = $.getdata('is_debug') || 'false';  // 调试模式
 $.Messages = [], $.cookie = '';  // 初始化数据
 
 // 脚本执行入口
 !(async () => {
   if (typeof $request !== `undefined`) {
     await GetCookie();
-    if ($.cookie && $.autoSubmit != 'false') {
-      await SubmitCK();
-    } else if ($.cookie) {
+    if ($.cookie) {
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
       $.setjson($.wskeyList, $.wskeyKey);  // 写入数据持久化
     }
@@ -63,10 +60,6 @@ async function GetCookie() {
       // 使用 find() 方法找到与 pin 匹配的对象，以新增或更新用户 WSKEY
       const user = $.wskeyList.find(user => user.userName === $.jd_temp['pin']);
       if (user) {
-        if (user.cookie == $.cookie) {
-          $.log(`⚠️ 当前 WSKEY 与缓存一致, 结束运行。`);
-          $.done();  // WSKEY 无变化结束运行
-        }
         $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
         user.cookie = $.cookie;
       } else {
@@ -77,6 +70,42 @@ async function GetCookie() {
   } catch (e) {
     $.log("❌ 用户数据获取失败"), $.log(e);
   }
+}
+
+// 发送消息
+async function sendMsg(message) {
+  if (!message) return;
+  try {
+    if ($.isNode()) {
+      try {
+        var notify = require('./sendNotify');
+      } catch (e) {
+        var notify = require('./utils/sendNotify');
+      }
+      await notify.sendNotify($.name, message);
+    } else {
+      $.msg($.name, '', message);
+    }
+  } catch (e) {
+    $.log(`\n\n----- ${$.name} -----\n${message}`);
+  }
+}
+
+/**
+ * 对象属性转小写
+ * @param {object} obj - 传入 $request.headers
+ * @returns {object} 返回转换后的对象
+ */
+function ObjectKeys2LowerCase(obj) {
+  const _lower = Object.fromEntries(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]))
+  return new Proxy(_lower, {
+    get: function (target, propKey, receiver) {
+      return Reflect.get(target, propKey.toLowerCase(), receiver)
+    },
+    set: function (target, propKey, value, receiver) {
+      return Reflect.set(target, propKey.toLowerCase(), value, receiver)
+    }
+  })
 }
 
 /**

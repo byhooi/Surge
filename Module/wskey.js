@@ -1,24 +1,28 @@
 const $ = new Env('京东 WSKEY');
 $.jd_tempKey = 'jd_temp', $.wskeyKey = 'wskeyList';  // 缓存键名
 $.is_debug = $.getdata('is_debug') || 'false';  // 调试模式
-$.autoSubmit = $.getdata('WSKEY_AUTO_UPLOAD') || 'true';  // 是否自动提交
+$.chat_id = $.getdata('WSKEY_TG_USER_ID') || '';  // TG CHAT ID
+$.bot_token = $.getdata('WSKEY_TG_BOT_TOKEN') || '';  // TG Robot Token
+$.autoSubmit = $.getdata('WSKEY_AUTO_UPLOAD') || 'false';  // 是否自动提交
 $.Messages = [], $.cookie = '';  // 初始化数据
 
 // 脚本执行入口
 !(async () => {
   if (typeof $request !== `undefined`) {
     await GetCookie();
-    if ($.cookie) {
+    if ($.cookie && $.autoSubmit != 'false') {
+      await SubmitCK();
+    } else if ($.cookie) {
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
       $.setjson($.wskeyList, $.wskeyKey);  // 写入数据持久化
-      await sendMsg($.Messages.join('\n').trimStart().trimEnd());  // 推送通知
     }
   }
 })()
   .catch((e) => $.Messages.push(e.message || e) && $.logErr(e))
-  .finally(() => {
+  .finally(async () => {
+    await sendMsg($.Messages.join('\n').trimStart().trimEnd());  // 推送通知
     $.done();
-  });
+  })
 
 // 获取用户数据
 async function GetCookie() {
@@ -77,13 +81,120 @@ async function GetCookie() {
   }
 }
 
+// 提交 WSKEY
+async function SubmitCK() {
+  let msg = '';
+  // 构造请求
+  let options = {
+    url: "",
+    body: `text=${$.cookie}`
+  };
+  if ($.bot_token && $.chat_id) { 
+    options['url'] += '?' + $.queryStr({
+      bot_token: $.bot_token,
+      chat_id: $.chat_id,
+    });
+  }
+
+  // 发起请求
+  var result = await Request(options);
+  if (result?.ok) {
+    msg += `🎉 WSKEY 提交成功。\n${$.cookie}`;
+    $.setjson($.wskeyList, $.wskeyKey);  // 写入数据持久化
+  } else if (result?.error_code === 400) {
+    msg += `⚠️ Telegram bot 无发送消息权限。\n${$.cookie}`;
+  } else if (result?.error_code === 401) {
+    msg += `⚠️ Telegram bot token 填写错误。\n${$.cookie}`;
+  } else {
+    msg += `❌ WSKEY 提交失败, 请稍后重试。\n${$.cookie}`;
+    $.log($.toStr(result));
+  }
+
+  $.Messages.push(msg), $.log(msg);
+}
+
+/**
+ * 对象属性转小写
+ * @param {object} obj - 传入 $request.headers
+ * @returns {object} 返回转换后的对象
+ */
+function ObjectKeys2LowerCase(obj) {
+  const _lower = Object.fromEntries(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]))
+  return new Proxy(_lower, {
+    get: function (target, propKey, receiver) {
+      return Reflect.get(target, propKey.toLowerCase(), receiver)
+    },
+    set: function (target, propKey, value, receiver) {
+      return Reflect.set(target, propKey.toLowerCase(), value, receiver)
+    }
+  })
+}
+
+/**
+ * 请求函数二次封装
+ * @param {(object|string)} options - 构造请求内容，可传入对象或 Url
+ * @returns {(object|string)} - 根据 options['respType'] 传入的 {status|headers|rawBody} 返回对象或字符串，默认为 body
+ */
+async function Request(options) {
+  try {
+    options = options.url ? options : { url: options };
+    const _method = options?._method || ('body' in options ? 'post' : 'get');
+    const _respType = options?._respType || 'body';
+    const _timeout = options?._timeout || 15e3;
+    const _http = [
+      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options['url']}`), _timeout)),
+      new Promise((resolve, reject) => {
+        debug(options, '[Request]');
+        $[_method.toLowerCase()](options, (error, response, data) => {
+          debug(response, '[response]');
+          error && $.log($.toStr(error));
+          if (_respType !== 'all') {
+            resolve($.toObj(response?.[_respType], response?.[_respType]));
+          } else {
+            resolve(response);
+          }
+        })
+      })
+    ];
+    return await Promise.race(_http);
+  } catch (err) {
+    $.logErr(err);
+  }
+}
+
 // 发送消息
 async function sendMsg(message) {
   if (!message) return;
   try {
-    $.msg($.name, '', message);
+    if ($.isNode()) {
+      try {
+        var notify = require('./sendNotify');
+      } catch (e) {
+        var notify = require('./utils/sendNotify');
+      }
+      await notify.sendNotify($.name, message);
+    } else {
+      $.msg($.name, '', message);
+    }
   } catch (e) {
     $.log(`\n\n----- ${$.name} -----\n${message}`);
+  }
+}
+
+/**
+ * DEBUG
+ * @param {*} content - 传入内容
+ * @param {*} title - 标题
+ */
+function debug(content, title = "debug") {
+  let start = `\n----- ${title} -----\n`;
+  let end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
+  if ($.is_debug === 'true') {
+    if (typeof content == "string") {
+      $.log(start + content + end);
+    } else if (typeof content == "object") {
+      $.log(start + $.toStr(content) + end);
+    }
   }
 }
 

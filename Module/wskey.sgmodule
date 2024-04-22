@@ -1,5 +1,5 @@
-#!name=比价
-#!desc=京东历史价格
+#!name=get wskey
+#!desc=京东wskey
 
 [Script]
 # > 京东比价

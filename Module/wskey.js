@@ -1,4 +1,6 @@
-const $ = new Env('京东 WSKEY');
+*/
+ 
+ const $ = new Env('京东 WSKEY');
 $.jd_tempKey = 'jd_temp', $.wskeyKey = 'wskeyList';  // 缓存键名
 $.is_debug = $.getdata('is_debug') || 'false';  // 调试模式
 $.Messages = [], $.cookie = '';  // 初始化数据

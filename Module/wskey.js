@@ -1,9 +1,5 @@
 const $ = new Env('京东 WSKEY');
 $.jd_tempKey = 'jd_temp', $.wskeyKey = 'wskeyList';  // 缓存键名
-$.is_debug = $.getdata('is_debug') || 'false';  // 调试模式
-$.chat_id = $.getdata('WSKEY_TG_USER_ID') || '';  // TG CHAT ID
-$.bot_token = $.getdata('WSKEY_TG_BOT_TOKEN') || '';  // TG Robot Token
-$.autoSubmit = $.getdata('WSKEY_AUTO_UPLOAD') || 'false';  // 是否自动提交
 $.Messages = [], $.cookie = '';  // 初始化数据
 
 // 脚本执行入口
@@ -81,37 +77,6 @@ async function GetCookie() {
   }
 }
 
-// 提交 WSKEY
-async function SubmitCK() {
-  let msg = '';
-  // 构造请求
-  let options = {
-    url: "",
-    body: `text=${$.cookie}`
-  };
-  if ($.bot_token && $.chat_id) { 
-    options['url'] += '?' + $.queryStr({
-      bot_token: $.bot_token,
-      chat_id: $.chat_id,
-    });
-  }
-
-  // 发起请求
-  var result = await Request(options);
-  if (result?.ok) {
-    msg += `🎉 WSKEY 提交成功。\n${$.cookie}`;
-    $.setjson($.wskeyList, $.wskeyKey);  // 写入数据持久化
-  } else if (result?.error_code === 400) {
-    msg += `⚠️ Telegram bot 无发送消息权限。\n${$.cookie}`;
-  } else if (result?.error_code === 401) {
-    msg += `⚠️ Telegram bot token 填写错误。\n${$.cookie}`;
-  } else {
-    msg += `❌ WSKEY 提交失败, 请稍后重试。\n${$.cookie}`;
-    $.log($.toStr(result));
-  }
-
-  $.Messages.push(msg), $.log(msg);
-}
 
 /**
  * 对象属性转小写

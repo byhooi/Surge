@@ -112,34 +112,62 @@ function debug(content, title = "debug") {
 }
 
 // 仅支持Surge环境
-function Env(t) {
-    return new class {
-        constructor(t) {
-            this.name = t;
-            this.logLevel = "info";
-            this.data = null;
-            this.logs = [];
-            this.startTime = (new Date).getTime();
-        }
+class Env {
+    constructor(t) {
+        this.name = t;
+        this.logLevel = "info";
+        this.data = null;
+        this.logs = [];
+        this.startTime = (new Date).getTime();
+    }
 
-        send(t, e = "GET") {
-            t = "string" == typeof t ? { url: t } : t;
-            let s = e === "POST" ? $httpClient.post : $httpClient.get;
-            return new Promise((e, o) => {
-                s.call(this, t, (t, s, r) => {
-                    t ? o(t) : e(s);
-                });
+    send(t, e = "GET") {
+        t = "string" == typeof t ? { url: t } : t;
+        let s = e === "POST" ? $httpClient.post : $httpClient.get;
+        return new Promise((e, o) => {
+            s.call(this, t, (t, s, r) => {
+                t ? o(t) : e(s);
             });
-        }
+        });
+    }
 
-        log(...t) {
-            t.length > 0 && (this.logs = [...this.logs, ...t]), console.log(t.join("\n"));
-        }
+    log(...t) {
+        t.length > 0 && (this.logs = [...this.logs, ...t]), console.log(t.join("\n"));
+    }
 
-        done(t = {}) {
-            const e = (new Date).getTime(), s = (e - this.startTime) / 1000;
-            this.log("", `🔔${this.name}, 结束! 🕛 ${s} 秒`), this.log();
-            $done(t);
-        }
-    }(t);
+    done(t = {}) {
+        const e = (new Date).getTime(), s = (e - this.startTime) / 1000;
+        this.log("", `🔔${this.name}, 结束! 🕛 ${s} 秒`), this.log();
+        $done(t);
+    }
+
+    // 添加time函数
+    time(format) {
+        const date = new Date();
+        const map = {
+            "M": date.getMonth() + 1, // 月份
+            "d": date.getDate(), // 日
+            "H": date.getHours(), // 小时
+            "m": date.getMinutes(), // 分
+            "s": date.getSeconds(), // 秒
+        };
+
+        return format.replace(/([Mdhms]+)/g, (all, t) => {
+            let v = map[t];
+            if (v !== undefined) {
+                if (all.length > 1) {
+                    v = '0' + v;
+                    v = v.substr(-2);
+                }
+                return v;
+            } else if (t === 'y') {
+                return (date.getFullYear() + '').substr(4 - all.length);
+            }
+            return all;
+        });
+    }
+}
+
+function EnvFactory(t) {
+    return new Env(t);
 }

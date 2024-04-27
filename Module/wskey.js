@@ -90,6 +90,7 @@ function ObjectKeys2LowerCase(obj) {
       return Reflect.set(target, propKey.toLowerCase(), value, receiver)
     }
   })
+}
 
 /**
  * 请求函数二次封装

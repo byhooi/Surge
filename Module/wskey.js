@@ -92,6 +92,24 @@ function ObjectKeys2LowerCase(obj) {
   })
 }
 
+/**
+ * DEBUG
+ * @param {*} content - 传入内容
+ * @param {*} title - 标题
+ */
+function debug(content, title = "debug") {
+  let start = `\n----- ${title} -----\n`;
+  let end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
+  if ($.is_debug === 'true') {
+    if (typeof content == "string") {
+      $.log(start + content + end);
+    } else if (typeof content == "object") {
+      $.log(start + $.toStr(content) + end);
+    }
+  }
+}
+
+// 简化，仅支持 Surge
 function Env(t, e) {
   return new class {
     constructor(t, e) {

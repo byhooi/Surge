@@ -6,9 +6,7 @@ $.Messages = [], $.cookie = '';  // 初始化数据
 !(async () => {
   if (typeof $request !== `undefined`) {
     await GetCookie();
-    if ($.cookie && $.autoSubmit != 'false') {
-      await SubmitCK();
-    } else if ($.cookie) {
+    if ($.cookie) {  // 检查是否成功获取到cookie
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
       $.setjson($.wskeyList, $.wskeyKey);  // 写入数据持久化
     }
@@ -18,7 +16,7 @@ $.Messages = [], $.cookie = '';  // 初始化数据
   .finally(async () => {
     await sendMsg($.Messages.join('\n').trimStart().trimEnd());  // 推送通知
     $.done();
-  })
+  });
 
 // 获取用户数据
 async function GetCookie() {
@@ -74,56 +72,6 @@ async function GetCookie() {
     }
   } catch (e) {
     $.log("❌ 用户数据获取失败"), $.log(e);
-  }
-}
-
-
-/**
- * 对象属性转小写
- * @param {object} obj - 传入 $request.headers
- * @returns {object} 返回转换后的对象
- */
-function ObjectKeys2LowerCase(obj) {
-  const _lower = Object.fromEntries(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]))
-  return new Proxy(_lower, {
-    get: function (target, propKey, receiver) {
-      return Reflect.get(target, propKey.toLowerCase(), receiver)
-    },
-    set: function (target, propKey, value, receiver) {
-      return Reflect.set(target, propKey.toLowerCase(), value, receiver)
-    }
-  })
-}
-
-/**
- * 请求函数二次封装
- * @param {(object|string)} options - 构造请求内容，可传入对象或 Url
- * @returns {(object|string)} - 根据 options['respType'] 传入的 {status|headers|rawBody} 返回对象或字符串，默认为 body
- */
-async function Request(options) {
-  try {
-    options = options.url ? options : { url: options };
-    const _method = options?._method || ('body' in options ? 'post' : 'get');
-    const _respType = options?._respType || 'body';
-    const _timeout = options?._timeout || 15e3;
-    const _http = [
-      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options['url']}`), _timeout)),
-      new Promise((resolve, reject) => {
-        debug(options, '[Request]');
-        $[_method.toLowerCase()](options, (error, response, data) => {
-          debug(response, '[response]');
-          error && $.log($.toStr(error));
-          if (_respType !== 'all') {
-            resolve($.toObj(response?.[_respType], response?.[_respType]));
-          } else {
-            resolve(response);
-          }
-        })
-      })
-    ];
-    return await Promise.race(_http);
-  } catch (err) {
-    $.logErr(err);
   }
 }
 

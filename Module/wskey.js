@@ -75,6 +75,55 @@ async function GetCookie() {
   }
 }
 
+/**
+ * 对象属性转小写
+ * @param {object} obj - 传入 $request.headers
+ * @returns {object} 返回转换后的对象
+ */
+function ObjectKeys2LowerCase(obj) {
+  const _lower = Object.fromEntries(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]))
+  return new Proxy(_lower, {
+    get: function (target, propKey, receiver) {
+      return Reflect.get(target, propKey.toLowerCase(), receiver)
+    },
+    set: function (target, propKey, value, receiver) {
+      return Reflect.set(target, propKey.toLowerCase(), value, receiver)
+    }
+  })
+}
+
+/**
+ * 请求函数二次封装
+ * @param {(object|string)} options - 构造请求内容，可传入对象或 Url
+ * @returns {(object|string)} - 根据 options['respType'] 传入的 {status|headers|rawBody} 返回对象或字符串，默认为 body
+ */
+async function Request(options) {
+  try {
+    options = options.url ? options : { url: options };
+    const _method = options?._method || ('body' in options ? 'post' : 'get');
+    const _respType = options?._respType || 'body';
+    const _timeout = options?._timeout || 15e3;
+    const _http = [
+      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options['url']}`), _timeout)),
+      new Promise((resolve, reject) => {
+        debug(options, '[Request]');
+        $[_method.toLowerCase()](options, (error, response, data) => {
+          debug(response, '[response]');
+          error && $.log($.toStr(error));
+          if (_respType !== 'all') {
+            resolve($.toObj(response?.[_respType], response?.[_respType]));
+          } else {
+            resolve(response);
+          }
+        })
+      })
+    ];
+    return await Promise.race(_http);
+  } catch (err) {
+    $.logErr(err);
+  }
+}
+
 // 发送消息
 async function sendMsg(message) {
   if (!message) return;

@@ -177,6 +177,11 @@ function Env(t, e) {
     setval(t, e) {
       return $persistentStore.write(t, e);
     }
+	time(format) {
+  // 这里可以根据需要实现时间格式化
+  // 简单示例，返回当前的时间字符串
+	  return new Date().toLocaleTimeString();
+    }
     done(t = {}) {
       const e = (new Date).getTime(), s = (e - this.startTime) / 1e3;
       this.log("", `🔔${this.name}, 结束! 🕛 ${s} 秒`), this.log(), $done(t);

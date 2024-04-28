@@ -3,8 +3,8 @@
 #!system=ios
 
 [URL Rewrite]
-^https?://(*.)?g.cn https://www.google.com 302
-^https?://(*.)?google.cn https://www.google.com 302
+^https?://(www.)?g.cn https://www.google.com 302
+^https?://(www.)?google.cn https://www.google.com 302
 
 [MITM]
-hostname = %APPEND% *.google.cn, *.g.cn
+hostname = %APPEND% www.google.cn, www.g.cn

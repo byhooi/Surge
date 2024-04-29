@@ -6,4 +6,4 @@
 ^https?:\/\/(www.)?(g|google)\.cn https://www.google.com 302
 
 [MITM]
-hostname = %APPEND% www.google.cn
+hostname = %APPEND% www.google.cn,www.g.cn

@@ -3,7 +3,7 @@
 #!system=ios
 
 [General]
-force-http-engine-hosts = *.google.cn
+force-http-engine-hosts = %APPEND% *.google.cn
 
 [URL Rewrite]
 http:\/\/(www\.)?google\.cn https://www.google.com 302

@@ -2,6 +2,8 @@
 #!desc=Safari 谷歌搜索重定向（Surge）
 #!system=ios
 
+[General]
+force-http-engine-hosts = *.google.cn
+
 [URL Rewrite]
-^http:\/\/(www\.)?google\.cn https://www.google.com 302
-^http:\/\/(www\.)?google\.cn:80 https://www.google.com 302
+http:\/\/(www\.)?google\.cn https://www.google.com 302

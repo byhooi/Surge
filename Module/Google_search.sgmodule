@@ -3,4 +3,4 @@
 #!system=ios
 
 [URL Rewrite]
-^https?:\/\/(www.)?(g|google)\.cn https://www.google.com 302
+^http?:\/\/(www.)?google.cn https://www.google.com 302

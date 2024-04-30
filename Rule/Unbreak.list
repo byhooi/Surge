@@ -36,3 +36,11 @@ DOMAIN,analytics.strava.com
 # > Umeng
 DOMAIN,msg.umeng.com
 DOMAIN,msg.umengcloud.com
+# CMSPlayer
+DOMAIN-SUFFIX,ddys.pro
+DOMAIN-SUFFIX,jisuzyv.com
+DOMAIN-SUFFIX,jisuts.com
+DOMAIN-SUFFIX,jszyapi.com
+DOMAIN-SUFFIX,wlongimg.com
+DOMAIN-SUFFIX,wolongzy.cc
+DOMAIN-SUFFIX,wlcdn99.com

@@ -88,6 +88,7 @@ function ObjectKeys2LowerCase(obj) {
   })
 }
 
+/ *****
 function Env(t, e) {
     this.name = t;
     this.data = {};
@@ -106,6 +107,25 @@ function Env(t, e) {
 
     this.setdata = function(val, key) {
         this.data[key] = val;
+    };
+
+    // 添加对JSON数据的获取
+    this.getjson = function(key) {
+        try {
+            return JSON.parse(this.data[key] || '{}');
+        } catch (e) {
+            this.log(`读取JSON数据失败: ${e}`);
+            return null;
+        }
+    };
+
+    // 添加对JSON数据的设置
+    this.setjson = function(val, key) {
+        try {
+            this.data[key] = JSON.stringify(val);
+        } catch (e) {
+            this.log(`存储JSON数据失败: ${e}`);
+        }
     };
 
     // Surge 环境判断

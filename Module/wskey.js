@@ -1,12 +1,15 @@
 const $ = new Env('京东 WSKEY');
 $.jd_tempKey = 'jd_temp', $.wskeyKey = 'wskeyList';  // 缓存键名
+$.is_debug = $.getdata('is_debug') || 'false';  // 调试模式
 $.Messages = [], $.cookie = '';  // 初始化数据
 
 // 脚本执行入口
 !(async () => {
   if (typeof $request !== `undefined`) {
     await GetCookie();
-    if ($.cookie) {  // 检查是否成功获取到cookie
+    if ($.cookie && $.autoSubmit != 'false') {
+      await SubmitCK();
+    } else if ($.cookie) {
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
       $.setjson($.wskeyList, $.wskeyKey);  // 写入数据持久化
     }
@@ -16,7 +19,7 @@ $.Messages = [], $.cookie = '';  // 初始化数据
   .finally(async () => {
     await sendMsg($.Messages.join('\n').trimStart().trimEnd());  // 推送通知
     $.done();
-  });
+  })
 
 // 获取用户数据
 async function GetCookie() {

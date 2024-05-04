@@ -104,7 +104,7 @@ async function Request(options) {
     options = options.url ? options : { url: options };
     const _method = options?._method || ('body' in options ? 'post' : 'get');
     const _respType = options?._respType || 'body';
-    const _timeout = options?._timeout || 15e3;
+    const _timeout = options?._timeout || 30000;
     const _http = [
       new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options['url']}`), _timeout)),
       new Promise((resolve, reject) => {

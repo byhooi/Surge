@@ -95,7 +95,7 @@ function Env(t, e) {
         get(t) { return this.send.call(this, t) }
         post(t) { return this.send.call(this, t, "POST") }
       }(this);
-      this.data = null;
+      this.data = {};
       this.dataFile = "box.dat";
       this.logs = [];
       this.isMute = false;
@@ -114,6 +114,12 @@ function Env(t, e) {
     done(t = {}) {
       const e = (new Date).getTime(), s = (e - this.startTime) / 1e3;
       this.log("", `🔔${this.name}, 结束! 🕛 ${s} 秒`), this.log(), $done(t);
+    }
+    getdata(key) {
+      return this.data[key];
+    }
+    setdata(key, value) {
+      this.data[key] = value;
     }
   }(t, e)
 }

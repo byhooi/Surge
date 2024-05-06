@@ -1,6 +1,8 @@
 const $ = new Env('京东 WSKEY');
 $.jd_tempKey = 'jd_temp', $.wskeyKey = 'wskeyList';  // 缓存键名
-$.is_debug = $.getdata('is_debug') || 'false';  // 调试模式
+$.setdata('is_debug', 'true');  // 设置一个初始值
+$.is_debug = $.getdata('is_debug') || 'false';  // 读取调试模式的值
+console.log($.is_debug);  // 应该输出 'true'
 $.Messages = [], $.cookie = '';  // 初始化数据
 
 // 脚本执行入口
@@ -78,48 +80,25 @@ async function GetCookie() {
 }
 
 // prettier-ignore
-function Env(t, e) {
-  return new class {
-    constructor(t, e) {
-      this.name = t;
-      this.http = new class {
-        send(t, e = "GET") {
-          t = "string" == typeof t ? { url: t } : t;
-          let s = this.get;
-          return "POST" === e && (s = this.post), new Promise((e, o) => {
-            s.call(this, t, (t, s, r) => {
-              t ? o(t) : e(s)
-            })
-          })
-        }
-        get(t) { return this.send.call(this, t) }
-        post(t) { return this.send.call(this, t, "POST") }
-      }(this);
-      this.data = {};
-      this.dataFile = "box.dat";
-      this.logs = [];
-      this.isMute = false;
-      this.isNeedRewrite = false;
-      this.logSeparator = "\n";
-      this.encoding = "utf-8";
-      this.startTime = (new Date).getTime();
-      Object.assign(this, e);
-      this.log("", `🔔${this.name}, 开始!`);
-    }
-    getEnv() { return "Surge" }
-    isSurge() { return true }
-    log(...t) {
-      t.length > 0 && (this.logs = [...this.logs, ...t]), console.log(t.join(this.logSeparator))
-    }
-    done(t = {}) {
-      const e = (new Date).getTime(), s = (e - this.startTime) / 1e3;
-      this.log("", `🔔${this.name}, 结束! 🕛 ${s} 秒`), this.log(), $done(t);
-    }
-    getdata(key) {
-      return this.data[key];
-    }
-    setdata(key, value) {
-      this.data[key] = value;
-    }
-  }(t, e)
+function Env(name) {
+  this.name = name;
+  this.data = {};
+
+  this.log = function (message) {
+    console.log(`${this.name}: ${message}`);
+  };
+
+  this.getdata = function (key) {
+    this.log(`读取数据: ${key}`);
+    return this.data[key];
+  };
+
+  this.setdata = function (key, value) {
+    this.log(`保存数据: ${key} = ${value}`);
+    this.data[key] = value;
+  };
+
+  this.done = function () {
+    this.log('脚本执行完成');
+  };
 }

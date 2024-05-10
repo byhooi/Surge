@@ -1,7 +1,0 @@
-#!name=高德打车
-#!desc=高德打车自动签到
-#!system=ios
-
-[Script]
-# >高德打车签到
-高德打车 = type=cron,cronexp=19 9 * * *,script-path=https://raw.githubusercontent.com/wf021325/qx/master/task/ampDache.js,timeout=60,wake-system=1,script-update-interval=0

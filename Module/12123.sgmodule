@@ -1,5 +1,6 @@
 #!name=12123
 #!desc=12123 Token
+#!category=🎈 Bingo
 
 [Script]
 12123_Token = type=http-request,pattern=^https:\/\/miniappcsfw\.122\.gov\.cn:8443\/openapi\/invokeApi\/business\/biz,requires-body=1,max-size=0,timeout=1000,script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/get_12123_token.js,script-update-interval=0

@@ -1,7 +1,7 @@
 #!name=美团买菜签到
 #!desc=美团买菜每日自动签到，美团APP -> 美团买菜 -> 我的 -> 买菜币 -> 去使用 -> 在退回上一级获取 Cookie ，填写模块参数可禁用脚本。
 #!arguments=禁用脚本:获取CK,禁用MITM:hostname
-#!arguments-desc=定时签到：Cron表达式，默认每日6点、8点执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!arguments-desc=禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
 #!category=🎈 Bingo
 #!system=ios
 

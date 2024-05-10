@@ -1,6 +1,14 @@
 #!name=捷停车签到
-#!desc=捷停车自动签到
+#!desc=捷停车每日自动签到，高德打车福利中心获取 Cookie ，填写模块参数可禁用脚本。
+#!arguments=定时签到:15 9 * * *,禁用脚本:获取捷停车userId,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 9:15 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!category=🎈 Bingo
 #!system=ios
 
 [Script]
-捷停车签到 = type=cron, cronexp=15 9 * * *, timeout=60, script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/jparking_sign.js, script-update-interval=0
+捷停车签到 = type=cron, cronexp="{{{定时签到}}}", timeout=60, script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/jparking_sign.js, script-update-interval=0
+
+{{{禁用脚本}}} = type=http-request, pattern=^https:\/\/sytgate\.jslife\.com\.cn\/core-gateway\/order\/carno\/pay\/info, requires-body=1, max-size=0, script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/jparking_sign.js
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% sytgate.jslife.com.cn

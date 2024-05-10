@@ -1,0 +1,14 @@
+#!name=PP停车签到
+#!desc=PP停车每日自动签到，PP停车App打开获取 Token ，填写模块参数可禁用脚本。
+#!arguments=定时签到:17 7 * * *,禁用脚本:获取PP停车Token,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 7:17 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+PP 停车 = type=cron,cronexp="{{{定时签到}}}",timeout=60,script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/pp_parking.js,script-update-interval=0
+
+{{{禁用脚本}}} = type=http-request,pattern=^https:\/\/api\.660pp\.com\/rest\/[\d\.]+?\/user\/token,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/pp_parking.js
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% api.660pp.com

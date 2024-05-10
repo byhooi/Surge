@@ -1,5 +1,5 @@
 #!name=捷停车签到
-#!desc=捷停车每日自动签到，高德打车福利中心获取 Cookie ，填写模块参数可禁用脚本。
+#!desc=捷停车每日自动签到，捷停车App打开获取 userId ，填写模块参数可禁用脚本。
 #!arguments=定时签到:15 9 * * *,禁用脚本:获取捷停车userId,禁用MITM:hostname
 #!arguments-desc=定时签到：Cron表达式，默认每日 9:15 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
 #!category=🎈 Bingo

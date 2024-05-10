@@ -2,7 +2,7 @@
 #!desc=高德打车每日自动签到
 #!arguments=定时签到:19 9 * * *,禁用脚本:高德打车获取Cookie,禁用MITM:hostname
 #!arguments-desc=定时签到：Cron表达式，默认每日 9:19 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
-#!category=🐻 Bingo
+#!category=🎈 Bingo
 #!system=ios
 
 [MITM]

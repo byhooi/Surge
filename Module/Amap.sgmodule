@@ -1,9 +1,14 @@
 #!name=高德打车
 #!desc=高德打车获取cookie
 #!system=ios
+#!arguments=定时签到:19 9 * * *,禁用脚本:高德打车获取Cookie,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 9:19 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!category=🐻 Bingo
 
 [MITM]
-hostname = %APPEND% *.amap.com
+{{{禁用MITM}}} = %APPEND% *.amap.com
 
 [Script]
-高德打车获取Cookie = type=http-response,pattern=^https:\/\/m5(-zb)?\.amap\.com\/ws\/yuece\/(act|openapi)\/(activity\/current\/)?query,requires-body=1,script-path=https://raw.githubusercontent.com/wf021325/qx/master/task/ampDache.js
+{{{禁用脚本}}} = type=http-response,pattern=^https:\/\/m5(-zb)?\.amap\.com\/ws\/yuece\/(act|openapi)\/(activity\/current\/)?query,requires-body=1,script-path=https://raw.githubusercontent.com/wf021325/qx/master/task/ampDache.js
+
+高德打车 = type=cron,cronexp="{{{定时签到}}}",script-path=https://raw.githubusercontent.com/wf021325/qx/master/task/ampDache.js,timeout=60,wake-system=1,script-update-interval=0

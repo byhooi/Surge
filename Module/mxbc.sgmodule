@@ -6,8 +6,9 @@
 #!system=ios
 
 [Script]
-蜜雪冰城 = type=cron,cronexp="{{{定时签到}}}",script-path=https://gist.githubusercontent.com/Sliverkiss/865c82e42a5730bb696f6700ebb94cee/raw/mxbc.js
-{{{禁用脚本}}} = http-response ^https:\/\/mxsa\.mxbc\.net\/api\/v1\/customer\/info script-path=https://gist.githubusercontent.com/Sliverkiss/865c82e42a5730bb696f6700ebb94cee/raw/mxbc.js, requires-body=1, timeout=60
+蜜雪冰城 = type=cron,cronexp="{{{定时签到}}}",script-path=https://gist.githubusercontent.com/Sliverkiss/865c82e42a5730bb696f6700ebb94cee/raw/mxbc.js,script-update-interval=0
+
+{{{禁用脚本}}} = type=http-response,pattern=^https:\/\/mxsa\.mxbc\.net\/api\/v1\/customer\/info,requires-body=1, timeout=60,script-path=https://gist.githubusercontent.com/Sliverkiss/865c82e42a5730bb696f6700ebb94cee/raw/mxbc.js
 
 [MITM]
 {{{禁用MITM}}} = %APPEND% mxsa.mxbc.net

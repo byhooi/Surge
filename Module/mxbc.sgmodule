@@ -1,0 +1,13 @@
+#!name=蜜雪冰城 每日签到、访问雪王铺
+#!desc=打开蜜雪冰城小程序，进入我的页面，填写模块参数可禁用脚本。
+#!arguments=定时签到:30 10 * * *,禁用脚本:蜜雪冰城获取token,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 10:30 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+蜜雪冰城 = type=cron,cronexp="{{{定时签到}}}",script-path=https://gist.githubusercontent.com/Sliverkiss/865c82e42a5730bb696f6700ebb94cee/raw/mxbc.js
+{{{禁用脚本}}} = http-response ^https:\/\/mxsa\.mxbc\.net\/api\/v1\/customer\/info script-path=https://gist.githubusercontent.com/Sliverkiss/865c82e42a5730bb696f6700ebb94cee/raw/mxbc.js, requires-body=1, timeout=60
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% mxsa.mxbc.net

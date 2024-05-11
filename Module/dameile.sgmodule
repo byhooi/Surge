@@ -1,0 +1,14 @@
+#!name=达美乐披萨 优惠券抽奖
+#!desc=打开达乐美披萨公众号->优惠｜咨询->有奖游戏->手动完成一次游戏，若提示获取Cookie成功则可以使用该脚本，填写模块参数可禁用脚本。
+#!arguments=定时签到:30 10 * * *,禁用脚本:达美乐披萨获取token,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 10:30 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+达美乐披萨 = type=cron,cronexp="{{{定时签到}}}",timeout=300,script-path=https://gist.githubusercontent.com/Sliverkiss/6b4da0d367d13790a9fd1d928c82bdf8/raw/dlm.js
+
+{{{禁用脚本}}} = http-request ^https:\/\/game\.dominos\.com\.cn\/.+\/game\/gameDone script-path=https://gist.githubusercontent.com/Sliverkiss/6b4da0d367d13790a9fd1d928c82bdf8/raw/dlm.js,requires-body=1, timeout=10
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% game.dominos.com.cn

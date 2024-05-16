@@ -37,6 +37,52 @@ Env.prototype.wait = function (time) {
   return new Promise(resolve => setTimeout(resolve, time));
 };
 
+Env.prototype.toObj = function (jsonString, defaultValue = null) {
+  try {
+    return JSON.parse(jsonString);
+  } catch {
+    return defaultValue;
+  }
+};
+
+Env.prototype.toStr = function (obj, defaultValue = null) {
+  try {
+    return JSON.stringify(obj);
+  } catch {
+    return defaultValue;
+  }
+};
+
+Env.prototype.setjson = function (obj, key) {
+  return this.setdata(this.toStr(obj), key);
+};
+
+Env.prototype.getjson = function (key, defaultValue = null) {
+  return this.toObj(this.getdata(key), defaultValue);
+};
+
+Env.prototype.time = function (format) {
+  const date = new Date();
+  const map = {
+    'M+': date.getMonth() + 1,
+    'd+': date.getDate(),
+    'H+': date.getHours(),
+    'm+': date.getMinutes(),
+    's+': date.getSeconds(),
+    'q+': Math.floor((date.getMonth() + 3) / 3),
+    S: date.getMilliseconds()
+  };
+  if (/(y+)/.test(format)) {
+    format = format.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+  }
+  for (let k in map) {
+    if (new RegExp(`(${k})`).test(format)) {
+      format = format.replace(RegExp.$1, RegExp.$1.length === 1 ? map[k] : ("00" + map[k]).substr(("" + map[k]).length));
+    }
+  }
+  return format;
+};
+
 Env.prototype.done = function () {
   const endTime = (new Date).getTime();
   const duration = (endTime - this.startTime) / 1000;

@@ -1,5 +1,5 @@
-#!name=京东Wskey
-#!desc=自动获取京东 WSKEY
+#!name=京东 Wskey
+#!desc=自动获取京东 Wskey
 #!category=🎈 Bingo
 #!system=ios
 
@@ -9,9 +9,9 @@ URL-REGEX,^https:\/\/wlogin\.m\.jd\.com\/applogin_v2$,REJECT
 URL-REGEX,^https:\/\/wlmonitor\.m\.jd\.com\/login_report$,REJECT
 
 [Script]
-京东 WSKEY = type=http-request,pattern=https:\/\/api\.m\.jd\.com\/client\.action\?functionId=xview2Config,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/wskey1.js,script-update-interval=0
+京东 WSKEY = type=http-request,pattern=https:\/\/api\.m\.jd\.com\/client\.action\?functionId=xview2Config,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/wskey.js,script-update-interval=0
 
-京东 PIN = type=http-request,pattern=https:\/\/perf\.m\.jd\.com\/app_monitor\/v2\/getRule,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/wskey1.js,script-update-interval=0
+京东 PIN = type=http-request,pattern=https:\/\/perf\.m\.jd\.com\/app_monitor\/v2\/getRule,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/wskey.js,script-update-interval=0
 
 [MITM]
 hostname = %APPEND% api.m.jd.com, perf.m.jd.com, wlogin.m.jd.com, wlmonitor.m.jd.com

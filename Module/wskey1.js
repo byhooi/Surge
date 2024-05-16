@@ -1,3 +1,4 @@
+const $ = new Env('京东 WSKEY');
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const IS_DEBUG = $.getdata('is_debug') || 'false';

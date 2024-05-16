@@ -1,3 +1,49 @@
+function Env(name, options) {
+  this.name = name;
+  this.logs = [];
+  this.isMute = false;
+  this.logSeparator = "\n";
+  this.startTime = (new Date).getTime();
+  Object.assign(this, options);
+  this.log("", `🔔${this.name}, 开始!`);
+}
+
+Env.prototype.log = function (...messages) {
+  this.logs = [...this.logs, ...messages];
+  console.log(messages.join(this.logSeparator));
+};
+
+Env.prototype.logErr = function (err) {
+  this.log("", `❗️${this.name}, 错误!`, err.stack);
+};
+
+Env.prototype.get = function (url, callback) {
+  $httpClient.get(url, callback);
+};
+
+Env.prototype.post = function (url, callback) {
+  $httpClient.post(url, callback);
+};
+
+Env.prototype.getdata = function (key) {
+  return $persistentStore.read(key);
+};
+
+Env.prototype.setdata = function (val, key) {
+  return $persistentStore.write(val, key);
+};
+
+Env.prototype.wait = function (time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+};
+
+Env.prototype.done = function () {
+  const endTime = (new Date).getTime();
+  const duration = (endTime - this.startTime) / 1000;
+  this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
+  $done();
+};
+
 const $ = new Env('京东 WSKEY');
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
@@ -136,49 +182,3 @@ function debug(content, title = "debug") {
     }
   }
 }
-
-function Env(name, options) {
-  this.name = name;
-  this.logs = [];
-  this.isMute = false;
-  this.logSeparator = "\n";
-  this.startTime = (new Date).getTime();
-  Object.assign(this, options);
-  this.log("", `🔔${this.name}, 开始!`);
-}
-
-Env.prototype.get = function (url, callback) {
-  $httpClient.get(url, callback);
-};
-
-Env.prototype.post = function (url, callback) {
-  $httpClient.post(url, callback);
-};
-
-Env.prototype.getdata = function (key) {
-  return $persistentStore.read(key);
-};
-
-Env.prototype.setdata = function (val, key) {
-  return $persistentStore.write(val, key);
-};
-
-Env.prototype.log = function (...messages) {
-  this.logs = [...this.logs, ...messages];
-  console.log(messages.join(this.logSeparator));
-};
-
-Env.prototype.logErr = function (err) {
-  this.log("", `❗️${this.name}, 错误!`, err.stack);
-};
-
-Env.prototype.wait = function (time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-};
-
-Env.prototype.done = function () {
-  const endTime = (new Date).getTime();
-  const duration = (endTime - this.startTime) / 1000;
-  this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
-  $done();
-};

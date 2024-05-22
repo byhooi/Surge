@@ -9,6 +9,10 @@ function saveRequestData() {
   const body = $request.body
   const headers = $request.headers
 
+  console.log('Cookie:', cookie)
+  console.log('Body:', body)
+  console.log('Headers:', headers)
+
   if (cookie && body && headers) {
     const savedCookie = $persistentStore.write(cookie, cookieKey)
     const savedBody = $persistentStore.write(body, bodyKey)
@@ -19,9 +23,12 @@ function saveRequestData() {
     } else {
       $notification.post(`${cookieName}`, '数据保存失败', '请检查脚本配置')
     }
+  } else {
+    $notification.post(`${cookieName}`, '未捕获到数据', '请确认请求是否包含必要的数据')
   }
   $done({})
 }
+
 
 function signIn() {
   const cookie = $persistentStore.read(cookieKey)

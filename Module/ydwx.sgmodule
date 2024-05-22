@@ -6,7 +6,7 @@
 #!system=ios
 
 [Script]
-签到 MixCapp = type=cron,cronexp="{{{定时签到}}}",wake-system=1,script-path=script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/ydwx.js
+签到 MixCapp = type=cron,cronexp="{{{定时签到}}}",wake-system=1,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/ydwx.js
 
 {{{禁用脚本}}} = type=http-request,pattern=https:\/\/app\.mixcapp\.com\/m\/m-8602A101\/signIn,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/ydwx.js
 

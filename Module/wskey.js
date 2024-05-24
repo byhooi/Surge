@@ -2,10 +2,10 @@ function Env(name, options) {
   this.name = name;
   this.logs = [];
   this.isMute = false;
-  this.logSeparator = "\n";
-  this.startTime = (new Date).getTime();
+  this.logSeparator = '\n';
+  this.startTime = new Date().getTime();
   Object.assign(this, options);
-  this.log("", `🔔${this.name}, 开始!`);
+  this.log('', `🔔${this.name}, 开始!`);
 }
 
 Env.prototype.log = function (...messages) {
@@ -14,7 +14,7 @@ Env.prototype.log = function (...messages) {
 };
 
 Env.prototype.logErr = function (err) {
-  this.log("", `❗️${this.name}, 错误!`, err.stack);
+  this.log('', `❗️${this.name}, 错误!`, err.stack);
 };
 
 Env.prototype.get = function (url, callback) {
@@ -73,20 +73,20 @@ Env.prototype.time = function (format) {
     'S': date.getMilliseconds()
   };
   if (/(y+)/.test(format)) {
-    format = format.replace(RegExp.\$1, (date.getFullYear() + "").substr(4 - RegExp.\$1.length));
+    format = format.replace(RegExp.\$1, (date.getFullYear() + '').substr(4 - RegExp.\$1.length));
   }
   for (let k in map) {
     if (new RegExp(`(${k})`).test(format)) {
-      format = format.replace(RegExp.\$1, RegExp.\$1.length === 1 ? map[k] : ("00" + map[k]).substr(("" + map[k]).length));
+      format = format.replace(RegExp.\$1, RegExp.\$1.length === 1 ? map[k] : ('00' + map[k]).substr(('' + map[k]).length));
     }
   }
   return format;
 };
 
 Env.prototype.done = function () {
-  const endTime = (new Date).getTime();
+  const endTime = new Date().getTime();
   const duration = (endTime - this.startTime) / 1000;
-  this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
+  this.log('', `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
   $done();
 };
 
@@ -94,14 +94,14 @@ const $ = new Env('京东 WSKEY');
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const IS_DEBUG = $.getdata('is_debug') || 'false';
-const DEFAULT_TIMEOUT = 15e3;
+const DEFAULT_TIMEOUT = 15000;
 const DEFAULT_RESP_TYPE = 'body';
 $.Messages = [];
 $.cookie = '';
 
 // 脚本执行入口
 !(async () => {
-  if (typeof $request !== `undefined`) {
+  if (typeof $request !== 'undefined') {
     await getCookie();
     if ($.cookie) {
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
@@ -120,49 +120,49 @@ async function getCookie() {
   try {
     debug($request.headers);
     const headers = objectKeys2LowerCase($request.headers);
-    const [, wskey] = headers?.cookie.match(/wskey=([^=;]+?);/) || '';
-    const [, pin] = headers?.cookie.match(/pin=([^=;]+?);/) || '';
+    const [, wskey] = headers?.cookie.match(/wskey=([^=;]+?);/) || [];
+    const [, pin] = headers?.cookie.match(/pin=([^=;]+?);/) || [];
 
-    if ($request.url.includes('/getRule')) await $.wait(3e3);
+    if ($request.url.includes('/getRule')) await $.wait(3000);
 
     $.jd_temp = $.getjson(JD_TEMP_KEY) || {};
     $.wskeyList = $.getjson(WSKEY_KEY) || [];
 
-    if ($.jd_temp?.['ts'] && Date.now() - $.jd_temp['ts'] >= 15e3) {
-      $.log(`🆑 清理过期缓存数据`);
+    if ($.jd_temp?.ts && Date.now() - $.jd_temp.ts >= 15000) {
+      $.log('🆑 清理过期缓存数据');
       $.jd_temp = {};
     }
 
     if (wskey) {
       $.log(`wskey: ${wskey}`);
-      $.jd_temp['wskey'] = wskey;
-      $.jd_temp['ts'] = Date.now();
+      $.jd_temp.wskey = wskey;
+      $.jd_temp.ts = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
     } else if (pin) {
       $.log(`pin: ${pin}`);
-      $.jd_temp['pin'] = pin;
-      $.jd_temp['ts'] = Date.now();
+      $.jd_temp.pin = pin;
+      $.jd_temp.ts = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
     }
 
-    if ($.jd_temp?.['wskey'] && $.jd_temp?.['pin']) {
-      $.cookie = `wskey=${$.jd_temp['wskey']}; pin=${$.jd_temp['pin']};`;
+    if ($.jd_temp?.wskey && $.jd_temp?.pin) {
+      $.cookie = `wskey=${$.jd_temp.wskey}; pin=${$.jd_temp.pin};`;
 
-      const user = $.wskeyList.find(user => user.userName === $.jd_temp['pin']);
+      const user = $.wskeyList.find(user => user.userName === $.jd_temp.pin);
       if (user) {
         if (user.cookie === $.cookie) {
-          $.log(`⚠️ 当前 WSKEY 与缓存一致, 结束运行。`);
+          $.log('⚠️ 当前 WSKEY 与缓存一致, 结束运行。');
           $.done();
         }
         $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
         user.cookie = $.cookie;
       } else {
         $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
-        $.wskeyList.push({ "userName": $.jd_temp?.['pin'], "cookie": $.cookie });
+        $.wskeyList.push({ userName: $.jd_temp.pin, cookie: $.cookie });
       }
     }
   } catch (e) {
-    $.log("❌ 用户数据获取失败");
+    $.log('❌ 用户数据获取失败');
     $.log(e);
   }
 }
@@ -182,22 +182,25 @@ function objectKeys2LowerCase(obj) {
 async function request(options) {
   try {
     options = options.url ? options : { url: options };
-    const _method = options?._method || ('body' in options ? 'post' : 'get');
-    const _respType = options?._respType || DEFAULT_RESP_TYPE;
-    const _timeout = options?._timeout || DEFAULT_TIMEOUT;
+    const _method = options._method || (options.body ? 'post' : 'get');
+    const _respType = options._respType || DEFAULT_RESP_TYPE;
+    const _timeout = options._timeout || DEFAULT_TIMEOUT;
     const _http = [
-      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options['url']}`), _timeout)),
+      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options.url}`), _timeout)),
       new Promise((resolve, reject) => {
         debug(options, '[Request]');
         $[_method.toLowerCase()](options, (error, response, data) => {
           debug(response, '[response]');
-          error && $.log($.toStr(error));
+          if (error) {
+            $.log($.toStr(error));
+            reject(error);
+          }
           if (_respType !== 'all') {
-            resolve($.toObj(response?.[_respType], response?.[_respType]));
+            resolve($.toObj(response[_respType], response[_respType]));
           } else {
             resolve(response);
           }
-        })
+        });
       })
     ];
     return await Promise.race(_http);
@@ -215,13 +218,13 @@ async function sendMsg(message) {
   }
 }
 
-function debug(content, title = "debug") {
+function debug(content, title = 'debug') {
   const start = `\n----- ${title} -----\n`;
   const end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
   if (IS_DEBUG === 'true') {
-    if (typeof content === "string") {
+    if (typeof content === 'string') {
       $.log(start + content + end);
-    } else if (typeof content === "object") {
+    } else if (typeof content === 'object') {
       $.log(start + $.toStr(content) + end);
     }
   }

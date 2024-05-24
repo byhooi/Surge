@@ -73,11 +73,11 @@ Env.prototype.time = function (format) {
     S: date.getMilliseconds()
   };
   if (/(y+)/.test(format)) {
-    format = format.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+    format = format.replace(RegExp.\$1, (date.getFullYear() + "").substr(4 - RegExp.\$1.length));
   }
   for (let k in map) {
     if (new RegExp(`(${k})`).test(format)) {
-      format = format.replace(RegExp.$1, RegExp.$1.length === 1 ? map[k] : ("00" + map[k]).substr(("" + map[k]).length));
+      format = format.replace(RegExp.\$1, RegExp.\$1.length === 1 ? map[k] : ("00" + map[k]).substr(("" + map[k]).length));
     }
   }
   return format;
@@ -103,9 +103,7 @@ $.cookie = '';
 !(async () => {
   if (typeof $request !== `undefined`) {
     await getCookie();
-    if ($.cookie && $.autoSubmit !== 'false') {
-      await submitCK();
-    } else if ($.cookie) {
+    if ($.cookie) {
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
       $.setjson($.wskeyList, WSKEY_KEY);
     }

@@ -94,14 +94,14 @@ const $ = new Env('京东 WSKEY');
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const IS_DEBUG = $.getdata('is_debug') || 'false';
-const DEFAULT_TIMEOUT = 15e3;
+const DEFAULT_TIMEOUT = 15000;
 const DEFAULT_RESP_TYPE = 'body';
 $.Messages = [];
 $.cookie = '';
 
 // 脚本执行入口
 !(async () => {
-  if (typeof $request !== `undefined`) {
+  if (typeof $request !== 'undefined') {
     await getCookie();
     if ($.cookie && $.autoSubmit !== 'false') {
       await submitCK();
@@ -125,12 +125,12 @@ async function getCookie() {
     const [, wskey] = headers?.cookie.match(/wskey=([^=;]+?);/) || '';
     const [, pin] = headers?.cookie.match(/pin=([^=;]+?);/) || '';
 
-    if ($request.url.includes('/getRule')) await $.wait(3e3);
+    if ($request.url.includes('/getRule')) await $.wait(3000);
 
     $.jd_temp = $.getjson(JD_TEMP_KEY) || {};
     $.wskeyList = $.getjson(WSKEY_KEY) || [];
 
-    if ($.jd_temp?.['ts'] && Date.now() - $.jd_temp['ts'] >= 15e3) {
+    if ($.jd_temp?.['ts'] && Date.now() - $.jd_temp['ts'] >= 15000) {
       $.log(`🆑 清理过期缓存数据`);
       $.jd_temp = {};
     }
@@ -199,7 +199,7 @@ async function request(options) {
           } else {
             resolve(response);
           }
-        })
+        });
       })
     ];
     return await Promise.race(_http);

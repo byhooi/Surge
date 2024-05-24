@@ -73,11 +73,11 @@ Env.prototype.time = function (format) {
     S: date.getMilliseconds()
   };
   if (/(y+)/.test(format)) {
-    format = format.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+    format = format.replace(RegExp.\$1, (date.getFullYear() + "").substr(4 - RegExp.\$1.length));
   }
   for (let k in map) {
     if (new RegExp(`(${k})`).test(format)) {
-      format = format.replace(RegExp.$1, RegExp.$1.length === 1 ? map[k] : ("00" + map[k]).substr(("" + map[k]).length));
+      format = format.replace(RegExp.\$1, RegExp.\$1.length === 1 ? map[k] : ("00" + map[k]).substr(("" + map[k]).length));
     }
   }
   return format;
@@ -101,11 +101,9 @@ $.cookie = '';
 
 // 脚本执行入口
 !(async () => {
-  if (typeof $request !== `undefined`) {
+  if (typeof $request !== 'undefined') {
     await getCookie();
-    if ($.cookie && $.autoSubmit !== 'false') {
-      await submitCK();
-    } else if ($.cookie) {
+    if ($.cookie) {
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
       $.setjson($.wskeyList, WSKEY_KEY);
     }
@@ -130,27 +128,27 @@ async function getCookie() {
     $.jd_temp = $.getjson(JD_TEMP_KEY) || {};
     $.wskeyList = $.getjson(WSKEY_KEY) || [];
 
-    if ($.jd_temp?.['ts'] && Date.now() - $.jd_temp['ts'] >= 15e3) {
+    if ($.jd_temp?.ts && Date.now() - $.jd_temp.ts >= 15e3) {
       $.log(`🆑 清理过期缓存数据`);
       $.jd_temp = {};
     }
 
     if (wskey) {
       $.log(`wskey: ${wskey}`);
-      $.jd_temp['wskey'] = wskey;
-      $.jd_temp['ts'] = Date.now();
+      $.jd_temp.wskey = wskey;
+      $.jd_temp.ts = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
     } else if (pin) {
       $.log(`pin: ${pin}`);
-      $.jd_temp['pin'] = pin;
-      $.jd_temp['ts'] = Date.now();
+      $.jd_temp.pin = pin;
+      $.jd_temp.ts = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
     }
 
-    if ($.jd_temp?.['wskey'] && $.jd_temp?.['pin']) {
-      $.cookie = `wskey=${$.jd_temp['wskey']}; pin=${$.jd_temp['pin']};`;
+    if ($.jd_temp?.wskey && $.jd_temp?.pin) {
+      $.cookie = `wskey=${$.jd_temp.wskey}; pin=${$.jd_temp.pin};`;
 
-      const user = $.wskeyList.find(user => user.userName === $.jd_temp['pin']);
+      const user = $.wskeyList.find(user => user.userName === $.jd_temp.pin);
       if (user) {
         if (user.cookie === $.cookie) {
           $.log(`⚠️ 当前 WSKEY 与缓存一致, 结束运行。`);
@@ -160,7 +158,7 @@ async function getCookie() {
         user.cookie = $.cookie;
       } else {
         $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
-        $.wskeyList.push({ "userName": $.jd_temp?.['pin'], "cookie": $.cookie });
+        $.wskeyList.push({ userName: $.jd_temp.pin, cookie: $.cookie });
       }
     }
   } catch (e) {
@@ -184,22 +182,25 @@ function objectKeys2LowerCase(obj) {
 async function request(options) {
   try {
     options = options.url ? options : { url: options };
-    const _method = options?._method || ('body' in options ? 'post' : 'get');
-    const _respType = options?._respType || DEFAULT_RESP_TYPE;
-    const _timeout = options?._timeout || DEFAULT_TIMEOUT;
+    const _method = options._method || (options.body ? 'post' : 'get');
+    const _respType = options._respType || DEFAULT_RESP_TYPE;
+    const _timeout = options._timeout || DEFAULT_TIMEOUT;
     const _http = [
-      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options['url']}`), _timeout)),
+      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options.url}`), _timeout)),
       new Promise((resolve, reject) => {
         debug(options, '[Request]');
         $[_method.toLowerCase()](options, (error, response, data) => {
           debug(response, '[response]');
-          error && $.log($.toStr(error));
+          if (error) {
+            $.log($.toStr(error));
+            reject(error);
+          }
           if (_respType !== 'all') {
-            resolve($.toObj(response?.[_respType], response?.[_respType]));
+            resolve($.toObj(response[_respType], response[_respType]));
           } else {
             resolve(response);
           }
-        })
+        });
       })
     ];
     return await Promise.race(_http);

@@ -9,5 +9,4 @@ Surge 自用配置。基于以下开源代码，特此感谢以下贡献者：
 - [@zZPiglet](https://github.com/zZPiglet)
 - [@githubdulong](https://github.com/githubdulong)
 
-
-    谢谢！
+谢谢！

@@ -9,3 +9,13 @@ DOMAIN-SUFFIX,wolongzy.cc
 DOMAIN-SUFFIX,wlcdn99.com
 DOMAIN-SUFFIX,fenwe078.cf
 DOMAIN-SUFFIX,kuqjz.com
+# Pixman
+DOMAIN-SUFFIX,dnsany.com
+DOMAIN-SUFFIX,cmvideo.cn
+DOMAIN-SUFFIX,chinamobile.com
+DOMAIN-SUFFIX,mobaibox.com
+DOMAIN-SUFFIX,gitv.tv
+DOMAIN-SUFFIX,cctv.cn
+DOMAIN-SUFFIX,yangshipin.cn
+IP-CIDR,183.206.0.0/15
+DOMAIN,beesport.livednow.com

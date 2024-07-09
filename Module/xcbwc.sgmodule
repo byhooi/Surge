@@ -8,7 +8,7 @@
 [Script]
 小蚕霸王餐 = type=cron,cronexp="{{{定时签到}}}",script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw/xcbwc.js
 
-{{{禁用脚本}}} = http-response ^https:\/\/gw\.xiaocantech\.com\/rpc script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw/xcbwc.js, requires-body=true, timeout=60
+{{{禁用脚本}}} = type=http-response,^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw/xcbwc.js, requires-body=1, max-size=0,
 
 [MITM]
 {{{禁用MITM}}} = %APPEND% gw.xiaocantech.com

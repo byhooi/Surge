@@ -1,0 +1,18 @@
+#!name=小蚕霸王餐
+#!desc=小蚕霸王餐 日常任务、抽奖
+#!arguments=定时签到:30 10 * * *,禁用脚本:获取token,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 10:30 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+小蚕霸王餐 = type=cron,cronexp="{{{定时签到}}}",script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw/xcbwc.js
+
+{{{禁用脚本}}} = http-response ^https:\/\/gw\.xiaocantech\.com\/rpc script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw/xcbwc.js, requires-body=true, timeout=60
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% gw.xiaocantech.com
+
+
+
+

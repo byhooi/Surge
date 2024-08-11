@@ -7,7 +7,7 @@
 [Script]
 999会员中心签到 = type=cron,cronexp="15 15 6,10,15 * * *",wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/999.js
 
-999会员中心获取Cookie = type=http-request,pattern=^https:\/\/mc\.999\.com\.cn\/zanmall_diy\/ma\/personal\/user\/info,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/999.js
+999会员中心获取Cookie = type=http-request,pattern=^https:\/\/mc\.999\.com\.cn\/zanmall_diy\/ma\/personal\/user\/info,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/Surge/Module/999_getcookie.js
 
 [MITM]
 hostname = %APPEND% mc.999.com.cn

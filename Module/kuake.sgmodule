@@ -1,0 +1,18 @@
+#!name=夸克网盘 空间签到、福利空间任务、睡觉打卡、低碳空间任务
+#!desc=浏览器访问https://pan.quark.cn/ 并登录，如果找不到登录入口，就切换到pc端。登录成功后，提示获取ck成功则可以使用该脚本。
+#!arguments=定时签到:30 10 * * *,禁用脚本:夸克网盘获取token,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 10:30 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+夸克网盘福利日常 = type=http-response,pattern=^https:\/\/coral2\.quark\.cn\/task\/trigger,requires-body=1,max-size=0,script-path=https://gist.githubusercontent.com/Sliverkiss/1589f69e675019b0b685a57a89de9ea5/raw/quarkV2.js,script-update-interval=0,timeout=60
+
+夸克网盘空间签到 = type=http-request,pattern=^https:\/\/coral2\.quark\.cn\/quark\/(carbon|welfare)\/(v1|v2)\/signIn,requires-body=1,max-size=0,script-path=https://gist.githubusercontent.com/Sliverkiss/1589f69e675019b0b685a57a89de9ea5/raw/quarkV2.js,script-update-interval=0,timeout=60
+
+夸克网盘睡眠打卡 = type=http-request,pattern=^https:\/\/coral2\.quark\.cn\/quark\/welfare\/v2\/sleep\/trigger,requires-body=1,max-size=0,script-path=https://gist.githubusercontent.com/Sliverkiss/1589f69e675019b0b685a57a89de9ea5/raw/quarkV2.js,script-update-interval=0,timeout=60
+
+{{{禁用脚本}}} = type=http-response,pattern=^https:\/\/drive-pc\.quark\.cn\/1\/clouddrive\/file\/sort,requires-body=1,max-size=0,script-path=https://gist.githubusercontent.com/Sliverkiss/1589f69e675019b0b685a57a89de9ea5/raw/quarkV2.js,script-update-interval=0,timeout=60
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% coral2.quark.cn,drive-pc.quark.cn

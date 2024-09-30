@@ -146,7 +146,7 @@ async function getCookie() {
     }
 
     if ($.jd_temp?.['wskey'] && $.jd_temp?.['pt_pin']) {
-      $.cookie = `pin=${encodeURIComponent($.jd_temp['pt_pin'])};wskey=${$.jd_temp['wskey']};`;
+      $.cookie = `pin=${encodeURIComponent($.jd_temp['pt_pin'])}; wskey=${$.jd_temp['wskey']};`;
 
       const user = $.wskeyList.find(user => user.userName === $.jd_temp['pt_pin']);
       if (user) {

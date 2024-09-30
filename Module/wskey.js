@@ -121,7 +121,7 @@ async function getCookie() {
     debug($request.headers);
     const headers = objectKeys2LowerCase($request.headers);
     const [, wskey] = headers?.cookie.match(/wskey=([^=;]+?);/) || '';
-    const [, pin] = headers?.cookie.match(/pin=([^=;]+?);/) || '';
+    const [, pt_pin] = headers?.cookie.match(/pt_pin=([^=;]+?);/) || '';
 
     if ($request.url.includes('/getRule')) await $.wait(3000);
 
@@ -138,17 +138,17 @@ async function getCookie() {
       $.jd_temp['wskey'] = wskey;
       $.jd_temp['ts'] = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
-    } else if (pin) {
-      $.log(`pin: ${pin}`);
-      $.jd_temp['pin'] = pin;
+    } else if (pt_pin) {
+      $.log(`pt_pin: ${pt_pin}`);
+      $.jd_temp['pt_pin'] = pt_pin;
       $.jd_temp['ts'] = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
     }
 
-    if ($.jd_temp?.['wskey'] && $.jd_temp?.['pin']) {
-      $.cookie = `wskey=${$.jd_temp['wskey']}; pin=${$.jd_temp['pin']};`;
+    if ($.jd_temp?.['wskey'] && $.jd_temp?.['pt_pin']) {
+      $.cookie = `pin=${encodeURIComponent($.jd_temp['pt_pin'])}; wskey=${$.jd_temp['wskey']};`;
 
-      const user = $.wskeyList.find(user => user.userName === $.jd_temp['pin']);
+      const user = $.wskeyList.find(user => user.userName === $.jd_temp['pt_pin']);
       if (user) {
         if (user.cookie === $.cookie) {
           $.log(`⚠️ 当前 WSKEY 与缓存一致, 结束运行。`);
@@ -158,7 +158,7 @@ async function getCookie() {
         user.cookie = $.cookie;
       } else {
         $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
-        $.wskeyList.push({ "userName": $.jd_temp?.['pin'], "cookie": $.cookie });
+        $.wskeyList.push({ "userName": $.jd_temp?.['pt_pin'], "cookie": $.cookie });
       }
     }
   } catch (e) {

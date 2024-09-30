@@ -134,11 +134,12 @@ async function getCookie() {
     }
 
     if (wskey) {
+      $.log(`wskey: ${wskey}`);
       $.jd_temp['wskey'] = wskey;
       $.jd_temp['ts'] = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
-    }
-    if (pt_pin) {
+    } else if (pt_pin) {
+      $.log(`pt_pin: ${pt_pin}`);
       $.jd_temp['pt_pin'] = pt_pin;
       $.jd_temp['ts'] = Date.now();
       $.setjson($.jd_temp, JD_TEMP_KEY);
@@ -146,7 +147,6 @@ async function getCookie() {
 
     if ($.jd_temp?.['wskey'] && $.jd_temp?.['pt_pin']) {
       $.cookie = `pin=${encodeURIComponent($.jd_temp['pt_pin'])}; wskey=${$.jd_temp['wskey']};`;
-      $.log(`🍪 获取到的完整 Cookie: ${$.cookie}`);
 
       const user = $.wskeyList.find(user => user.userName === $.jd_temp['pt_pin']);
       if (user) {

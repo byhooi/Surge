@@ -1,0 +1,10 @@
+#!name=VideoUrl 
+#!desc=获取 VideoUrl
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+获取Videourl = type=http-response, pattern=https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record, requires-body=1, max-size=0, script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/VideoUrl.js
+
+[MITM]
+hostname = %APPEND% app130229.eapps.dingtalkcloud.com

@@ -1,6 +1,6 @@
-// Surge Script - 获取 sportCount 最大的 videoUrl 和 sportCount
+// Surge Script - 获取 sportCount 最大的 videoUrl 并统计总的 sportCount 和实际运动时间
 // Surge 规则配置: [Script] 部分添加规则
-// 示例: https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record url script-response-body 获取最大sportCount.js
+// 示例: https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record url script-response-body 获取统计.js
 
 let body = $response.body;
 let jsonData;
@@ -12,31 +12,46 @@ try {
     $done({});
 }
 
-// 初始化最大值查找变量
+// 初始化变量
 let maxSportCountRecord = null;
+let totalSportCount = 0;
+let totalSportTime = 0; // 以毫秒为单位统计总运动时间
 
 if (jsonData && jsonData.data && jsonData.data[0].sportRecordDTOS) {
     jsonData.data[0].sportRecordDTOS.forEach(record => {
+        // 累计总 sportCount
+        totalSportCount += record.sportCount;
+
+        // 累计总 sportTime
+        totalSportTime += record.sportTime;
+
+        // 查找 sportCount 最大的记录
         if (!maxSportCountRecord || record.sportCount > maxSportCountRecord.sportCount) {
             maxSportCountRecord = record;
         }
     });
 }
 
-// 输出最大 sportCount 和对应的 videoUrl
-if (maxSportCountRecord) {
-    console.log("最大 sportCount: " + maxSportCountRecord.sportCount);
-    console.log("对应的 videoUrl: " + maxSportCountRecord.videoUrl);
+// 将总运动时间转换为分钟
+let totalExerciseTimeInMinutes = Math.floor(totalSportTime / 60000); // 将毫秒转换为分钟
+let remainingSeconds = Math.floor((totalSportTime % 60000) / 1000); // 秒部分
 
-    // 以通知形式输出 sportCount 和 videoUrl
+// 输出结果
+if (maxSportCountRecord) {
+    console.log("一分钟最快: " + maxSportCountRecord.sportCount  + " 个");
+    console.log("对应的 videoUrl: " + maxSportCountRecord.videoUrl);
+    console.log("总跳绳数: " + totalSportCount  + " 个");
+    console.log(`总运动时间：${totalExerciseTimeInMinutes} 分钟 ${remainingSeconds} 秒`);
+
+    // 以通知形式输出结果
     $notification.post(
-        "最大 sportCount 记录",
-        "sportCount: " + maxSportCountRecord.sportCount,
-        "videoUrl: " + maxSportCountRecord.videoUrl
+        "跳绳统计",
+        `一分钟最快: ${maxSportCountRecord.sportCount} 个，总跳绳数: ${totalSportCount} 个`,
+        `总运动时间: ${totalExerciseTimeInMinutes} 分钟 ${remainingSeconds} 秒`
     );
 } else {
     console.log("未找到符合条件的记录");
 }
 
-// 返回修改后的响应体（保持原始内容）
+// 返回原始响应体
 $done({ body });

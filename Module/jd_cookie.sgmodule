@@ -4,7 +4,7 @@
 #!system=ios
 
 [Script]
-JD_Cookie = type=http-request,pattern=^https:\/\/mars\.jd\.com\/log\/sdk\/v2,script-path=jd_cookie.js
+JD_Cookie = type=http-request,pattern=^https:\/\/mars\.jd\.com\/log\/sdk\/v2,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/jd_cookie.js
 
 [MITM]
 hostname = %APPEND% mars.jd.com

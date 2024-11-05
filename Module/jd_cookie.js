@@ -17,8 +17,7 @@ async function main() {
         const pt_key = pt_key_match[1];
         const pt_pin = pt_pin_match[1];
 
-        $.log(`pt_pin: ${pt_pin}`);
-        $.log(`pt_key: ${pt_key}`);
+        $.log(`pt_key=${pt_key}; pt_pin=${pt_pin}; `);
 
         const oldCookie = $.getdata('JD_COOKIE');
         const newCookie = `pt_key=${pt_key};pt_pin=${pt_pin};`;

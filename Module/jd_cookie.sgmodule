@@ -1,0 +1,10 @@
+#!name=JD_Cookie 
+#!desc=获取京东 Cookie
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+JD_Cookie = type=http-request,pattern=^https:\/\/mars\.jd\.com\/log\/sdk\/v2,script-path=jd_cookie.js
+
+[MITM]
+hostname = %APPEND% mars.jd.com

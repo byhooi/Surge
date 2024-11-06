@@ -1,11 +1,10 @@
-#!name=MixPark 自动签到
-#!desc=MixPark 每日自动签到
-#!arguments=定时签到:0 10 0 * * ?,禁用脚本:MixPark 获取cookie,禁用MITM:hostname
+#!name=MixPark Mkey 
+#!desc=获取钧濠签到 Mkey
 #!category=🎈 Bingo
+#!system=ios
 
 [Script]
-MixPark 自动签到 = type=cron,cronexp="{{{定时签到}}}",wake-system=1,timeout=60,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/MixPark.js
-{{{禁用脚本}}} = type=http-request,pattern=^https?:\/\/wox2019\.woxshare\.com\/clientApi\/signInRecordAdd,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/MixPark.js
+MixPark_token = type=http-request,pattern=^https?:\/\/wox2019\.woxshare\.com\/clientApi\/signInRecordAdd,requires-body=1,max-size=0,script-path=MixPark.js
 
 [MITM]
-{{{禁用MITM}}} = %APPEND% wox2019.woxshare.com
+hostname = %APPEND% wox2019.woxshare.com

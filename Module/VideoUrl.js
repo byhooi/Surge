@@ -47,13 +47,14 @@ if (maxSportCountRecord) {
     // 判断是否达到5次合格要求
     let isQualified = qualifiedCount >= 5;
     let qualificationStatus = isQualified ? "✅ 合格" : "❌ 不合格";
-    
+
+    console.log("考核结果：" + qualificationStatus);
+    console.log(`合格次数：${qualifiedCount} 次`);
     console.log("一分钟最快: " + maxSportCountRecord.sportCount + " 个");
     console.log("对应的 videoUrl: " + maxSportCountRecord.videoUrl);
     console.log("总跳绳数: " + totalSportCount + " 个");
     console.log(`总运动时间：${totalExerciseTimeInMinutes} 分钟 ${remainingSeconds} 秒`);
-    console.log(`合格次数：${qualifiedCount} 次`);
-    console.log("考核结果：" + qualificationStatus);
+
 
     // 以通知形式输出结果
     $notification.post(

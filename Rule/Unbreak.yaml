@@ -1,2 +1,35 @@
 # Unbreak
 payload:
+  - DOMAIN-SUFFIX,byhooi.tk
+  - DOMAIN-SUFFIX,oyunfor.com
+  - DOMAIN-SUFFIX,3658172.com
+  # CMSPlayer
+  - DOMAIN-SUFFIX,ddys.pro
+  - DOMAIN-SUFFIX,jisuzyv.com
+  - DOMAIN-SUFFIX,jisuts.com
+  - DOMAIN-SUFFIX,jszyapi.com
+  - DOMAIN-SUFFIX,wlongimg.com
+  - DOMAIN-SUFFIX,wolongzy.cc
+  - DOMAIN-SUFFIX,wlcdn99.com
+  - DOMAIN-SUFFIX,fenwe078.cf
+  - DOMAIN-SUFFIX,kuqjz.com
+  - DOMAIN-SUFFIX,huawei8.live
+  - DOMAIN-SUFFIX,hw8.live
+  - DOMAIN-KEYWORD,heimuer
+  - DOMAIN-SUFFIX,heimuertv.com
+  - DOMAIN-SUFFIX,rccic17e6ts.com
+  - DOMAIN-SUFFIX,3792lisv1ts.com
+  - DOMAIN-SUFFIX,hmrvideo.com
+  - DOMAIN-SUFFIX,b3dy7unlyts.com
+  - DOMAIN-SUFFIX,98znvk2b7ts.com
+  - DOMAIN-SUFFIX,msr46xwr0ts.com
+  - DOMAIN-SUFFIX,hkc2lgyhhts.com
+  - DOMAIN-SUFFIX,gxcpq0klmts.com
+  - DOMAIN-SUFFIX,vdwjtaxhats.com
+  - DOMAIN-SUFFIX,2q4lfkl4xts.com
+  - DOMAIN-SUFFIX,4t74723ents.com
+  - DOMAIN-SUFFIX,pk8oa5o6ats.com
+  - DOMAIN-SUFFIX,simaguo.com
+  - DOMAIN-SUFFIX,msr46xwr0ts.com
+  - DOMAIN-SUFFIX,lziapi.com
+  - DOMAIN-SUFFIX,cdnlz18.com

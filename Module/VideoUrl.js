@@ -27,7 +27,7 @@ if (jsonData && jsonData.data && jsonData.data[0].sportRecordDTOS) {
         totalSportTime += record.sportTime;
         
         // 判断单次是否合格
-        if (record.sportTime <= 60000 && record.sportCount >= 175) {
+        if (record.sportTime <= 60000 && record.sportCount >= 180) {
             qualifiedCount++;
         }
 

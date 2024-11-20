@@ -19,11 +19,11 @@ try {
 // 返回修改后的请求体
 $done({ body }); 
 
-let body = $response.body;
+let responseBody = $response.body;
 let jsonData;
 
 try {
-    jsonData = JSON.parse(body);
+    jsonData = JSON.parse(responseBody);
 } catch (error) {
     console.log("响应解析失败: " + error);
     $done({});

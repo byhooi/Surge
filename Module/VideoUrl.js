@@ -2,14 +2,23 @@
 // Surge 规则配置: [Script] 部分添加规则
 // 示例: https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record url script-response-body 获取统计.js
 
-let body = $response.body;
+let body = $request ? $request.body : $response.body;
 let jsonData;
 
 try {
     jsonData = JSON.parse(body);
+    
+    if ($request) {
+        // 处理请求
+        jsonData.dataScope = "TODAY";
+        $done({ body: JSON.stringify(jsonData) });
+        return;
+    }
+    // 否则继续处理响应...
 } catch (error) {
-    console.log("响应解析失败: " + error);
+    console.log(($request ? "请求" : "响应") + "解析失败: " + error);
     $done({});
+    return;
 }
 
 // 初始化变量
@@ -57,8 +66,8 @@ if (maxSportCountRecord) {
     
     // 根据合格类型显示不同的统计信息
     let countDisplay = isQualified190 ? 
-        `190及以上${superQualifiedCount}次` : 
-        `185及以上${qualifiedCount}次`;
+        `190个及以上${superQualifiedCount}次` : 
+        `185个及以上${qualifiedCount}次`;
     
     console.log("考核结果：" + qualificationStatus);
     console.log("合格类型: " + countDisplay);
@@ -67,7 +76,7 @@ if (maxSportCountRecord) {
     $notification.post(
         "考核结果: " + qualificationStatus,
         `一分钟最快: ${maxSportCountRecord.sportCount}个`,
-        `合格类型: ${countDisplay}\n总跳绳数: ${totalSportCount}个\n总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
+        `合格类型: ${countDisplay}\n总跳绳数: ${totalSportCount}个，总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
     );
 
     console.log("一分钟最快: " + maxSportCountRecord.sportCount + "个");

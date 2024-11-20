@@ -2,15 +2,22 @@
 // Surge 规则配置: [Script] 部分添加规则
 // 示例: https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record url script-response-body 获取统计.js
 
-let body = $response.body;
-let jsonData;
+let body = $request.body;
+let jsonBody;
 
 try {
-    jsonData = JSON.parse(body);
+    jsonBody = JSON.parse(body);
+    // 修改数据范围为 TODAY
+    jsonBody.dataScope = "TODAY";
+    
+    // 将修改后的数据转回字符串
+    body = JSON.stringify(jsonBody);
 } catch (error) {
-    console.log("响应解析失败: " + error);
-    $done({});
+    console.log("请求体解析失败: " + error);
 }
+
+// 返回修改后的请求体
+$done({ body }); 
 
 // 初始化变量
 let maxSportCountRecord = null;

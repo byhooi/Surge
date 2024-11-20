@@ -19,6 +19,16 @@ try {
 // 返回修改后的请求体
 $done({ body }); 
 
+let body = $response.body;
+let jsonData;
+
+try {
+    jsonData = JSON.parse(body);
+} catch (error) {
+    console.log("响应解析失败: " + error);
+    $done({});
+}
+
 // 初始化变量
 let maxSportCountRecord = null;
 let totalSportCount = 0;
@@ -65,7 +75,7 @@ if (maxSportCountRecord) {
     // 根据合格类型显示不同的统计信息
     let countDisplay = isQualified190 ? 
         `190个及以上${superQualifiedCount}次` : 
-        `185个及以上${qualifiedCount}次`;
+        `185个以上${qualifiedCount}次`;
     
     console.log("考核结果：" + qualificationStatus);
     console.log("合格类型: " + countDisplay);

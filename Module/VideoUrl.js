@@ -64,8 +64,8 @@ if (maxSportCountRecord) {
     
     // 根据合格类型显示不同的统计信息
     let countDisplay = isQualified190 ? 
-        `190及以上${superQualifiedCount}次` : 
-        `185及以上${qualifiedCount}次`;
+        `190个及以上${superQualifiedCount}次` : 
+        `185个及以上${qualifiedCount}次`;
     
     console.log("考核结果：" + qualificationStatus);
     console.log("合格类型: " + countDisplay);
@@ -74,7 +74,7 @@ if (maxSportCountRecord) {
     $notification.post(
         "考核结果: " + qualificationStatus,
         `一分钟最快: ${maxSportCountRecord.sportCount}个`,
-        `合格类型: ${countDisplay}\n总跳绳数: ${totalSportCount}个\n总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
+        `合格类型: ${countDisplay}\n总跳绳数: ${totalSportCount}个,总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
     );
 
     console.log("一分钟最快: " + maxSportCountRecord.sportCount + "个");

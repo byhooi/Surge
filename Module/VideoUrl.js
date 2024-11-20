@@ -57,8 +57,8 @@ if (maxSportCountRecord) {
     
     // 根据合格类型显示不同的统计信息
     let countDisplay = isQualified190 ? 
-        `190及以上 ${superQualifiedCount}次` : 
-        `185及以上 ${qualifiedCount}次`;
+        `190及以上${superQualifiedCount}次` : 
+        `185及以上${qualifiedCount}次`;
     
     console.log("考核结果：" + qualificationStatus);
     console.log("合格类型: " + countDisplay);

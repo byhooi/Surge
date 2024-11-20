@@ -2,30 +2,11 @@
 // Surge 规则配置: [Script] 部分添加规则
 // 示例: https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record url script-response-body 获取统计.js
 
-// 处理请求
-let requestBody = $request.body;
-let jsonBody;
-
-try {
-    jsonBody = JSON.parse(requestBody);
-    // 修改数据范围为 TODAY
-    jsonBody.dataScope = "TODAY";
-    
-    // 将修改后的数据转回字符串
-    requestBody = JSON.stringify(jsonBody);
-} catch (error) {
-    console.log("请求体解析失败: " + error);
-}
-
-// 返回修改后的请求体
-$done({ body: requestBody }); 
-
-// 处理响应
-let responseBody = $response.body;
+let body = $response.body;
 let jsonData;
 
 try {
-    jsonData = JSON.parse(responseBody);
+    jsonData = JSON.parse(body);
 } catch (error) {
     console.log("响应解析失败: " + error);
     $done({});
@@ -76,8 +57,8 @@ if (maxSportCountRecord) {
     
     // 根据合格类型显示不同的统计信息
     let countDisplay = isQualified190 ? 
-        `190个及以上${superQualifiedCount}次` : 
-        `185个以上${qualifiedCount}次`;
+        `190个及以上次数${superQualifiedCount}次` : 
+        `185个及以上次数${qualifiedCount}次`;
     
     console.log("考核结果：" + qualificationStatus);
     console.log("合格类型: " + countDisplay);
@@ -97,5 +78,5 @@ if (maxSportCountRecord) {
     console.log("未找到符合条件的记录");
 }
 
-// 最后返回响应体
-$done({ body: responseBody });
+// 返回原始响应体
+$done({ body });

@@ -6,9 +6,9 @@
 #!system=ios
 
 [Script]
-途虎签到 = type=cron,cronexp="{{{定时签到}}}",script-path=https://raw.githubusercontent.com/Crazy-Z7/Task/main/Tuhyche.js
+途虎签到 = type=cron,cronexp="{{{定时签到}}}",timeout=60,script-path=https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js,script-update-interval=0
 
-{{{禁用脚本}}} = type=http-request,pattern=^https?:\/\/api\.tuhu\.cn\/User\/GetInternalCenterInfo,script-path=https://raw.githubusercontent.com/Crazy-Z7/Task/main/Tuhyche.js
+{{{禁用脚本}}} = type=http-request,pattern=https:\/\/api\.tuhu\.cn\/User\/GetInternalCenterInfo,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js
 
 [MITM]
 {{{禁用MITM}}} = %APPEND% api.tuhu.cn

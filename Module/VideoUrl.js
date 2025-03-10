@@ -16,8 +16,7 @@ try {
 let maxSportCountRecord = null;
 let totalSportCount = 0;
 let totalSportTime = 0;
-let qualifiedCount = 0; // 记录185及以上的次数
-let superQualifiedCount = 0; // 新增：记录190及以上的次数
+let qualifiedCount = 0; // 记录195及以上的次数
 
 if (jsonData && jsonData.data && jsonData.data[0].sportRecordDTOS) {
     jsonData.data[0].sportRecordDTOS.forEach(record => {
@@ -29,11 +28,8 @@ if (jsonData && jsonData.data && jsonData.data[0].sportRecordDTOS) {
         
         // 判断单次是否合格
         if (record.sportTime <= 60000) {
-            if (record.sportCount >= 190) {
-                superQualifiedCount++;
-                qualifiedCount++;
-            } else if (record.sportCount >= 185) {
-                qualifiedCount++;
+            if (record.sportCount >= 195) {
+                qualifiedCount++; // 只记录195及以上的次数
             }
         }
 
@@ -51,23 +47,16 @@ let remainingSeconds = Math.floor((totalSportTime % 60000) / 1000); // 秒部分
 // 输出结果
 if (maxSportCountRecord) {
     // 判断合格类型
-    let isQualified190 = superQualifiedCount >= 3;
-    let isQualified185 = qualifiedCount >= 5;
-    let qualificationStatus = (isQualified190 || isQualified185) ? "✅ 合格" : "❌ 不合格";
-    
-    // 根据合格类型显示不同的统计信息
-    let countDisplay = isQualified190 ? 
-        `190个及以上${superQualifiedCount}次` : 
-        `185个及以上${qualifiedCount}次`;
+    let isQualified195 = qualifiedCount >= 3; // 只判断195的合格情况
+    let qualificationStatus = isQualified195 ? "✅ 合格" : "❌ 不合格";
     
     console.log("考核结果：" + qualificationStatus);
-    console.log("合格类型: " + countDisplay);
     
     // 修改通知内容
     $notification.post(
         "考核结果: " + qualificationStatus,
         `一分钟最快: ${maxSportCountRecord.sportCount}个`,
-        `合格类型: ${countDisplay}\n总跳绳数: ${totalSportCount}个,总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
+        `总跳绳数: ${totalSportCount}个,总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
     );
 
     console.log("一分钟最快: " + maxSportCountRecord.sportCount + "个");

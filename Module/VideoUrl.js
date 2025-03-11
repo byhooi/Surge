@@ -56,7 +56,7 @@ if (maxSportCountRecord) {
     $notification.post(
         "考核结果: " + qualificationStatus,
         `一分钟最快: ${maxSportCountRecord.sportCount}个`,
-        `总跳绳数: ${totalSportCount}个, 总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒, 跳了 ${maxSportCountRecord.sportCount} 次`
+        `总跳绳数: ${totalSportCount}个, 总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒, 跳了 ${jsonData.data[0].sportRecordDTOS.length} 次`
     );
 
     console.log("一分钟最快: " + maxSportCountRecord.sportCount + "个");

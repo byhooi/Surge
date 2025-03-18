@@ -47,7 +47,9 @@ let remainingSeconds = Math.floor((totalSportTime % 60000) / 1000); // 秒部分
 // 输出结果
 if (maxSportCountRecord) {
     // 判断合格类型
-    let isQualified195 = qualifiedCount >= 3; // 只判断195的合格情况
+    let hasOver200 = jsonData.data[0].sportRecordDTOS.some(record => record.sportCount >= 200);
+    let requiredCount = hasOver200 ? 2 : 3;  // 存在200+则只需2次合格
+    let isQualified195 = qualifiedCount >= requiredCount;
     let qualificationStatus = isQualified195 ? "✅ 合格" : "❌ 不合格";
     
     console.log("考核结果：" + qualificationStatus);

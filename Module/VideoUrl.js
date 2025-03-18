@@ -56,7 +56,7 @@ if (maxSportCountRecord) {
     
     // 修改通知内容
     $notification.post(
-        "考核结果: " + qualificationStatus,
+        `考核类型: ${hasOver200 ? "200+减次合格" : "常规合格"} | 结果: ${qualificationStatus}`,
         `一分钟最快: ${maxSportCountRecord.sportCount}个`,
         `总跳绳数: ${totalSportCount}个, 总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒, 跳了 ${jsonData.data[0].sportRecordDTOS.length} 次`
     );

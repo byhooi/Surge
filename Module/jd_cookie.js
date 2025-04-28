@@ -1,5 +1,6 @@
 // JD Cookie Monitor
 // 用于监控京东 Cookie 变化并进行通知
+// 使用方法：浏览器打开 https://m.jd.com/ 登录后获取 Cookie
 
 const $ = new Env('JD Cookie Monitor');
 

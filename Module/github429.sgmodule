@@ -1,0 +1,10 @@
+#!name=Github 429
+#!desc=解除 Github 429 限制
+#!category=🎈 Bingo
+#!system=ios
+
+[Header Rewrite]
+http-request raw.githubusercontent.com header-replace Accept-Language en-us
+
+[MITM]
+hostname = %APPEND% raw.githubusercontent.com

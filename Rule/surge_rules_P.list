@@ -1,0 +1,17 @@
+# 规则数量：当前共 14 条规则
+# 更新时间: 2025/05/16 08:18:28
+# 规则数量：当前共 14 条规则
+DOMAIN-SUFFIX,0cicgw0mte7y.com
+DOMAIN-SUFFIX,bugsnag.com
+DOMAIN-SUFFIX,facebook.com
+DOMAIN-SUFFIX,githubusercontent.com
+DOMAIN-SUFFIX,google.com
+DOMAIN-SUFFIX,googleapis.com
+DOMAIN-SUFFIX,googlevideo.com
+DOMAIN-SUFFIX,instagram.com
+DOMAIN-SUFFIX,openai.com
+DOMAIN-SUFFIX,sentry.io
+DOMAIN-SUFFIX,twimg.com
+DOMAIN-SUFFIX,twitter.com
+IP-CIDR,149.154.166.0/23
+IP-CIDR,91.108.56.0/23

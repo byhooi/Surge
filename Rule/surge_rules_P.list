@@ -1,13 +1,19 @@
-# 规则数量：当前共 14 条规则
-# 更新时间: 2025/05/16 08:18:28
-# 规则数量：当前共 14 条规则
+# 规则数量：当前共 20 条规则
+# 更新时间: 2025/05/17 10:27:16
+# 规则数量：当前共 20 条规则
 DOMAIN-SUFFIX,0cicgw0mte7y.com
+DOMAIN-SUFFIX,binance.info
 DOMAIN-SUFFIX,bugsnag.com
+DOMAIN-SUFFIX,cloudfront.net
+DOMAIN-SUFFIX,duolingo.com
 DOMAIN-SUFFIX,facebook.com
+DOMAIN-SUFFIX,foursquare.com
 DOMAIN-SUFFIX,githubusercontent.com
+DOMAIN-SUFFIX,gmail.com
 DOMAIN-SUFFIX,google.com
 DOMAIN-SUFFIX,googleapis.com
 DOMAIN-SUFFIX,googlevideo.com
+DOMAIN-SUFFIX,hotmail.com
 DOMAIN-SUFFIX,instagram.com
 DOMAIN-SUFFIX,openai.com
 DOMAIN-SUFFIX,sentry.io

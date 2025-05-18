@@ -1,6 +1,6 @@
-# 规则数量：当前共 207 条规则
-# 更新时间: 2025/05/17 10:27:16
-# 规则数量：当前共 207 条规则
+# 规则数量：当前共 229 条规则
+# 更新时间: 2025/05/18 16:28:17
+# 规则数量：当前共 229 条规则
 DOMAIN-SUFFIX,0kkkkkt.com
 DOMAIN-SUFFIX,10010.com
 DOMAIN-SUFFIX,123957.com
@@ -17,10 +17,12 @@ DOMAIN-SUFFIX,adukwai.com
 DOMAIN-SUFFIX,aliapp.org
 DOMAIN-SUFFIX,alibaba.com
 DOMAIN-SUFFIX,alibabachengdun.com
+DOMAIN-SUFFIX,alibabadns.com
 DOMAIN-SUFFIX,alicdn.com
 DOMAIN-SUFFIX,alidns.com
 DOMAIN-SUFFIX,alipay.com
 DOMAIN-SUFFIX,alipayobjects.com
+DOMAIN-SUFFIX,aliyun.com
 DOMAIN-SUFFIX,aliyuncs.com
 DOMAIN-SUFFIX,amap.com
 DOMAIN-SUFFIX,amemv.com
@@ -53,6 +55,7 @@ DOMAIN-SUFFIX,cn
 DOMAIN-SUFFIX,cnzz.com
 DOMAIN-SUFFIX,colorfulclouds.net
 DOMAIN-SUFFIX,crashlytics.com
+DOMAIN-SUFFIX,ctobsnssdk.com
 DOMAIN-SUFFIX,ctrip.com
 DOMAIN-SUFFIX,czb365.com
 DOMAIN-SUFFIX,dataesb.com
@@ -65,6 +68,7 @@ DOMAIN-SUFFIX,dingtalk.com
 DOMAIN-SUFFIX,dingtalkcloud.com
 DOMAIN-SUFFIX,doh.pub
 DOMAIN-SUFFIX,dongfeng-honda.com
+DOMAIN-SUFFIX,douban.com
 DOMAIN-SUFFIX,doubleclick-cn.net
 DOMAIN-SUFFIX,doubleclick.net
 DOMAIN-SUFFIX,douyincdn.com
@@ -93,9 +97,13 @@ DOMAIN-SUFFIX,gifshow.com
 DOMAIN-SUFFIX,globalsign.com
 DOMAIN-SUFFIX,goofish.com
 DOMAIN-SUFFIX,googleadservices.com
+DOMAIN-SUFFIX,googlesyndication-cn.com
+DOMAIN-SUFFIX,googlesyndication.com
+DOMAIN-SUFFIX,googletagmanager.com
 DOMAIN-SUFFIX,gstatic-cn.com
 DOMAIN-SUFFIX,gstatic.com
 DOMAIN-SUFFIX,gtimg.com
+DOMAIN-SUFFIX,gvt1-cn.com
 DOMAIN-SUFFIX,heinw.com
 DOMAIN-SUFFIX,huya.com
 DOMAIN-SUFFIX,icloud.com
@@ -121,6 +129,7 @@ DOMAIN-SUFFIX,manmanbuy.com
 DOMAIN-SUFFIX,meituan.com
 DOMAIN-SUFFIX,meituan.net
 DOMAIN-SUFFIX,mi-img.com
+DOMAIN-SUFFIX,miaozhen.com
 DOMAIN-SUFFIX,midea.com
 DOMAIN-SUFFIX,mijia.tech
 DOMAIN-SUFFIX,miui.com
@@ -131,11 +140,13 @@ DOMAIN-SUFFIX,mxbc.net
 DOMAIN-SUFFIX,myhuaweicloud.com
 DOMAIN-SUFFIX,myqcloud.com
 DOMAIN-SUFFIX,mzstatic.com
+DOMAIN-SUFFIX,netease.im
 DOMAIN-SUFFIX,ninebot.com
 DOMAIN-SUFFIX,nlktj.com
 DOMAIN-SUFFIX,oceanengine.com
 DOMAIN-SUFFIX,okii.com
 DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com
 DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com
 DOMAIN-SUFFIX,pddpic.com
 DOMAIN-SUFFIX,pglstatp-toutiao.com
@@ -143,18 +154,22 @@ DOMAIN-SUFFIX,pinduoduo.com
 DOMAIN-SUFFIX,pingan.com
 DOMAIN-SUFFIX,puata.info
 DOMAIN-SUFFIX,pupuapi.com
+DOMAIN-SUFFIX,pupumall.com
 DOMAIN-SUFFIX,qhimg.com
 DOMAIN-SUFFIX,qiezibenpao.com
 DOMAIN-SUFFIX,qihu.com
+DOMAIN-SUFFIX,qiyukf.com
 DOMAIN-SUFFIX,qq.com
 DOMAIN-SUFFIX,qtaeixd.com
 DOMAIN-SUFFIX,qunar.com
 DOMAIN-SUFFIX,qunarcdn.com
 DOMAIN-SUFFIX,qunarzz.com
 DOMAIN-SUFFIX,qzjcy.com
+DOMAIN-SUFFIX,recaptcha.net
 DOMAIN-SUFFIX,retouchpics.com
 DOMAIN-SUFFIX,sankuai.com
 DOMAIN-SUFFIX,sealaly.net
+DOMAIN-SUFFIX,searchpstatp.com
 DOMAIN-SUFFIX,sf-express.com
 DOMAIN-SUFFIX,shenzhentong.com
 DOMAIN-SUFFIX,shujupie.com
@@ -166,6 +181,7 @@ DOMAIN-SUFFIX,snssdk.com
 DOMAIN-SUFFIX,sobot.com
 DOMAIN-SUFFIX,springcocoon.com
 DOMAIN-SUFFIX,ssjlicai.com
+DOMAIN-SUFFIX,tanx.com
 DOMAIN-SUFFIX,taobao.com
 DOMAIN-SUFFIX,tcdnos.com
 DOMAIN-SUFFIX,tec73.com
@@ -179,6 +195,7 @@ DOMAIN-SUFFIX,tjjt360.com
 DOMAIN-SUFFIX,tripcdn.com
 DOMAIN-SUFFIX,tuhu.com
 DOMAIN-SUFFIX,tuhu.org
+DOMAIN-SUFFIX,tujia.com
 DOMAIN-SUFFIX,udache.com
 DOMAIN-SUFFIX,ugdtimg.com
 DOMAIN-SUFFIX,ule.com
@@ -186,15 +203,20 @@ DOMAIN-SUFFIX,ulecdn.com
 DOMAIN-SUFFIX,umeng.com
 DOMAIN-SUFFIX,vegslb.com
 DOMAIN-SUFFIX,vivo.com
+DOMAIN-SUFFIX,volceapplog.com
 DOMAIN-SUFFIX,volces.com
 DOMAIN-SUFFIX,volcsiriusbd.com
 DOMAIN-SUFFIX,wavpub.com
+DOMAIN-SUFFIX,weibo.com
+DOMAIN-SUFFIX,weixin.com
 DOMAIN-SUFFIX,weixinbridge.com
 DOMAIN-SUFFIX,woxshare.com
+DOMAIN-SUFFIX,wxgateway.com
 DOMAIN-SUFFIX,xhscdn.com
 DOMAIN-SUFFIX,xiaohongshu.com
 DOMAIN-SUFFIX,xiaojukeji.com
 DOMAIN-SUFFIX,xiaomi.com
+DOMAIN-SUFFIX,xiaomi.net
 DOMAIN-SUFFIX,ximalaya.com
 DOMAIN-SUFFIX,xinqiucc.com
 DOMAIN-SUFFIX,xycdn.com

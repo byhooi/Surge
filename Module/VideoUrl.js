@@ -56,15 +56,14 @@ if (maxSportCountRecord) {
     // 修改通知内容
     $notification.post(
         `结果: ${qualificationStatus}`,
-        `一分钟最快: ${maxSportCountRecord.sportCount}个`,
-        `总跳绳数: ${totalSportCount}个, 总运动时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒, 跳了 ${jsonData.data[0].sportRecordDTOS.length} 组`
+        `一分钟最多: ${maxSportCountRecord.sportCount}个`,
+        `总跳绳数: ${totalSportCount}个, 总跳绳时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
     );
 
-    console.log("一分钟最快: " + maxSportCountRecord.sportCount + "个");
+    console.log("一分钟最多: " + maxSportCountRecord.sportCount + "个");
     console.log("对应的 videoUrl: " + maxSportCountRecord.videoUrl);
     console.log("总跳绳数: " + totalSportCount + "个");
-    console.log(`总运动时间：${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`);
-    console.log(`跳了 ${jsonData.data[0].sportRecordDTOS.length} 组`);
+    console.log(`总跳绳时间：${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`);
 } else {
     console.log("未找到符合条件的记录");
 }

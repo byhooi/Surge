@@ -1,10 +1,11 @@
-# 规则数量：当前共 130 条规则
-# 更新时间: 2025/05/20 12:08:32
-# 规则数量：当前共 130 条规则
+# 规则数量：当前共 138 条规则
+# 更新时间: 2025/05/22 14:46:27
+# 规则数量：当前共 138 条规则
 DOMAIN-SUFFIX,0cicgw0mte7y.com
 DOMAIN-SUFFIX,0nzuqy0k3c35.com
 DOMAIN-SUFFIX,3x3zq9he3ong.com
 DOMAIN-SUFFIX,4e4zsuz3attm.com
+DOMAIN-SUFFIX,58codes.com
 DOMAIN-SUFFIX,5dagx9am9sai.com
 DOMAIN-SUFFIX,abjectionirresponsibility.com
 DOMAIN-SUFFIX,adsappier.com
@@ -23,6 +24,7 @@ DOMAIN-SUFFIX,browser-intake-datadoghq.com
 DOMAIN-SUFFIX,bugsnag.com
 DOMAIN-SUFFIX,buzzsprout.com
 DOMAIN-SUFFIX,byhooi.tk
+DOMAIN-SUFFIX,bytemaimg.com
 DOMAIN-SUFFIX,cdninstagram.com
 DOMAIN-SUFFIX,chatgpt.com
 DOMAIN-SUFFIX,chinamobile.com
@@ -53,6 +55,7 @@ DOMAIN-SUFFIX,googleapis.com
 DOMAIN-SUFFIX,googleusercontent.com
 DOMAIN-SUFFIX,googlevideo.com
 DOMAIN-SUFFIX,h995r3twqceb.com
+DOMAIN-SUFFIX,hcqc94ir2gv9.com
 DOMAIN-SUFFIX,heimuer.tv
 DOMAIN-SUFFIX,heimuer.xyz
 DOMAIN-SUFFIX,hk
@@ -71,9 +74,11 @@ DOMAIN-SUFFIX,jp
 DOMAIN-SUFFIX,jszyapi.com
 DOMAIN-SUFFIX,k6qgunhk9wuk.com
 DOMAIN-SUFFIX,kour.io
+DOMAIN-SUFFIX,kuiniuca.com
 DOMAIN-SUFFIX,lfeeder.com
 DOMAIN-SUFFIX,linkedin.com
 DOMAIN-SUFFIX,liramail.com
+DOMAIN-SUFFIX,lvcchong.com
 DOMAIN-SUFFIX,mdghhsgc4iiy.com
 DOMAIN-SUFFIX,microsoft.com
 DOMAIN-SUFFIX,microsoftonline.com
@@ -101,11 +106,13 @@ DOMAIN-SUFFIX,ppcn22i4gm33.com
 DOMAIN-SUFFIX,pscp.tv
 DOMAIN-SUFFIX,pxbvtypflexj.com
 DOMAIN-SUFFIX,qingr.moe
+DOMAIN-SUFFIX,qishui.com
 DOMAIN-SUFFIX,r5oa1oqwh6gz.com
 DOMAIN-SUFFIX,rc-backup.com
 DOMAIN-SUFFIX,revenuecat.com
 DOMAIN-SUFFIX,rubiconproject.com
 DOMAIN-SUFFIX,sentry.io
+DOMAIN-SUFFIX,smartmidea.net
 DOMAIN-SUFFIX,sphdigital.com
 DOMAIN-SUFFIX,splunkcloud.com
 DOMAIN-SUFFIX,syftdata.com
@@ -129,5 +136,6 @@ IP-CIDR,119.28.28.0/24
 IP-CIDR,149.154.164.0/23
 IP-CIDR,149.154.166.0/23
 IP-CIDR,149.154.172.0/22
+IP-CIDR,163.181.129.0/24
 IP-CIDR,43.153.128.0/18
 IP-CIDR,91.108.56.0/23

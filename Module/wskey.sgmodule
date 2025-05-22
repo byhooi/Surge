@@ -4,9 +4,9 @@
 #!system=ios
 
 [Script]
-京东 WSKEY = type=http-request,pattern=https:\/\/rjsb-token-m\.jd\.com\/gettoken,requires-body=1,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/wskey.js,script-update-interval=0
+京东 WSKEY = type=http-request,pattern=https:\/\/rjsb-token-m\.jd\.com\/gettoken,requires-body=1,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey.js,script-update-interval=0
 
-京东 PIN = type=http-request,pattern=https:\/\/mars\.jd\.com\/log\/sdk\/v2,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Module/wskey.js,script-update-interval=0
+京东 PIN = type=http-request,pattern=https:\/\/mars\.jd\.com\/log\/sdk\/v2,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey.js,script-update-interval=0
 
 [MITM]
 hostname = %APPEND% rjsb-token-m.jd.com, mars.jd.com

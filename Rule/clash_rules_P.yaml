@@ -1,40 +1,9 @@
-# 规则数量：当前共 36 条规则
-# 更新时间: 2025/06/10 10:07:03
-# 规则数量：当前共 36 条规则
+# 规则数量：当前共 5 条规则
+# 更新时间: 2025/06/10 18:13:33
+# 规则数量：当前共 5 条规则
 payload:
-  - DOMAIN-SUFFIX,3hw33dyqnvqf.com
-  - DOMAIN-SUFFIX,5s2479yfv5zi.com
-  - DOMAIN-SUFFIX,browser-intake-datadoghq.com
-  - DOMAIN-SUFFIX,bugsnag.com
-  - DOMAIN-SUFFIX,chatgpt.com
-  - DOMAIN-SUFFIX,duolingo.com
-  - DOMAIN-SUFFIX,facebook.com
-  - DOMAIN-SUFFIX,firstory.me
-  - DOMAIN-SUFFIX,github.com
+  - DOMAIN-SUFFIX,apple.com
   - DOMAIN-SUFFIX,githubusercontent.com
-  - DOMAIN-SUFFIX,gmail.com
-  - DOMAIN-SUFFIX,google.com
-  - DOMAIN-SUFFIX,googleusercontent.com
-  - DOMAIN-SUFFIX,googlevideo.com
-  - DOMAIN-SUFFIX,h995r3twqceb.com
-  - DOMAIN-SUFFIX,instagram.com
-  - DOMAIN-SUFFIX,jp
-  - DOMAIN-SUFFIX,navogkbbnjl4.com
-  - DOMAIN-SUFFIX,openai.com
-  - DOMAIN-SUFFIX,redd.it
-  - DOMAIN-SUFFIX,reddit.com
-  - DOMAIN-SUFFIX,revenuecat.com
-  - DOMAIN-SUFFIX,twimg.com
-  - DOMAIN-SUFFIX,twitter.com
-  - DOMAIN-SUFFIX,unity3d.com
-  - IP-CIDR,101.47.81.0/24
-  - IP-CIDR,101.47.83.0/24
-  - IP-CIDR,114.112.208.0/20
-  - IP-CIDR,128.1.157.0/24
   - IP-CIDR,139.177.246.0/24
-  - IP-CIDR,155.102.42.0/24
-  - IP-CIDR,156.59.188.0/22
-  - IP-CIDR,163.181.23.0/24
   - IP-CIDR,34.100.0.0/14
   - IP-CIDR,71.18.101.0/24
-  - IP-CIDR,91.108.56.0/23

@@ -1,5 +1,13 @@
-# 规则数量：当前共 1 条规则
-# 更新时间: 2025/06/13 17:13:31
-# 规则数量：当前共 1 条规则
+# 规则数量：当前共 9 条规则
+# 更新时间: 2025/06/13 17:14:48
+# 规则数量：当前共 9 条规则
 payload:
+  - DOMAIN-SUFFIX,app-analytics-services.com
+  - DOMAIN-SUFFIX,app-measurement.com
+  - DOMAIN-SUFFIX,beizi.biz
+  - DOMAIN-SUFFIX,doubleclick-cn.net
+  - DOMAIN-SUFFIX,gstatic.com
   - DOMAIN-SUFFIX,ninebot.com
+  - DOMAIN-SUFFIX,shenzhentong.com
+  - DOMAIN-SUFFIX,tianwenca.com
+  - DOMAIN-SUFFIX,xinqiucc.com

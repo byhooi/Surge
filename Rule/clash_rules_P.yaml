@@ -1,6 +1,13 @@
-# 规则数量：当前共 2 条规则
-# 更新时间: 2025/06/13 17:13:31
-# 规则数量：当前共 2 条规则
+# 规则数量：当前共 9 条规则
+# 更新时间: 2025/06/13 17:14:48
+# 规则数量：当前共 9 条规则
 payload:
+  - DOMAIN-SUFFIX,filomail.com
+  - DOMAIN-SUFFIX,google.com
   - DOMAIN-SUFFIX,googleapis.com
+  - DOMAIN-SUFFIX,googleusercontent.com
   - DOMAIN-SUFFIX,googlevideo.com
+  - DOMAIN-SUFFIX,perplexity.ai
+  - DOMAIN-SUFFIX,tapapis.com
+  - DOMAIN-SUFFIX,twimg.com
+  - DOMAIN-SUFFIX,twitter.com

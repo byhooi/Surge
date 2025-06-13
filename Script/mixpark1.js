@@ -230,5 +230,5 @@ const woxSign = async () => {
   $done();
 };
 
-# 执行签到
+// 执行签到
 woxSign();

@@ -93,12 +93,12 @@ const md5 = (input) => {
 
 // SHA-1 算法实现 (用于请求体 mkey)
 const sha1 = (input) => {
-  function r(n, e) {
+  function add32(n, e) {
     var r = (65535 & n) + (65535 & e);
     return (n >> 16) + (e >> 16) + (r >> 16) << 16 | 65535 & r
   }
 
-  function s(n, e) {
+  function rotateLeft(n, e) {
     return n << e | n >>> 32 - e
   }
 
@@ -135,14 +135,14 @@ const sha1 = (input) => {
   
   for (let g = 0; g < a.length; g += 16) {
     const u = l.slice(0);
-    for (let t = 0; t < 80; t++) {
-      r[t] = t < 16 ? a[g + t] : s(r[t - 3] ^ r[t - 8] ^ r[t - 14] ^ r[t - 16], 1);
-      const a = s(l[0], 5) + i[t / 20 | 0]() + l[4] + r[t] + c[t / 20 | 0] | 0;
-      l[1] = s(l[1], 30);
+  for (let t = 0; t < 80; t++) {
+      r[t] = t < 16 ? a[g + t] : rotateLeft(r[t - 3] ^ r[t - 8] ^ r[t - 14] ^ r[t - 16], 1);
+      const a = rotateLeft(l[0], 5) + i[t / 20 | 0]() + l[4] + r[t] + c[t / 20 | 0] | 0;
+      l[1] = rotateLeft(l[1], 30);
       l.pop();
       l.unshift(a);
     }
-    for (let t = 0; t < 5; t++) l[t] = l[t] + u[t] | 0
+    for (let t = 0; t < 5; t++) l[t] = add32(l[t], u[t])
   }
   
   const h = new DataView(new Uint32Array(l).buffer);

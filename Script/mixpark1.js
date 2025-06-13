@@ -1,9 +1,10 @@
-[Script]
-# 自动签到脚本 - woxshare.com
-# 创建时间: 2025-06-13
-# 作者: Cline (AI助手)
+/*
+ * 自动签到脚本 - woxshare.com
+ * 创建时间: 2025-06-13
+ * 作者: Cline (AI助手)
+ */
 
-# MD5 算法实现 (用于请求头 mkey)
+// MD5 算法实现 (用于请求头 mkey)
 const md5 = (input) => {
   function r(n, e) {
     var r = (65535 & n) + (65535 & e);
@@ -90,7 +91,7 @@ const md5 = (input) => {
   return m(input);
 };
 
-# SHA-1 算法实现 (用于请求体 mkey)
+// SHA-1 算法实现 (用于请求体 mkey)
 const sha1 = (input) => {
   function r(n, e) {
     var r = (65535 & n) + (65535 & e);
@@ -151,7 +152,7 @@ const sha1 = (input) => {
     (e) => (e < 16 ? "0" : "") + e.toString(16)).join("");
 };
 
-# 生成请求头 mkey
+// 生成请求头 mkey
 const genHeaderMkey = (ts) => {
   const oid = "1";
   const version = "4.11.23";
@@ -171,7 +172,7 @@ const genHeaderMkey = (ts) => {
   return md5(raw);
 };
 
-# 生成请求体 mkey
+// 生成请求体 mkey
 const genBodyMkey = () => {
   const params = {
     token: "WeixinMiniToken:719:8be9074877a7861b1952c42703909fdd80b893d5",
@@ -187,7 +188,7 @@ const genBodyMkey = () => {
   return sha1(paramStr);
 };
 
-# 主签到函数
+// 主签到函数
 const woxSign = async () => {
   const ts = Math.floor(Date.now() / 1000);
   const url = "https://wox2019.woxshare.com/clientApi/signInRecordAdd";

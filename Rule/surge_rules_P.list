@@ -1,29 +1,5 @@
-# 规则数量：当前共 26 条规则
-# 更新时间: 2025/06/13 13:59:28
-# 规则数量：当前共 26 条规则
-DOMAIN-SUFFIX,bugsnag.com
-DOMAIN-SUFFIX,buzzsprout.com
-DOMAIN-SUFFIX,byhooi.tk
-DOMAIN-SUFFIX,cdninstagram.com
-DOMAIN-SUFFIX,duolingo.com
-DOMAIN-SUFFIX,facebook.com
-DOMAIN-SUFFIX,firstory.me
-DOMAIN-SUFFIX,githubusercontent.com
-DOMAIN-SUFFIX,gmail.com
-DOMAIN-SUFFIX,google.com
-DOMAIN-SUFFIX,googleusercontent.com
+# 规则数量：当前共 2 条规则
+# 更新时间: 2025/06/13 17:13:31
+# 规则数量：当前共 2 条规则
+DOMAIN-SUFFIX,googleapis.com
 DOMAIN-SUFFIX,googlevideo.com
-DOMAIN-SUFFIX,instagram.com
-DOMAIN-SUFFIX,jp
-DOMAIN-SUFFIX,notion.so
-DOMAIN-SUFFIX,omgyesityyhl.com
-DOMAIN-SUFFIX,openai.com
-DOMAIN-SUFFIX,redd.it
-DOMAIN-SUFFIX,reddit.com
-DOMAIN-SUFFIX,redditmedia.com
-DOMAIN-SUFFIX,splunkcloud.com
-DOMAIN-SUFFIX,twimg.com
-DOMAIN-SUFFIX,twitter.com
-DOMAIN-SUFFIX,unity3d.com
-DOMAIN-SUFFIX,youtube.com
-IP-CIDR,91.108.56.0/23

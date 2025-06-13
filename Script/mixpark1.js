@@ -205,4 +205,29 @@ const woxSign = async () => {
         "bid": "ejga",
         "oid": "1",
         "gid": "70",
-        "token": "WeixinMiniToken:719:8be9074877a786
+        "token": "WeixinMiniToken:719:8be9074877a7861b1952c42703909fdd80b893d5"
+      },
+      body: {
+        mkey: genBodyMkey()
+      }
+    });
+    
+    if (response.status === 200) {
+      const data = response.data;
+      if (data.code === 0) {
+        $notification.post('MixPark 签到', '签到成功', `积分 +${data.data.integral}`);
+      } else {
+        $notification.post('MixPark 签到', '签到失败', data.msg || '未知错误');
+      }
+    } else {
+      $notification.post('MixPark 签到', '请求失败', `HTTP状态码: ${response.status}`);
+    }
+  } catch (error) {
+    $notification.post('MixPark 签到', '执行失败', error.message || '未知错误');
+  }
+  
+  $done();
+};
+
+# 执行签到
+woxSign();

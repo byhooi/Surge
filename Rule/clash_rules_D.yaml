@@ -1,20 +1,50 @@
-# 规则数量：当前共 16 条规则
-# 更新时间: 2025/06/13 21:47:01
-# 规则数量：当前共 16 条规则
+# 规则数量：当前共 46 条规则
+# 更新时间: 2025/06/14 15:02:06
+# 规则数量：当前共 46 条规则
 payload:
+  - DOMAIN-SUFFIX,1000my.com
+  - DOMAIN-SUFFIX,adukwai.com
+  - DOMAIN-SUFFIX,ahdohpiechei.com
   - DOMAIN-SUFFIX,alibabachengdun.com
+  - DOMAIN-SUFFIX,anythinktech.com
   - DOMAIN-SUFFIX,app-analytics-services.com
   - DOMAIN-SUFFIX,app-measurement.com
+  - DOMAIN-SUFFIX,beizi.biz
+  - DOMAIN-SUFFIX,bkjk.com
   - DOMAIN-SUFFIX,caiyuncdn.com
   - DOMAIN-SUFFIX,camscanner.com
   - DOMAIN-SUFFIX,colorfulclouds.net
   - DOMAIN-SUFFIX,dingtalkcloud.com
   - DOMAIN-SUFFIX,effirst.com
+  - DOMAIN-SUFFIX,fancyapi.com
+  - DOMAIN-SUFFIX,gepush.com
+  - DOMAIN-SUFFIX,getui.net
   - DOMAIN-SUFFIX,gstatic.com
+  - DOMAIN-SUFFIX,idouyinvod.com
   - DOMAIN-SUFFIX,intsig.net
+  - DOMAIN-SUFFIX,ke.com
+  - DOMAIN-SUFFIX,ks-live.com
+  - DOMAIN-SUFFIX,mijia.tech
+  - DOMAIN-SUFFIX,mixcapp.com
   - DOMAIN-SUFFIX,ninebot.com
   - DOMAIN-SUFFIX,okii.com
+  - DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com
+  - DOMAIN-SUFFIX,puata.info
+  - DOMAIN-SUFFIX,qiezibenpao.com
+  - DOMAIN-SUFFIX,qihu.com
+  - DOMAIN-SUFFIX,sealaly.net
+  - DOMAIN-SUFFIX,shenzhentong.com
   - DOMAIN-SUFFIX,shujupie.com
+  - DOMAIN-SUFFIX,siomxity.net
+  - DOMAIN-SUFFIX,smartmidea.net
+  - DOMAIN-SUFFIX,sycommercial.com
+  - DOMAIN-SUFFIX,tec73.com
+  - DOMAIN-SUFFIX,tiancaixing.com
   - DOMAIN-SUFFIX,tianwenca.com
+  - DOMAIN-SUFFIX,tlivesource.com
+  - DOMAIN-SUFFIX,ubixioe.com
+  - DOMAIN-SUFFIX,vegslb.com
   - DOMAIN-SUFFIX,xinqiucc.com
+  - DOMAIN-SUFFIX,z1cdn.com
+  - DOMAIN-SUFFIX,zhimatech.com
   - DOMAIN-SUFFIX,zztfly.com

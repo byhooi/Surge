@@ -1,13 +1,17 @@
-# 规则数量：当前共 17 条规则
-# 更新时间: 2025/06/17 19:54:57
-# 规则数量：当前共 17 条规则
+# 规则数量：当前共 21 条规则
+# 更新时间: 2025/06/18 16:37:36
+# 规则数量：当前共 21 条规则
 DOMAIN-SUFFIX,adsappier.com
+DOMAIN-SUFFIX,amplitude.com
+DOMAIN-SUFFIX,aolaigo.com
 DOMAIN-SUFFIX,bugsnag.com
 DOMAIN-SUFFIX,buzzsprout.com
 DOMAIN-SUFFIX,cloudfront.net
 DOMAIN-SUFFIX,duolingo.com
 DOMAIN-SUFFIX,eppo.cloud
 DOMAIN-SUFFIX,filomail.com
+DOMAIN-SUFFIX,foursquare.com
+DOMAIN-SUFFIX,giphy.com
 DOMAIN-SUFFIX,jp
 DOMAIN-SUFFIX,jsdelivr.net
 DOMAIN-SUFFIX,perplexity.ai

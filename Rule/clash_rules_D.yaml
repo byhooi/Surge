@@ -1,6 +1,6 @@
-# 规则数量：当前共 59 条规则
-# 更新时间: 2025/06/17 19:54:57
-# 规则数量：当前共 59 条规则
+# 规则数量：当前共 60 条规则
+# 更新时间: 2025/06/18 16:37:36
+# 规则数量：当前共 60 条规则
 payload:
   - DOMAIN-SUFFIX,1000my.com
   - DOMAIN-SUFFIX,adukwai.com
@@ -37,6 +37,7 @@ payload:
   - DOMAIN-SUFFIX,okii.com
   - DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com
   - DOMAIN-SUFFIX,puata.info
+  - DOMAIN-SUFFIX,qdlpay.com
   - DOMAIN-SUFFIX,qiezibenpao.com
   - DOMAIN-SUFFIX,qihu.com
   - DOMAIN-SUFFIX,sealaly.net

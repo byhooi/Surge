@@ -1,8 +1,11 @@
-# 规则数量：当前共 19 条规则
-# 更新时间: 2025/07/02 08:19:45
-# 规则数量：当前共 19 条规则
+# 规则数量：当前共 23 条规则
+# 更新时间: 2025/07/02 09:31:44
+# 规则数量：当前共 23 条规则
+DOMAIN-SUFFIX,bugsnag.com
+DOMAIN-SUFFIX,buzzsprout.com
 DOMAIN-SUFFIX,digicert.com
 DOMAIN-SUFFIX,facebook.com
+DOMAIN-SUFFIX,firstory.me
 DOMAIN-SUFFIX,flurry.com
 DOMAIN-SUFFIX,gmail.com
 DOMAIN-SUFFIX,google.com
@@ -11,6 +14,7 @@ DOMAIN-SUFFIX,googleusercontent.com
 DOMAIN-SUFFIX,googlevideo.com
 DOMAIN-SUFFIX,hotmail.com
 DOMAIN-SUFFIX,icloud.com
+DOMAIN-SUFFIX,jp
 DOMAIN-SUFFIX,mdghhsgc4iiy.com
 DOMAIN-SUFFIX,microsoft.com
 DOMAIN-SUFFIX,microsoftonline.com

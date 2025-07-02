@@ -1,17 +1,21 @@
-# 规则数量：当前共 40 条规则
-# 更新时间: 2025/07/02 08:19:44
-# 规则数量：当前共 40 条规则
+# 规则数量：当前共 45 条规则
+# 更新时间: 2025/07/02 09:31:44
+# 规则数量：当前共 45 条规则
 payload:
   - DOMAIN-SUFFIX,chinamobile.com
   - DOMAIN-SUFFIX,meituan.net
   - DOMAIN-SUFFIX,126.com
   - DOMAIN-SUFFIX,360buyimg.com
   - DOMAIN-SUFFIX,aliyuncs.com
+  - DOMAIN-SUFFIX,amap.com
   - DOMAIN-SUFFIX,amemv.com
   - DOMAIN-SUFFIX,app-analytics-services.com
   - DOMAIN-SUFFIX,apple.com
+  - DOMAIN-SUFFIX,autonavi.com
   - DOMAIN-SUFFIX,baidu.com
   - DOMAIN-SUFFIX,bdurl.net
+  - DOMAIN-SUFFIX,caiyunapp.com
+  - DOMAIN-SUFFIX,cdn-apple.com
   - DOMAIN-SUFFIX,cn
   - DOMAIN-SUFFIX,doubleclick-cn.net
   - DOMAIN-SUFFIX,douyinstatic.com
@@ -41,4 +45,5 @@ payload:
   - DOMAIN-SUFFIX,umeng.com
   - DOMAIN-SUFFIX,vegslb.com
   - DOMAIN-SUFFIX,volces.com
+  - DOMAIN-SUFFIX,woxshare.com
   - DOMAIN-SUFFIX,xinqiucc.com

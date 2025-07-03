@@ -1,11 +1,13 @@
-# 规则数量：当前共 35 条规则
-# 更新时间: 2025/07/02 19:57:57
-# 规则数量：当前共 35 条规则
+# 规则数量：当前共 37 条规则
+# 更新时间: 2025/07/04 06:57:17
+# 规则数量：当前共 37 条规则
 payload:
-  - DOMAIN-SUFFIX,3x3zq9he3ong.com
+  - DOMAIN-SUFFIX,appx
+  - DOMAIN-SUFFIX,binance.com
   - DOMAIN-SUFFIX,bugsnag.com
   - DOMAIN-SUFFIX,buzzsprout.com
   - DOMAIN-SUFFIX,chatgpt.com
+  - DOMAIN-SUFFIX,cloudfront.net
   - DOMAIN-SUFFIX,digicert.com
   - DOMAIN-SUFFIX,duolingo.com
   - DOMAIN-SUFFIX,facebook.com
@@ -19,17 +21,17 @@ payload:
   - DOMAIN-SUFFIX,googleapis.com
   - DOMAIN-SUFFIX,googleusercontent.com
   - DOMAIN-SUFFIX,googlevideo.com
+  - DOMAIN-SUFFIX,heimuer.xyz
   - DOMAIN-SUFFIX,hotmail.com
   - DOMAIN-SUFFIX,icloud.com
   - DOMAIN-SUFFIX,jp
-  - DOMAIN-SUFFIX,k6qgunhk9wuk.com
-  - DOMAIN-SUFFIX,mdghhsgc4iiy.com
+  - DOMAIN-SUFFIX,live.com
   - DOMAIN-SUFFIX,microsoft.com
   - DOMAIN-SUFFIX,microsoftonline.com
   - DOMAIN-SUFFIX,microsoftpersonalcontent.com
   - DOMAIN-SUFFIX,ntp.org
   - DOMAIN-SUFFIX,openai.com
-  - DOMAIN-SUFFIX,tt5h4jj3nt9n.com
+  - DOMAIN-SUFFIX,tw
   - DOMAIN-SUFFIX,twimg.com
   - DOMAIN-SUFFIX,twitter.com
   - DOMAIN-SUFFIX,unity3d.com

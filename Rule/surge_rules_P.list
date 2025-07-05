@@ -1,15 +1,19 @@
-# 规则数量：当前共 37 条规则
-# 更新时间: 2025/07/04 06:57:17
-# 规则数量：当前共 37 条规则
+# 规则数量：当前共 53 条规则
+# 更新时间: 2025/07/05 20:32:28
+# 规则数量：当前共 53 条规则
+DOMAIN-SUFFIX,admaster.cc
+DOMAIN-SUFFIX,adobetm.com
 DOMAIN-SUFFIX,appx
 DOMAIN-SUFFIX,binance.com
 DOMAIN-SUFFIX,bugsnag.com
 DOMAIN-SUFFIX,buzzsprout.com
+DOMAIN-SUFFIX,byhooi.tk
 DOMAIN-SUFFIX,chatgpt.com
 DOMAIN-SUFFIX,cloudfront.net
 DOMAIN-SUFFIX,digicert.com
 DOMAIN-SUFFIX,duolingo.com
 DOMAIN-SUFFIX,facebook.com
+DOMAIN-SUFFIX,fastly-edge.com
 DOMAIN-SUFFIX,firstory.me
 DOMAIN-SUFFIX,flurry.com
 DOMAIN-SUFFIX,forter.com
@@ -23,11 +27,21 @@ DOMAIN-SUFFIX,googlevideo.com
 DOMAIN-SUFFIX,heimuer.xyz
 DOMAIN-SUFFIX,hotmail.com
 DOMAIN-SUFFIX,icloud.com
+DOMAIN-SUFFIX,ikgambwqeqnv.com
+DOMAIN-SUFFIX,3x3zq9he3ong.com
+DOMAIN-SUFFIX,a3mnntdcpumz.com
+DOMAIN-SUFFIX,oty3tu9gcqtf.com
+DOMAIN-SUFFIX,tt5h4jj3nt9n.com
+DOMAIN-SUFFIX,gtx2bvtnntk9.com
+DOMAIN-SUFFIX,k6qgunhk9wuk.com
+DOMAIN-SUFFIX,mdghhsgc4iiy.com
+DOMAIN-SUFFIX,jddebug.com
 DOMAIN-SUFFIX,jp
 DOMAIN-SUFFIX,live.com
 DOMAIN-SUFFIX,microsoft.com
 DOMAIN-SUFFIX,microsoftonline.com
 DOMAIN-SUFFIX,microsoftpersonalcontent.com
+DOMAIN-SUFFIX,notion.so
 DOMAIN-SUFFIX,ntp.org
 DOMAIN-SUFFIX,openai.com
 DOMAIN-SUFFIX,tw
@@ -35,6 +49,8 @@ DOMAIN-SUFFIX,twimg.com
 DOMAIN-SUFFIX,twitter.com
 DOMAIN-SUFFIX,unity3d.com
 IP-CIDR,124.156.224.0/20
+IP-CIDR,149.154.172.0/22
 IP-CIDR,170.106.200.0/21
 IP-CIDR,43.128.224.0/19
+IP-CIDR,43.153.128.0/18
 IP-CIDR,91.108.56.0/23

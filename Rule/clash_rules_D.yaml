@@ -1,25 +1,22 @@
-# 规则数量：当前共 141 条规则
-# 更新时间: 2025/07/04 06:57:17
-# 规则数量：当前共 141 条规则
+# 规则数量：当前共 153 条规则
+# 更新时间: 2025/07/05 20:32:28
+# 规则数量：当前共 153 条规则
 payload:
   - DOMAIN-SUFFIX,chinamobile.com
   - DOMAIN-SUFFIX,meituan.net
-  - DOMAIN-SUFFIX,3x3zq9he3ong.com
-  - DOMAIN-SUFFIX,a3mnntdcpumz.com
-  - DOMAIN-SUFFIX,k6qgunhk9wuk.com
-  - DOMAIN-SUFFIX,mdghhsgc4iiy.com
-  - DOMAIN-SUFFIX,gtx2bvtnntk9.com
-  - DOMAIN-SUFFIX,oty3tu9gcqtf.com
-  - DOMAIN-SUFFIX,tt5h4jj3nt9n.com
   - DOMAIN-SUFFIX,126.com
   - DOMAIN-SUFFIX,126.net
+  - DOMAIN-SUFFIX,1rtb.net
   - DOMAIN-SUFFIX,300hu.com
   - DOMAIN-SUFFIX,360buyimg.com
+  - DOMAIN-SUFFIX,360os.com
   - DOMAIN-SUFFIX,4pyun.com
   - DOMAIN-SUFFIX,91160.com
   - DOMAIN-SUFFIX,adukwai.com
+  - DOMAIN-SUFFIX,ahdohpiechei.com
   - DOMAIN-SUFFIX,aliapp.org
   - DOMAIN-SUFFIX,alibaba.com
+  - DOMAIN-SUFFIX,alibabachengdun.com
   - DOMAIN-SUFFIX,alicdn.com
   - DOMAIN-SUFFIX,alidns.com
   - DOMAIN-SUFFIX,alipay.com
@@ -38,10 +35,13 @@ payload:
   - DOMAIN-SUFFIX,banshenghuo.com
   - DOMAIN-SUFFIX,bcebos.com
   - DOMAIN-SUFFIX,bdurl.net
+  - DOMAIN-SUFFIX,beizi.biz
   - DOMAIN-SUFFIX,bilibili.com
   - DOMAIN-SUFFIX,bilivideo.com
   - DOMAIN-SUFFIX,bytecdn.com
+  - DOMAIN-SUFFIX,bytednsdoc.com
   - DOMAIN-SUFFIX,caiyunapp.com
+  - DOMAIN-SUFFIX,caiyuncdn.com
   - DOMAIN-SUFFIX,camscanner.com
   - DOMAIN-SUFFIX,cdn-apple.com
   - DOMAIN-SUFFIX,cmbchina.com
@@ -76,21 +76,27 @@ payload:
   - DOMAIN-SUFFIX,futunn.com
   - DOMAIN-SUFFIX,gepush.com
   - DOMAIN-SUFFIX,getui.com
+  - DOMAIN-SUFFIX,globalsign.com
+  - DOMAIN-SUFFIX,goofish.com
   - DOMAIN-SUFFIX,googlesyndication-cn.com
   - DOMAIN-SUFFIX,gstatic.com
   - DOMAIN-SUFFIX,gtimg.com
   - DOMAIN-SUFFIX,hdslb.com
   - DOMAIN-SUFFIX,healthjd.com
+  - DOMAIN-SUFFIX,huazhu.com
   - DOMAIN-SUFFIX,idouyinvod.com
   - DOMAIN-SUFFIX,idqqimg.com
   - DOMAIN-SUFFIX,intsig.net
+  - DOMAIN-SUFFIX,ixigua.com
   - DOMAIN-SUFFIX,jd.com
   - DOMAIN-SUFFIX,jdpay.com
+  - DOMAIN-SUFFIX,jiandaoyun.com
   - DOMAIN-SUFFIX,jkcsjd.com
   - DOMAIN-SUFFIX,ks-live.com
   - DOMAIN-SUFFIX,kuaishouzt.com
   - DOMAIN-SUFFIX,kuiniuca.com
   - DOMAIN-SUFFIX,lvcchong.com
+  - DOMAIN-SUFFIX,marriott.com
   - DOMAIN-SUFFIX,meituan.com
   - DOMAIN-SUFFIX,mi.com
   - DOMAIN-SUFFIX,mijia.tech
@@ -110,14 +116,17 @@ payload:
   - DOMAIN-SUFFIX,ppos.com
   - DOMAIN-SUFFIX,puata.info
   - DOMAIN-SUFFIX,qiezibenpao.com
+  - DOMAIN-SUFFIX,qihu.com
   - DOMAIN-SUFFIX,qq.com
   - DOMAIN-SUFFIX,queniuak.com
   - DOMAIN-SUFFIX,qunar.com
   - DOMAIN-SUFFIX,rumt-zh.com
   - DOMAIN-SUFFIX,sankuai.com
   - DOMAIN-SUFFIX,servicewechat.com
+  - DOMAIN-SUFFIX,shenzhentong.com
   - DOMAIN-SUFFIX,shujupie.com
   - DOMAIN-SUFFIX,siomxity.net
+  - DOMAIN-SUFFIX,smartmidea.net
   - DOMAIN-SUFFIX,smtcdns.com
   - DOMAIN-SUFFIX,snssdk.com
   - DOMAIN-SUFFIX,ssjlicai.com
@@ -127,15 +136,18 @@ payload:
   - DOMAIN-SUFFIX,tencent.com
   - DOMAIN-SUFFIX,tiancaixing.com
   - DOMAIN-SUFFIX,tianwenca.com
+  - DOMAIN-SUFFIX,tlivesource.com
   - DOMAIN-SUFFIX,umeng.com
   - DOMAIN-SUFFIX,vegslb.com
   - DOMAIN-SUFFIX,volces.com
+  - DOMAIN-SUFFIX,weixinbridge.com
   - DOMAIN-SUFFIX,woxshare.com
   - DOMAIN-SUFFIX,xhscdn.com
   - DOMAIN-SUFFIX,xiaohongshu.com
   - DOMAIN-SUFFIX,xiaomi.com
   - DOMAIN-SUFFIX,xinqiucc.com
   - DOMAIN-SUFFIX,xycdn.com
+  - DOMAIN-SUFFIX,yaduo.com
   - DOMAIN-SUFFIX,youku.com
   - DOMAIN-SUFFIX,yuanfudao.com
   - DOMAIN-SUFFIX,yufanai.com

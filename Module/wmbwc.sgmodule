@@ -1,10 +1,14 @@
-#!name=wmbwc
-#!desc=歪麦霸王餐
+#!name=歪麦霸王餐
+#!desc=歪麦霸王餐签到
+#!arguments=定时签到:19 9 * * *,禁用脚本:歪麦霸王餐获取Cookie,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron表达式，默认每日 9:19 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
 #!category=🎈 Bingo
 #!system=ios
 
 [Script]
-wmbwc = type=http-request, pattern=^https:\/\/wmapp-api\.waimaimingtang\.com\/api\/api\/v2\/user\/api_user_info_one, requires-body=1, script-path=https://gist.githubusercontent.com/Sliverkiss/49a9ffb2169a2becc33bf4fdbf6eb99a/raw/wmbwc.js
+{{{禁用脚本}}} = type=http-request, pattern=^https:\/\/wmapp-api\.waimaimingtang\.com\/api\/api\/v2\/user\/api_user_info_one, requires-body=1, script-path=https://gist.githubusercontent.com/Sliverkiss/49a9ffb2169a2becc33bf4fdbf6eb99a/raw/wmbwc.js
+
+歪麦霸王餐签到 = type=cron,cronexp="{{{定时签到}}}",script-path=https://gist.githubusercontent.com/Sliverkiss/49a9ffb2169a2becc33bf4fdbf6eb99a/raw/wmbwc.js,timeout=60,wake-system=1,script-update-interval=0
 
 [MITM]
-hostname = %APPEND% wmapp-api.waimaimingtang.com
+{{{禁用MITM}}} = %APPEND% wmapp-api.waimaimingtang.com

@@ -1,0 +1,10 @@
+#!name=wmbwc
+#!desc=歪麦霸王餐
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+wmbwc = type=http-request, pattern=^https:\/\/wmapp-api\.waimaimingtang\.com\/api\/api\/v2\/user\/api_user_info_one, requires-body=1, script-path=https://gist.githubusercontent.com/Sliverkiss/49a9ffb2169a2becc33bf4fdbf6eb99a/raw/wmbwc.js
+
+[MITM]
+hostname = %APPEND% wmapp-api.waimaimingtang.com

@@ -1,5 +1,5 @@
-# 更新时间: 2025/07/05 20:59:13
-# 规则数量：当前共 153 条规则
+# 更新时间: 2025/07/10 10:19:21
+# 规则数量：当前共 180 条规则
 
 DOMAIN-SUFFIX,chinamobile.com
 DOMAIN-SUFFIX,meituan.net
@@ -11,6 +11,8 @@ DOMAIN-SUFFIX,360buyimg.com
 DOMAIN-SUFFIX,360os.com
 DOMAIN-SUFFIX,4pyun.com
 DOMAIN-SUFFIX,91160.com
+DOMAIN-SUFFIX,95508.com
+DOMAIN-SUFFIX,96533.com
 DOMAIN-SUFFIX,adukwai.com
 DOMAIN-SUFFIX,ahdohpiechei.com
 DOMAIN-SUFFIX,aliapp.org
@@ -39,6 +41,7 @@ DOMAIN-SUFFIX,bilibili.com
 DOMAIN-SUFFIX,bilivideo.com
 DOMAIN-SUFFIX,bytecdn.com
 DOMAIN-SUFFIX,bytednsdoc.com
+DOMAIN-SUFFIX,c-ctrip.com
 DOMAIN-SUFFIX,caiyunapp.com
 DOMAIN-SUFFIX,caiyuncdn.com
 DOMAIN-SUFFIX,camscanner.com
@@ -47,7 +50,9 @@ DOMAIN-SUFFIX,cmbchina.com
 DOMAIN-SUFFIX,cmbimg.com
 DOMAIN-SUFFIX,cmpassport.com
 DOMAIN-SUFFIX,cn
+DOMAIN-SUFFIX,colorfulclouds.net
 DOMAIN-SUFFIX,crashlytics.com
+DOMAIN-SUFFIX,ctrip.com
 DOMAIN-SUFFIX,dataesb.com
 DOMAIN-SUFFIX,dewu.com
 DOMAIN-SUFFIX,dewucdn.com
@@ -60,9 +65,11 @@ DOMAIN-SUFFIX,doordu.com
 DOMAIN-SUFFIX,douban.com
 DOMAIN-SUFFIX,doubanio.com
 DOMAIN-SUFFIX,doubleclick-cn.net
+DOMAIN-SUFFIX,douyincdn.com
 DOMAIN-SUFFIX,douyinpic.com
 DOMAIN-SUFFIX,douyinstatic.com
 DOMAIN-SUFFIX,douyinvod.com
+DOMAIN-SUFFIX,dutils.com
 DOMAIN-SUFFIX,eastmoney.com
 DOMAIN-SUFFIX,eastmoneysec.com
 DOMAIN-SUFFIX,easytomessage.com
@@ -75,6 +82,7 @@ DOMAIN-SUFFIX,feizhu.com
 DOMAIN-SUFFIX,futunn.com
 DOMAIN-SUFFIX,gepush.com
 DOMAIN-SUFFIX,getui.com
+DOMAIN-SUFFIX,gifshow.com
 DOMAIN-SUFFIX,globalsign.com
 DOMAIN-SUFFIX,goofish.com
 DOMAIN-SUFFIX,googlesyndication-cn.com
@@ -91,34 +99,46 @@ DOMAIN-SUFFIX,jd.com
 DOMAIN-SUFFIX,jdpay.com
 DOMAIN-SUFFIX,jiandaoyun.com
 DOMAIN-SUFFIX,jkcsjd.com
+DOMAIN-SUFFIX,ke.com
 DOMAIN-SUFFIX,ks-live.com
 DOMAIN-SUFFIX,kuaishouzt.com
 DOMAIN-SUFFIX,kuiniuca.com
+DOMAIN-SUFFIX,lianjia.com
+DOMAIN-SUFFIX,ljcdn.com
 DOMAIN-SUFFIX,lvcchong.com
 DOMAIN-SUFFIX,marriott.com
 DOMAIN-SUFFIX,meituan.com
+DOMAIN-SUFFIX,mi-img.com
 DOMAIN-SUFFIX,mi.com
 DOMAIN-SUFFIX,mijia.tech
+DOMAIN-SUFFIX,miot-spec.org
+DOMAIN-SUFFIX,miui.com
 DOMAIN-SUFFIX,miwifi.com
 DOMAIN-SUFFIX,mixcapp.com
 DOMAIN-SUFFIX,mmstat.com
 DOMAIN-SUFFIX,mob.com
+DOMAIN-SUFFIX,myhuaweicloud.com
 DOMAIN-SUFFIX,myqcloud.com
 DOMAIN-SUFFIX,mzstatic.com
 DOMAIN-SUFFIX,ndcpp.com
+DOMAIN-SUFFIX,ndcppx.com
 DOMAIN-SUFFIX,ninebot.com
 DOMAIN-SUFFIX,nocode.com
 DOMAIN-SUFFIX,okii.com
 DOMAIN-SUFFIX,onethingpcs.com
+DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com
 DOMAIN-SUFFIX,pinduoduo.com
 DOMAIN-SUFFIX,poizon.com
 DOMAIN-SUFFIX,ppos.com
 DOMAIN-SUFFIX,puata.info
+DOMAIN-SUFFIX,qcloud.com
 DOMAIN-SUFFIX,qiezibenpao.com
 DOMAIN-SUFFIX,qihu.com
+DOMAIN-SUFFIX,qiniucdn.com
 DOMAIN-SUFFIX,qq.com
 DOMAIN-SUFFIX,queniuak.com
 DOMAIN-SUFFIX,qunar.com
+DOMAIN-SUFFIX,realsee.com
 DOMAIN-SUFFIX,rumt-zh.com
 DOMAIN-SUFFIX,sankuai.com
 DOMAIN-SUFFIX,servicewechat.com
@@ -131,14 +151,20 @@ DOMAIN-SUFFIX,snssdk.com
 DOMAIN-SUFFIX,ssjlicai.com
 DOMAIN-SUFFIX,taobao.com
 DOMAIN-SUFFIX,tec73.com
+DOMAIN-SUFFIX,tencent-cloud.com
 DOMAIN-SUFFIX,tencent-cloud.net
 DOMAIN-SUFFIX,tencent.com
+DOMAIN-SUFFIX,tencentcs.com
 DOMAIN-SUFFIX,tiancaixing.com
+DOMAIN-SUFFIX,tianmu.mobi
 DOMAIN-SUFFIX,tianwenca.com
 DOMAIN-SUFFIX,tlivesource.com
+DOMAIN-SUFFIX,toponad.com
 DOMAIN-SUFFIX,umeng.com
 DOMAIN-SUFFIX,vegslb.com
 DOMAIN-SUFFIX,volces.com
+DOMAIN-SUFFIX,waimaimingtang.com
+DOMAIN-SUFFIX,wanheyitui.work
 DOMAIN-SUFFIX,weixinbridge.com
 DOMAIN-SUFFIX,woxshare.com
 DOMAIN-SUFFIX,xhscdn.com
@@ -152,5 +178,6 @@ DOMAIN-SUFFIX,yuanfudao.com
 DOMAIN-SUFFIX,yufanai.com
 DOMAIN-SUFFIX,z1cdn.com
 DOMAIN-SUFFIX,zhicyun.com
+DOMAIN-SUFFIX,zijieapi.com
 DOMAIN-SUFFIX,zuche.com
 DOMAIN-SUFFIX,zztfly.com

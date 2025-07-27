@@ -1,5 +1,5 @@
-# 更新时间: 2025/07/16 09:01:23
-# 规则数量：当前共 76 条规则
+# 更新时间: 2025/07/27 18:25:29
+# 规则数量：当前共 80 条规则
 
 DOMAIN-SUFFIX,3x3zq9he3ong.com
 DOMAIN-SUFFIX,5hjmw44itn2c.com
@@ -13,6 +13,7 @@ DOMAIN-SUFFIX,bugsnag.com
 DOMAIN-SUFFIX,buzzsprout.com
 DOMAIN-SUFFIX,byhooi.tk
 DOMAIN-SUFFIX,chatgpt.com
+DOMAIN-SUFFIX,cloudflare.com
 DOMAIN-SUFFIX,cloudfront.net
 DOMAIN-SUFFIX,de
 DOMAIN-SUFFIX,digicert.com
@@ -34,6 +35,7 @@ DOMAIN-SUFFIX,googlevideo.com
 DOMAIN-SUFFIX,gtx2bvtnntk9.com
 DOMAIN-SUFFIX,h995r3twqceb.com
 DOMAIN-SUFFIX,heimuer.xyz
+DOMAIN-SUFFIX,hmrvideo.com
 DOMAIN-SUFFIX,hotmail.com
 DOMAIN-SUFFIX,icloud.com
 DOMAIN-SUFFIX,ikgambwqeqnv.com
@@ -53,6 +55,7 @@ DOMAIN-SUFFIX,nkhhmbyp274v.com
 DOMAIN-SUFFIX,nn5ocx54edwt.com
 DOMAIN-SUFFIX,notion.so
 DOMAIN-SUFFIX,ntp.org
+DOMAIN-SUFFIX,okond59n97jt.com
 DOMAIN-SUFFIX,onedrive.com
 DOMAIN-SUFFIX,openai.com
 DOMAIN-SUFFIX,oty3tu9gcqtf.com
@@ -70,6 +73,7 @@ DOMAIN-SUFFIX,uoiqmwhmk2tt.com
 DOMAIN-SUFFIX,wlcdn88.com
 DOMAIN-SUFFIX,yvocwep63nev.com
 IP-CIDR,114.112.208.0/20
+IP-CIDR,119.28.36.0/23
 IP-CIDR,124.156.224.0/20
 IP-CIDR,149.154.164.0/23
 IP-CIDR,149.154.172.0/22

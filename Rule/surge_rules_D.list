@@ -1,8 +1,9 @@
-# 更新时间: 2025/07/16 09:01:23
-# 规则数量：当前共 185 条规则
+# 更新时间: 2025/07/27 18:25:29
+# 规则数量：当前共 197 条规则
 
 DOMAIN-SUFFIX,chinamobile.com
 DOMAIN-SUFFIX,meituan.net
+DOMAIN-SUFFIX,10010.com
 DOMAIN-SUFFIX,126.com
 DOMAIN-SUFFIX,126.net
 DOMAIN-SUFFIX,1rtb.net
@@ -48,6 +49,7 @@ DOMAIN-SUFFIX,caiyunapp.com
 DOMAIN-SUFFIX,caiyuncdn.com
 DOMAIN-SUFFIX,camscanner.com
 DOMAIN-SUFFIX,cdn-apple.com
+DOMAIN-SUFFIX,china-smartech.com
 DOMAIN-SUFFIX,cmbchina.com
 DOMAIN-SUFFIX,cmbimg.com
 DOMAIN-SUFFIX,cmpassport.com
@@ -77,6 +79,7 @@ DOMAIN-SUFFIX,eastmoneysec.com
 DOMAIN-SUFFIX,easytomessage.com
 DOMAIN-SUFFIX,eebbk.net
 DOMAIN-SUFFIX,effirst.com
+DOMAIN-SUFFIX,fancyapi.com
 DOMAIN-SUFFIX,fcbox.com
 DOMAIN-SUFFIX,feidee.com
 DOMAIN-SUFFIX,feidee.net
@@ -92,10 +95,12 @@ DOMAIN-SUFFIX,gstatic.com
 DOMAIN-SUFFIX,gtimg.com
 DOMAIN-SUFFIX,hdslb.com
 DOMAIN-SUFFIX,healthjd.com
+DOMAIN-SUFFIX,hnzkclouds.com
 DOMAIN-SUFFIX,huazhu.com
 DOMAIN-SUFFIX,idouyinvod.com
 DOMAIN-SUFFIX,idqqimg.com
 DOMAIN-SUFFIX,intsig.net
+DOMAIN-SUFFIX,iseega.com
 DOMAIN-SUFFIX,ixigua.com
 DOMAIN-SUFFIX,jd.com
 DOMAIN-SUFFIX,jdpay.com
@@ -105,6 +110,7 @@ DOMAIN-SUFFIX,ke.com
 DOMAIN-SUFFIX,ks-live.com
 DOMAIN-SUFFIX,kuaishouzt.com
 DOMAIN-SUFFIX,kuiniuca.com
+DOMAIN-SUFFIX,kunlunjyk.com
 DOMAIN-SUFFIX,lianjia.com
 DOMAIN-SUFFIX,ljcdn.com
 DOMAIN-SUFFIX,lvcchong.com
@@ -119,6 +125,7 @@ DOMAIN-SUFFIX,miwifi.com
 DOMAIN-SUFFIX,mixcapp.com
 DOMAIN-SUFFIX,mmstat.com
 DOMAIN-SUFFIX,mob.com
+DOMAIN-SUFFIX,mxbc.net
 DOMAIN-SUFFIX,myhuaweicloud.com
 DOMAIN-SUFFIX,myqcloud.com
 DOMAIN-SUFFIX,mzstatic.com
@@ -134,6 +141,7 @@ DOMAIN-SUFFIX,poizon.com
 DOMAIN-SUFFIX,ppos.com
 DOMAIN-SUFFIX,puata.info
 DOMAIN-SUFFIX,qcloud.com
+DOMAIN-SUFFIX,qhimg.com
 DOMAIN-SUFFIX,qiezibenpao.com
 DOMAIN-SUFFIX,qihu.com
 DOMAIN-SUFFIX,qiniucdn.com
@@ -147,23 +155,27 @@ DOMAIN-SUFFIX,servicewechat.com
 DOMAIN-SUFFIX,sf-express.com
 DOMAIN-SUFFIX,shenzhentong.com
 DOMAIN-SUFFIX,shujupie.com
+DOMAIN-SUFFIX,sinopec.com
 DOMAIN-SUFFIX,siomxity.net
 DOMAIN-SUFFIX,smartmidea.net
 DOMAIN-SUFFIX,smtcdns.com
 DOMAIN-SUFFIX,snssdk.com
 DOMAIN-SUFFIX,ssjlicai.com
+DOMAIN-SUFFIX,sycommercial.com
 DOMAIN-SUFFIX,taobao.com
 DOMAIN-SUFFIX,tec73.com
 DOMAIN-SUFFIX,tencent-cloud.com
 DOMAIN-SUFFIX,tencent-cloud.net
 DOMAIN-SUFFIX,tencent.com
 DOMAIN-SUFFIX,tencentcs.com
+DOMAIN-SUFFIX,tfogc.com
 DOMAIN-SUFFIX,tiancaixing.com
 DOMAIN-SUFFIX,tianmu.mobi
 DOMAIN-SUFFIX,tianwenca.com
 DOMAIN-SUFFIX,tlivemcdn.com
 DOMAIN-SUFFIX,tlivesource.com
 DOMAIN-SUFFIX,toponad.com
+DOMAIN-SUFFIX,ubixioe.com
 DOMAIN-SUFFIX,uhomecp.com
 DOMAIN-SUFFIX,umeng.com
 DOMAIN-SUFFIX,vegslb.com

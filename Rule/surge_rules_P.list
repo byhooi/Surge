@@ -1,5 +1,5 @@
-# 更新时间: 2025/07/27 18:25:29
-# 规则数量：当前共 80 条规则
+# 更新时间: 2025/08/01 22:33:58
+# 规则数量：当前共 84 条规则
 
 DOMAIN-SUFFIX,3x3zq9he3ong.com
 DOMAIN-SUFFIX,5hjmw44itn2c.com
@@ -13,6 +13,7 @@ DOMAIN-SUFFIX,bugsnag.com
 DOMAIN-SUFFIX,buzzsprout.com
 DOMAIN-SUFFIX,byhooi.tk
 DOMAIN-SUFFIX,chatgpt.com
+DOMAIN-SUFFIX,clawcloudrun.com
 DOMAIN-SUFFIX,cloudflare.com
 DOMAIN-SUFFIX,cloudfront.net
 DOMAIN-SUFFIX,de
@@ -37,6 +38,7 @@ DOMAIN-SUFFIX,h995r3twqceb.com
 DOMAIN-SUFFIX,heimuer.xyz
 DOMAIN-SUFFIX,hmrvideo.com
 DOMAIN-SUFFIX,hotmail.com
+DOMAIN-SUFFIX,icloud-content.com
 DOMAIN-SUFFIX,icloud.com
 DOMAIN-SUFFIX,ikgambwqeqnv.com
 DOMAIN-SUFFIX,jddebug.com
@@ -70,6 +72,8 @@ DOMAIN-SUFFIX,twitter.com
 DOMAIN-SUFFIX,ucul8pjt6v6h.com
 DOMAIN-SUFFIX,unity3d.com
 DOMAIN-SUFFIX,uoiqmwhmk2tt.com
+DOMAIN-SUFFIX,vercel.app
+DOMAIN-SUFFIX,wfninh3hhiqp.com
 DOMAIN-SUFFIX,wlcdn88.com
 DOMAIN-SUFFIX,yvocwep63nev.com
 IP-CIDR,114.112.208.0/20

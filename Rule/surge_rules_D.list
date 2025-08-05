@@ -1,5 +1,5 @@
-# 更新时间: 2025/08/01 22:33:58
-# 规则数量：当前共 200 条规则
+# 更新时间: 2025/08/05 22:46:13
+# 规则数量：当前共 203 条规则
 
 DOMAIN-SUFFIX,chinamobile.com
 DOMAIN-SUFFIX,meituan.net
@@ -136,6 +136,7 @@ DOMAIN-SUFFIX,nocode.com
 DOMAIN-SUFFIX,okii.com
 DOMAIN-SUFFIX,onethingpcs.com
 DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com
+DOMAIN-SUFFIX,pddpic.com
 DOMAIN-SUFFIX,pinduoduo.com
 DOMAIN-SUFFIX,poizon.com
 DOMAIN-SUFFIX,ppos.com
@@ -149,6 +150,7 @@ DOMAIN-SUFFIX,qq.com
 DOMAIN-SUFFIX,queniuak.com
 DOMAIN-SUFFIX,qunar.com
 DOMAIN-SUFFIX,realsee.com
+DOMAIN-SUFFIX,recaptcha.net
 DOMAIN-SUFFIX,rumt-zh.com
 DOMAIN-SUFFIX,sankuai.com
 DOMAIN-SUFFIX,servicewechat.com
@@ -190,6 +192,7 @@ DOMAIN-SUFFIX,woxshare.com
 DOMAIN-SUFFIX,xhscdn.com
 DOMAIN-SUFFIX,xiaohongshu.com
 DOMAIN-SUFFIX,xiaomi.com
+DOMAIN-SUFFIX,ximalaya.com
 DOMAIN-SUFFIX,xinqiucc.com
 DOMAIN-SUFFIX,xycdn.com
 DOMAIN-SUFFIX,yaduo.com

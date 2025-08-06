@@ -1,35 +1,65 @@
-function Env(name, options) {
-  this.name = name;
+// 常量配置
+const SCRIPT_NAME = '京东 WSKEY';
+const JD_TEMP_KEY = 'jd_temp';
+const WSKEY_KEY = 'wskeyList';
+const DEFAULT_TIMEOUT = 15000;
+const DEFAULT_RESP_TYPE = 'body';
+const CACHE_EXPIRE_TIME = 15000;
+const WAIT_TIME_FOR_RULE = 3000;
+const LOG_SEPARATOR = "\n";
+const WSKEY_REGEX = /wskey=([^=;]+?);/;
+const PT_PIN_REGEX = /pt_pin=([^=;]+?);/;
+
+// Env 环境类
+function Env(name, options = {}) {
+  this.name = name || SCRIPT_NAME;
   this.logs = [];
   this.isMute = false;
-  this.logSeparator = "\n";
-  this.startTime = (new Date).getTime();
+  this.logSeparator = LOG_SEPARATOR;
+  this.startTime = Date.now();
+  
   Object.assign(this, options);
   this.log("", `🔔${this.name}, 开始!`);
 }
 
 Env.prototype.log = function (...messages) {
-  this.logs = [...this.logs, ...messages];
+  if (messages.length === 0) return;
+  this.logs.push(...messages);
   console.log(messages.join(this.logSeparator));
 };
 
 Env.prototype.logErr = function (err) {
-  this.log("", `❗️${this.name}, 错误!`, err.stack);
+  const errorMessage = err?.stack || err?.message || String(err);
+  this.log("", `❗️${this.name}, 错误!`, errorMessage);
 };
 
 Env.prototype.get = function (url, callback) {
+  if (!callback || typeof callback !== 'function') {
+    throw new Error('Callback is required for HTTP GET request');
+  }
   $httpClient.get(url, callback);
 };
 
 Env.prototype.post = function (url, callback) {
+  if (!callback || typeof callback !== 'function') {
+    throw new Error('Callback is required for HTTP POST request');
+  }
   $httpClient.post(url, callback);
 };
 
 Env.prototype.getdata = function (key) {
+  if (!key || typeof key !== 'string') {
+    this.log('警告: getdata 需要有效的 key 参数');
+    return null;
+  }
   return $persistentStore.read(key);
 };
 
 Env.prototype.setdata = function (val, key) {
+  if (!key || typeof key !== 'string') {
+    this.log('警告: setdata 需要有效的 key 参数');
+    return false;
+  }
   return $persistentStore.write(val, key);
 };
 
@@ -38,17 +68,25 @@ Env.prototype.wait = function (time) {
 };
 
 Env.prototype.toObj = function (jsonString, defaultValue = null) {
+  if (typeof jsonString !== 'string') {
+    return defaultValue;
+  }
   try {
     return JSON.parse(jsonString);
-  } catch {
+  } catch (error) {
+    this.log(`JSON 解析失败: ${error.message}`);
     return defaultValue;
   }
 };
 
 Env.prototype.toStr = function (obj, defaultValue = null) {
+  if (obj === null || obj === undefined) {
+    return defaultValue;
+  }
   try {
     return JSON.stringify(obj);
-  } catch {
+  } catch (error) {
+    this.log(`JSON 序列化失败: ${error.message}`);
     return defaultValue;
   }
 };
@@ -84,18 +122,35 @@ Env.prototype.time = function (format) {
 };
 
 Env.prototype.done = function () {
-  const endTime = (new Date).getTime();
-  const duration = (endTime - this.startTime) / 1000;
+  const endTime = Date.now();
+  const duration = ((endTime - this.startTime) / 1000).toFixed(2);
   this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
   $done();
 };
 
-const $ = new Env('京东 WSKEY');
-const JD_TEMP_KEY = 'jd_temp';
-const WSKEY_KEY = 'wskeyList';
+// 工具函数
+function isValidString(str) {
+  return typeof str === 'string' && str.trim().length > 0;
+}
+
+function extractFromCookie(cookie, regex) {
+  if (!isValidString(cookie)) return '';
+  const match = cookie.match(regex);
+  return match ? match[1] : '';
+}
+
+function isCacheExpired(timestamp, expireTime = CACHE_EXPIRE_TIME) {
+  return timestamp && Date.now() - timestamp >= expireTime;
+}
+
+function createCookie(ptPin, wskey) {
+  if (!ptPin || !wskey) return '';
+  return `pin=${encodeURIComponent(ptPin)}; wskey=${wskey};`;
+}
+
+// 脚本配置和初始化
+const $ = new Env(SCRIPT_NAME);
 const IS_DEBUG = $.getdata('is_debug') || 'false';
-const DEFAULT_TIMEOUT = 15000;
-const DEFAULT_RESP_TYPE = 'body';
 $.Messages = [];
 $.cookie = '';
 
@@ -115,55 +170,97 @@ $.cookie = '';
     $.done();
   });
 
-// 获取用户数据
+// 获取用户数据 - 优化版本
 async function getCookie() {
   try {
+    if (!$request?.headers) {
+      throw new Error('请求头信息不存在');
+    }
+    
     debug($request.headers);
     const headers = objectKeys2LowerCase($request.headers);
-    const [, wskey] = headers?.cookie.match(/wskey=([^=;]+?);/) || '';
-    const [, pt_pin] = headers?.cookie.match(/pt_pin=([^=;]+?);/) || '';
-
-    if ($request.url.includes('/getRule')) await $.wait(3000);
-
+    
+    if (!headers?.cookie) {
+      $.log('⚠️ 请求中未找到 cookie 信息');
+      return;
+    }
+    
+    const wskey = extractFromCookie(headers.cookie, WSKEY_REGEX);
+    const ptPin = extractFromCookie(headers.cookie, PT_PIN_REGEX);
+    
+    // 等待规则请求
+    if ($request.url.includes('/getRule')) {
+      await $.wait(WAIT_TIME_FOR_RULE);
+    }
+    
+    // 初始化数据
     $.jd_temp = $.getjson(JD_TEMP_KEY) || {};
     $.wskeyList = $.getjson(WSKEY_KEY) || [];
-
-    if ($.jd_temp?.['ts'] && Date.now() - $.jd_temp['ts'] >= 15000) {
-      $.log(`🆑 清理过期缓存数据`);
+    
+    // 清理过期缓存
+    if (isCacheExpired($.jd_temp?.ts)) {
+      $.log('🆑 清理过期缓存数据');
       $.jd_temp = {};
     }
-
-    if (wskey) {
-      $.jd_temp['wskey'] = wskey;
-      $.jd_temp['ts'] = Date.now();
+    
+    // 更新临时数据
+    let hasUpdate = false;
+    if (isValidString(wskey)) {
+      $.jd_temp.wskey = wskey;
+      $.jd_temp.ts = Date.now();
+      hasUpdate = true;
+    }
+    
+    if (isValidString(ptPin)) {
+      $.jd_temp.pt_pin = ptPin;
+      $.jd_temp.ts = Date.now();
+      hasUpdate = true;
+    }
+    
+    if (hasUpdate) {
       $.setjson($.jd_temp, JD_TEMP_KEY);
     }
-    if (pt_pin) {
-      $.jd_temp['pt_pin'] = pt_pin;
-      $.jd_temp['ts'] = Date.now();
-      $.setjson($.jd_temp, JD_TEMP_KEY);
-    }
+    
+    // 处理完整的 WSKEY
+    await processCookie();
+    
+  } catch (error) {
+    $.log('❌ 用户数据获取失败');
+    $.logErr(error);
+  }
+}
 
-    if ($.jd_temp?.['wskey'] && $.jd_temp?.['pt_pin']) {
-      $.cookie = `pin=${encodeURIComponent($.jd_temp['pt_pin'])}; wskey=${$.jd_temp['wskey']};`;
-      $.log(`🍪 获取到的完整 Cookie: ${$.cookie}`);
-
-      const user = $.wskeyList.find(user => user.userName === $.jd_temp['pt_pin']);
-      if (user) {
-        if (user.cookie === $.cookie) {
-          $.log(`⚠️ 当前 WSKEY 与缓存一致, 结束运行。`);
-          $.done();
-        }
-        $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
-        user.cookie = $.cookie;
-      } else {
-        $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
-        $.wskeyList.push({ "userName": $.jd_temp?.['pt_pin'], "cookie": $.cookie });
-      }
+// 处理 Cookie 的独立函数
+async function processCookie() {
+  if (!$.jd_temp?.wskey || !$.jd_temp?.pt_pin) {
+    $.log('⚠️ WSKEY 或 pt_pin 数据不完整，等待后续请求');
+    return;
+  }
+  
+  $.cookie = createCookie($.jd_temp.pt_pin, $.jd_temp.wskey);
+  
+  if (!$.cookie) {
+    $.log('❌ Cookie 创建失败');
+    return;
+  }
+  
+  $.log(`🍪 获取到的完整 Cookie: ${$.cookie}`);
+  
+  const existingUser = $.wskeyList.find(user => user.userName === $.jd_temp.pt_pin);
+  
+  if (existingUser) {
+    if (existingUser.cookie === $.cookie) {
+      $.log('⚠️ 当前 WSKEY 与缓存一致, 结束运行。');
+      return $.done();
     }
-  } catch (e) {
-    $.log("❌ 用户数据获取失败");
-    $.log(e);
+    $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
+    existingUser.cookie = $.cookie;
+  } else {
+    $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
+    $.wskeyList.push({ 
+      userName: $.jd_temp.pt_pin, 
+      cookie: $.cookie 
+    });
   }
 }
 
@@ -179,50 +276,90 @@ function objectKeys2LowerCase(obj) {
   });
 }
 
+// HTTP 请求函数 - 增强版本
 async function request(options) {
   try {
+    // 参数验证
+    if (!options) {
+      throw new Error('请求参数不能为空');
+    }
+    
     options = options.url ? options : { url: options };
-    const _method = options?._method || ('body' in options ? 'post' : 'get');
-    const _respType = options?._respType || DEFAULT_RESP_TYPE;
-    const _timeout = options?._timeout || DEFAULT_TIMEOUT;
-    const _http = [
-      new Promise((_, reject) => setTimeout(() => reject(`❌ 请求超时： ${options['url']}`), _timeout)),
-      new Promise((resolve, reject) => {
-        debug(options, '[Request]');
-        $[_method.toLowerCase()](options, (error, response, data) => {
-          debug(response, '[response]');
-          error && $.log($.toStr(error));
-          if (_respType !== 'all') {
-            resolve($.toObj(response?.[_respType], response?.[_respType]));
-          } else {
-            resolve(response);
-          }
-        });
-      })
-    ];
-    return await Promise.race(_http);
-  } catch (err) {
-    $.logErr(err);
+    
+    if (!options.url) {
+      throw new Error('请求 URL 不能为空');
+    }
+    
+    const method = options._method || (options.body ? 'post' : 'get');
+    const respType = options._respType || DEFAULT_RESP_TYPE;
+    const timeout = options._timeout || DEFAULT_TIMEOUT;
+    
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error(`请求超时: ${options.url}`)), timeout)
+    );
+    
+    const requestPromise = new Promise((resolve, reject) => {
+      debug(options, '[Request]');
+      
+      const callback = (error, response, data) => {
+        debug(response, '[Response]');
+        
+        if (error) {
+          $.logErr(error);
+          return reject(error);
+        }
+        
+        if (respType === 'all') {
+          resolve(response);
+        } else {
+          const result = response?.[respType];
+          resolve($.toObj(result, result));
+        }
+      };
+      
+      $[method.toLowerCase()](options, callback);
+    });
+    
+    return await Promise.race([timeoutPromise, requestPromise]);
+    
+  } catch (error) {
+    $.logErr(error);
+    throw error;
   }
 }
 
+// 发送消息通知 - 增强版本
 async function sendMsg(message) {
-  if (!message) return;
+  if (!isValidString(message)) {
+    $.log('⚠️ 消息内容为空，跳过通知发送');
+    return;
+  }
+  
   try {
     $notification.post($.name, '', message);
-  } catch (e) {
+    $.log('📮 通知发送成功');
+  } catch (error) {
+    $.log(`通知发送失败，使用日志输出: ${error.message}`);
     $.log(`\n\n----- ${$.name} -----\n${message}`);
   }
 }
 
-function debug(content, title = "debug") {
+// 调试输出函数 - 优化版本
+function debug(content, title = 'debug') {
+  if (IS_DEBUG !== 'true') return;
+  
+  const timestamp = $.time('HH:mm:ss');
   const start = `\n----- ${title} -----\n`;
-  const end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
-  if (IS_DEBUG === 'true') {
-    if (typeof content === "string") {
-      $.log(start + content + end);
-    } else if (typeof content === "object") {
-      $.log(start + $.toStr(content) + end);
-    }
+  const end = `\n----- ${timestamp} -----\n`;
+  
+  let debugContent;
+  if (typeof content === 'string') {
+    debugContent = content;
+  } else if (typeof content === 'object') {
+    debugContent = $.toStr(content) || '[无法序列化的对象]';
+  } else {
+    debugContent = String(content);
   }
+  
+  $.log(start + debugContent + end);
 }

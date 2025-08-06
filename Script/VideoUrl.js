@@ -5,9 +5,7 @@
 // 常量定义
 const QUALIFIED_THRESHOLD = 195;
 const REQUIRED_QUALIFIED_COUNT = 2;
-const TIME_LIMIT_MS = 60000;
-const MS_TO_MINUTES = 60000;
-const MS_TO_SECONDS = 1000;
+const EXCELLENT_THRESHOLD = 200;
 
 let body = $response.body;
 let jsonData;
@@ -21,8 +19,8 @@ try {
 
 // 工具函数
 function formatTime(milliseconds) {
-    const minutes = Math.floor(milliseconds / MS_TO_MINUTES);
-    const seconds = Math.floor((milliseconds % MS_TO_MINUTES) / MS_TO_SECONDS);
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
     return `${minutes}分钟${seconds}秒`;
 }
 
@@ -47,6 +45,7 @@ let maxSportCountRecord = null;
 let totalSportCount = 0;
 let totalSportTime = 0;
 let qualifiedCount = 0;
+let hasExcellent = false;
 
 if (validateResponseData(jsonData)) {
     const sportRecords = jsonData.data[0].sportRecordDTOS;
@@ -60,8 +59,12 @@ if (validateResponseData(jsonData)) {
         totalSportCount += record.sportCount;
         totalSportTime += record.sportTime;
         
-        if (record.sportTime <= TIME_LIMIT_MS && record.sportCount >= QUALIFIED_THRESHOLD) {
+        if (record.sportTime <= 60000 && record.sportCount >= QUALIFIED_THRESHOLD) {
             qualifiedCount++;
+        }
+        
+        if (record.sportCount > EXCELLENT_THRESHOLD) {
+            hasExcellent = true;
         }
 
         if (!maxSportCountRecord || record.sportCount > maxSportCountRecord.sportCount) {
@@ -75,8 +78,14 @@ const formattedTotalTime = formatTime(totalSportTime);
 
 // 输出结果
 if (maxSportCountRecord) {
-    const isQualified = qualifiedCount >= REQUIRED_QUALIFIED_COUNT;
-    const qualificationStatus = isQualified ? "✅ 合格" : "❌ 不合格";
+    const adjustedRequiredCount = hasExcellent ? REQUIRED_QUALIFIED_COUNT - 1 : REQUIRED_QUALIFIED_COUNT;
+    const isQualified = qualifiedCount >= adjustedRequiredCount;
+    let qualificationStatus;
+    if (isQualified) {
+        qualificationStatus = hasExcellent ? "✅ 优秀合格" : "✅ 普通合格";
+    } else {
+        qualificationStatus = "❌ 不合格";
+    }
     
     console.log("考核结果：" + qualificationStatus);
     

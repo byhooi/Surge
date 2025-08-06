@@ -2,6 +2,13 @@
 // Surge 规则配置: [Script] 部分添加规则
 // 示例: https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record url script-response-body 获取统计.js
 
+// 常量定义
+const QUALIFIED_THRESHOLD = 195;
+const REQUIRED_QUALIFIED_COUNT = 2;
+const TIME_LIMIT_MS = 60000;
+const MS_TO_MINUTES = 60000;
+const MS_TO_SECONDS = 1000;
+
 let body = $response.body;
 let jsonData;
 
@@ -12,56 +19,77 @@ try {
     $done({});
 }
 
+// 工具函数
+function formatTime(milliseconds) {
+    const minutes = Math.floor(milliseconds / MS_TO_MINUTES);
+    const seconds = Math.floor((milliseconds % MS_TO_MINUTES) / MS_TO_SECONDS);
+    return `${minutes}分钟${seconds}秒`;
+}
+
+function isValidSportRecord(record) {
+    return record && 
+           typeof record.sportCount === 'number' && 
+           typeof record.sportTime === 'number' &&
+           typeof record.videoUrl === 'string';
+}
+
+function validateResponseData(jsonData) {
+    return jsonData && 
+           jsonData.data && 
+           Array.isArray(jsonData.data) && 
+           jsonData.data.length > 0 &&
+           jsonData.data[0].sportRecordDTOS &&
+           Array.isArray(jsonData.data[0].sportRecordDTOS);
+}
+
 // 初始化变量
 let maxSportCountRecord = null;
 let totalSportCount = 0;
 let totalSportTime = 0;
-let qualifiedCount = 0; // 记录195及以上的次数
+let qualifiedCount = 0;
 
-if (jsonData && jsonData.data && jsonData.data[0].sportRecordDTOS) {
-    jsonData.data[0].sportRecordDTOS.forEach(record => {
-        // 累计总 sportCount
-        totalSportCount += record.sportCount;
+if (validateResponseData(jsonData)) {
+    const sportRecords = jsonData.data[0].sportRecordDTOS;
+    
+    sportRecords.forEach(record => {
+        if (!isValidSportRecord(record)) {
+            console.log("跳过无效记录:", record);
+            return;
+        }
         
-        // 累计总 sportTime
+        totalSportCount += record.sportCount;
         totalSportTime += record.sportTime;
-          // 判断单次是否合格
-        if (record.sportTime <= 60000) {
-            if (record.sportCount >= 195) {
-                qualifiedCount++; // 只记录195及以上的次数
-            }
+        
+        if (record.sportTime <= TIME_LIMIT_MS && record.sportCount >= QUALIFIED_THRESHOLD) {
+            qualifiedCount++;
         }
 
-        // 查找 sportCount 最大的记录
         if (!maxSportCountRecord || record.sportCount > maxSportCountRecord.sportCount) {
             maxSportCountRecord = record;
         }
     });
 }
 
-// 将总运动时间转换为分钟
-let totalExerciseTimeInMinutes = Math.floor(totalSportTime / 60000); // 将毫秒转换为分钟
-let remainingSeconds = Math.floor((totalSportTime % 60000) / 1000); // 秒部分
+// 格式化总运动时间
+const formattedTotalTime = formatTime(totalSportTime);
 
 // 输出结果
-if (maxSportCountRecord) {    // 直接设定需要2次合格
-    let requiredCount = 2;  // 需要2次195+即可
-    let isQualified = qualifiedCount >= requiredCount;
-    let qualificationStatus = isQualified ? "✅ 合格" : "❌ 不合格";
+if (maxSportCountRecord) {
+    const isQualified = qualifiedCount >= REQUIRED_QUALIFIED_COUNT;
+    const qualificationStatus = isQualified ? "✅ 合格" : "❌ 不合格";
     
     console.log("考核结果：" + qualificationStatus);
     
-    // 修改通知内容
     $notification.post(
         `结果: ${qualificationStatus}`,
         `一分钟最多: ${maxSportCountRecord.sportCount}个`,
-        `总跳绳数: ${totalSportCount}个, 总跳绳时间: ${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`
+        `总跳绳数: ${totalSportCount}个, 总跳绳时间: ${formattedTotalTime}`
     );
 
     console.log("一分钟最多: " + maxSportCountRecord.sportCount + "个");
     console.log("对应的 videoUrl: " + maxSportCountRecord.videoUrl);
     console.log("总跳绳数: " + totalSportCount + "个");
-    console.log(`总跳绳时间：${totalExerciseTimeInMinutes}分钟${remainingSeconds}秒`);
+    console.log(`总跳绳时间：${formattedTotalTime}`);
 } else {
     console.log("未找到符合条件的记录");
 }

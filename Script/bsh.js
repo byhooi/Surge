@@ -1,26 +1,52 @@
-// 获取HTTP请求头中的token
-let headers = $request.headers;
-let currentToken = headers['token'];
+// Surge Script - Token变更检测和持久化存储
+// 用于检测HTTP请求头中的token变化并自动更新存储
 
-// 输出当前捕获的Token
-console.log("当前捕获的Token: " + currentToken);
+// 常量配置
+const TOKEN_HEADER_KEY = 'token';
+const STORAGE_KEY = 'token';
+const NOTIFICATION_TITLE = 'Token更新通知';
+const NOTIFICATION_SUBTITLE = '新的Token已捕获';
 
-// 从Surge的持久化存储中读取上一次保存的Token
-let previousToken = $persistentStore.read("token");
+// 工具函数
+function isValidToken(token) {
+    return token && typeof token === 'string' && token.trim().length > 0;
+}
 
-// 输出上一次保存的Token
-console.log("上一次保存的Token: " + previousToken);
+function logTokenInfo(message, token) {
+    console.log(`${message}: ${token || 'null'}`);
+}
 
-// 检查Token是否有变化
-if (currentToken && currentToken !== previousToken) {
-    // 如果Token不同，更新存储中的Token，并发送通知
-    $persistentStore.write(currentToken, "token");
-    console.log("检测到Token变更，已更新。新Token: " + currentToken);
-    // 发送通知
-    $notification.post("Token更新通知", "新的Token已捕获", currentToken);
+// 获取当前Token
+const headers = $request.headers;
+const currentToken = headers[TOKEN_HEADER_KEY];
+
+logTokenInfo('当前捕获的Token', currentToken);
+
+// 获取之前保存的Token
+const previousToken = $persistentStore.read(STORAGE_KEY);
+
+logTokenInfo('上一次保存的Token', previousToken);
+
+// 检查Token变化并处理
+if (isValidToken(currentToken)) {
+    if (currentToken !== previousToken) {
+        try {
+            const writeSuccess = $persistentStore.write(currentToken, STORAGE_KEY);
+            
+            if (writeSuccess !== false) {
+                logTokenInfo('检测到Token变更，已更新。新Token', currentToken);
+                $notification.post(NOTIFICATION_TITLE, NOTIFICATION_SUBTITLE, currentToken);
+            } else {
+                console.log('Token存储失败');
+            }
+        } catch (error) {
+            console.log('Token更新过程中发生错误: ' + error.message);
+        }
+    } else {
+        console.log('Token未变更，无需更新');
+    }
 } else {
-    // 如果Token相同或未捕获到Token，不做任何操作
-    console.log("Token未变更，无需更新。");
+    console.log('未检测到有效Token或Token为空');
 }
 
 // 结束脚本

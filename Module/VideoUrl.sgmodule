@@ -4,7 +4,7 @@
 #!system=ios
 
 [Script]
-获取Videourl = type=http-response, pattern=https://a.yufanai.com/cloudSports/recordsByPage, requires-body=1, max-size=0, script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/VideoUrl.js
+获取Videourl = type=http-response, pattern=https://a.yufanai.cn/cloudSports/recordsByPage, requires-body=1, max-size=0, script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/VideoUrl.js
 
 [MITM]
-hostname = %APPEND% a.yufanai.com
+hostname = %APPEND% a.yufanai.cn

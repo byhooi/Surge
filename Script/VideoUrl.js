@@ -4,7 +4,7 @@
 
 // 常量定义
 const QUALIFIED_THRESHOLD = 195;
-const REQUIRED_QUALIFIED_COUNT = 2;
+const REQUIRED_QUALIFIED_COUNT = 3;
 const EXCELLENT_THRESHOLD = 200;
 
 let body = $response.body;

@@ -63,7 +63,7 @@ if (validateResponseData(jsonData)) {
             qualifiedCount++;
         }
         
-        if (record.sportCount > EXCELLENT_THRESHOLD) {
+        if (record.sportCount >= EXCELLENT_THRESHOLD) {
             hasExcellent = true;
         }
 

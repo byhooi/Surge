@@ -1,5 +1,5 @@
-# 更新时间: 2025/08/16 07:30:34
-# 规则数量：当前共 232 条规则
+# 更新时间: 2025/08/16 20:47:01
+# 规则数量：当前共 231 条规则
 payload:
   - DOMAIN-SUFFIX,chinamobile.com
   - DOMAIN-SUFFIX,meituan.net
@@ -31,7 +31,6 @@ payload:
   - DOMAIN-SUFFIX,ampaeservices.com
   - DOMAIN-SUFFIX,byhooi.tk
   - DOMAIN-SUFFIX,360zyx.vip
-  - DOMAIN-SUFFIX,360zy.com
   - DOMAIN-SUFFIX,10010.com
   - DOMAIN-SUFFIX,126.com
   - DOMAIN-SUFFIX,126.net

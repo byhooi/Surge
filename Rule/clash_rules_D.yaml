@@ -1,5 +1,5 @@
-# 更新时间: 2025/08/21 11:47:00
-# 规则数量：当前共 235 条规则
+# 更新时间: 2025/08/23 23:38:35
+# 规则数量：当前共 238 条规则
 payload:
   - DOMAIN-SUFFIX,chinamobile.com
   - DOMAIN-SUFFIX,meituan.net
@@ -28,13 +28,16 @@ payload:
   - DOMAIN-SUFFIX,wfninh3hhiqp.com
   - DOMAIN-SUFFIX,wlcdn88.com
   - DOMAIN-SUFFIX,imgwolong.com
+  - DOMAIN-SUFFIX,wolongzy.cc
+  - DOMAIN-SUFFIX,wolongzyw.com
   - DOMAIN-SUFFIX,yvocwep63nev.com
   - DOMAIN-SUFFIX,ampaeservices.com
   - DOMAIN-SUFFIX,byhooi.tk
   - DOMAIN-SUFFIX,360zyx.vip
   - DOMAIN-SUFFIX,360zy.com
-  - DOMAIN-SUFFIX, jisuts.com
-  - DOMAIN-SUFFIX, jszyapi.com
+  - DOMAIN-SUFFIX,jisuts.com
+  - DOMAIN-SUFFIX,jszyapi.com
+  - DOMAIN-SUFFIX,img.jisuimage.com
   - DOMAIN-SUFFIX,10010.com
   - DOMAIN-SUFFIX,126.com
   - DOMAIN-SUFFIX,126.net

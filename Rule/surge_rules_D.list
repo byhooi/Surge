@@ -1,5 +1,5 @@
-# 更新时间: 2025/08/23 23:47:27
-# 规则数量：当前共 239 条规则
+# 更新时间: 2025/08/28 20:05:07
+# 规则数量：当前共 241 条规则
 
 DOMAIN-SUFFIX,chinamobile.com
 DOMAIN-SUFFIX,meituan.net
@@ -39,6 +39,8 @@ DOMAIN-SUFFIX,jisuts.com
 DOMAIN-SUFFIX,jszyapi.com
 DOMAIN-SUFFIX,img.jisuimage.com
 DOMAIN-SUFFIX,jisuzyv.com
+DOMAIN-SUFFIX,dbzy.tv
+DOMAIN-SUFFIX,rsfcxq.com
 DOMAIN-SUFFIX,10010.com
 DOMAIN-SUFFIX,126.com
 DOMAIN-SUFFIX,126.net

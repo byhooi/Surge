@@ -1,5 +1,5 @@
-# 更新时间: 2025/09/02 07:56:41
-# 规则数量：当前共 244 条规则
+# 更新时间: 2025/10/02 14:49:58
+# 规则数量：当前共 248 条规则
 payload:
   - DOMAIN-SUFFIX,0cicgw0mte7y.com
   - DOMAIN-SUFFIX,360zy.com
@@ -79,6 +79,7 @@ payload:
   - DOMAIN-SUFFIX,bcebos.com
   - DOMAIN-SUFFIX,bdurl.net
   - DOMAIN-SUFFIX,beizi.biz
+  - DOMAIN-SUFFIX,biliapi.net
   - DOMAIN-SUFFIX,bilibili.com
   - DOMAIN-SUFFIX,bilivideo.com
   - DOMAIN-SUFFIX,bytecdn.com
@@ -130,6 +131,7 @@ payload:
   - DOMAIN-SUFFIX,gifshow.com
   - DOMAIN-SUFFIX,globalsign.com
   - DOMAIN-SUFFIX,goofish.com
+  - DOMAIN-SUFFIX,google-analytics.com
   - DOMAIN-SUFFIX,googlesyndication-cn.com
   - DOMAIN-SUFFIX,gstatic.com
   - DOMAIN-SUFFIX,gtimg.com
@@ -160,6 +162,7 @@ payload:
   - DOMAIN-SUFFIX,mi-img.com
   - DOMAIN-SUFFIX,mi.com
   - DOMAIN-SUFFIX,mijia.tech
+  - DOMAIN-SUFFIX,mintegral.net
   - DOMAIN-SUFFIX,miot-spec.org
   - DOMAIN-SUFFIX,miui.com
   - DOMAIN-SUFFIX,miwifi.com
@@ -230,6 +233,7 @@ payload:
   - DOMAIN-SUFFIX,wanren.com
   - DOMAIN-SUFFIX,weixinbridge.com
   - DOMAIN-SUFFIX,woxshare.com
+  - DOMAIN-SUFFIX,wxgateway.com
   - DOMAIN-SUFFIX,xhscdn.com
   - DOMAIN-SUFFIX,xiaohongshu.com
   - DOMAIN-SUFFIX,xiaomi.com

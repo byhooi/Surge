@@ -1,10 +1,11 @@
-# 更新时间: 2025/09/02 07:56:41
-# 规则数量：当前共 61 条规则
+# 更新时间: 2025/10/02 14:49:58
+# 规则数量：当前共 74 条规则
 payload:
   - DOMAIN-SUFFIX,admaster.cc
   - DOMAIN-SUFFIX,adobetm.com
   - DOMAIN-SUFFIX,appx
   - DOMAIN-SUFFIX,binance.com
+  - DOMAIN-SUFFIX,branch.io
   - DOMAIN-SUFFIX,bugsnag.com
   - DOMAIN-SUFFIX,buzzsprout.com
   - DOMAIN-SUFFIX,chatgpt.com
@@ -27,11 +28,14 @@ payload:
   - DOMAIN-SUFFIX,googleapis.com
   - DOMAIN-SUFFIX,googleusercontent.com
   - DOMAIN-SUFFIX,googlevideo.com
+  - DOMAIN-SUFFIX,hk
   - DOMAIN-SUFFIX,hotmail.com
   - DOMAIN-SUFFIX,icloud-content.com
   - DOMAIN-SUFFIX,icloud.com
   - DOMAIN-SUFFIX,jddebug.com
   - DOMAIN-SUFFIX,jp
+  - DOMAIN-SUFFIX,komect.com
+  - DOMAIN-SUFFIX,linux.do
   - DOMAIN-SUFFIX,liramail.com
   - DOMAIN-SUFFIX,live.com
   - DOMAIN-SUFFIX,live.net
@@ -44,7 +48,16 @@ payload:
   - DOMAIN-SUFFIX,onedrive.com
   - DOMAIN-SUFFIX,openai.com
   - DOMAIN-SUFFIX,pscp.tv
+  - DOMAIN-SUFFIX,redd.it
+  - DOMAIN-SUFFIX,reddit.com
+  - DOMAIN-SUFFIX,redditmedia.com
+  - DOMAIN-SUFFIX,redditspace.com
+  - DOMAIN-SUFFIX,redditstatic.com
+  - DOMAIN-SUFFIX,revenuecat.com
+  - DOMAIN-SUFFIX,sentry.io
   - DOMAIN-SUFFIX,static.microsoft
+  - DOMAIN-SUFFIX,stripe.com
+  - DOMAIN-SUFFIX,stripe.network
   - DOMAIN-SUFFIX,t.co
   - DOMAIN-SUFFIX,tw
   - DOMAIN-SUFFIX,twimg.com

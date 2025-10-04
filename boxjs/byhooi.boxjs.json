@@ -87,6 +87,10 @@
       ],
       "scripts": [
         {
+          "name": "🧪 测试脚本",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/test_boxjs.js"
+        },
+        {
           "name": "同步 WSKEY 到青龙",
           "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_ql_sync.js"
         },

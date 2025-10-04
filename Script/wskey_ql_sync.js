@@ -126,86 +126,65 @@ class QLPanel {
     }
   }
 
-  // 更新环境变量
+  // 更新环境变量（先删后加）
   async updateEnv(envItem, name, value, remarks = '') {
     await this.ensureToken();
 
-    // 调试日志：打印原始数据
-    this.$.log(`🔍 调试 - 原始 envItem: ${JSON.stringify(envItem)}`);
-
-    // 青龙更新接口需要发送完整的环境变量对象
-    const payload = {
-      value: value,
-      name: name,
-      remarks: remarks || ''
-    };
-
     const identifier = envItem && typeof envItem === 'object' ? envItem : null;
+    let envId;
 
-    // 优先使用 _id（MongoDB ObjectId），否则使用 id（数值型）
+    // 获取环境变量 ID
     if (identifier) {
       if (identifier._id) {
-        // 使用 _id（字符串格式的 MongoDB ObjectId）
-        payload._id = String(identifier._id);
+        envId = String(identifier._id);
       } else if (identifier.id !== undefined && identifier.id !== null) {
-        // 使用 id（数值或字符串）
-        const idValue = identifier.id;
-        if (typeof idValue === 'number') {
-          payload.id = idValue;
-        } else if (typeof idValue === 'string') {
-          const trimmed = idValue.trim();
-          // 如果是纯数字字符串，转为数字
-          if (/^\d+$/.test(trimmed)) {
-            payload.id = Number(trimmed);
-          } else {
-            payload.id = trimmed;
-          }
-        }
+        envId = identifier.id;
       }
     } else if (envItem !== undefined && envItem !== null) {
-      if (typeof envItem === 'string') {
-        const trimmed = envItem.trim();
-        if (/^[0-9a-fA-F]{24}$/.test(trimmed)) {
-          payload._id = trimmed;
-        } else if (/^\d+$/.test(trimmed)) {
-          payload.id = Number(trimmed);
-        } else if (trimmed) {
-          payload.id = trimmed;
-        }
-      } else if (typeof envItem === 'number') {
-        payload.id = envItem;
-      } else if (envItem !== null) {
-        payload.id = String(envItem);
-      }
+      envId = envItem;
     }
 
-    if (!payload._id && payload.id === undefined) {
+    if (!envId) {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
     }
 
-    // 调试日志：打印完整的 payload
-    this.$.log(`🔍 调试 - 更新 payload: ${JSON.stringify(payload)}`);
+    try {
+      // 先删除旧的环境变量
+      await this.deleteEnv(envId);
+      // 再添加新的环境变量
+      await this.addEnv(name, value, remarks);
+      return true;
+    } catch (error) {
+      this.$.log(`❌ 更新环境变量失败: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // 删除环境变量
+  async deleteEnv(envIds) {
+    await this.ensureToken();
+
+    // 确保是数组格式
+    const ids = Array.isArray(envIds) ? envIds : [envIds];
 
     const options = {
-      url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
+      url: `${this.baseUrl}${QL_API.ENVS}`,
       headers: {
         'Authorization': `Bearer ${this.token}`,
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(ids)
     };
 
     try {
-      const response = await this.request(options, 'PUT');
-      this.$.log(`🔍 调试 - 响应: ${JSON.stringify(response)}`);
+      const response = await this.request(options, 'DELETE');
       if (response?.code === 200) {
         return true;
       }
-      throw new Error(response?.message || '更新环境变量失败');
+      throw new Error(response?.message || '删除环境变量失败');
     } catch (error) {
-      this.$.log(`❌ 更新失败详情: ${error.message}`);
-      this.$.log(`🔍 调试 - 错误对象: ${JSON.stringify(error)}`);
+      this.$.log(`❌ 删除环境变量失败: ${error.message}`);
       throw error;
     }
   }
@@ -234,6 +213,9 @@ class QLPanel {
         this.$.$httpClient.post(options, callback);
       } else if (method === 'PUT') {
         options.method = 'PUT';
+        this.$.$httpClient.post(options, callback);
+      } else if (method === 'DELETE') {
+        options.method = 'DELETE';
         this.$.$httpClient.post(options, callback);
       }
     });

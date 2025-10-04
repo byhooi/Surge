@@ -4,7 +4,16 @@
       "WebFetch(domain:gist.githubusercontent.com)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(cat:*)",
+      "Bash(python:*)",
+      "Bash(node -e \"console.log(JSON.stringify(require(''./boxjs/boxjs.json''), null, 2))\")",
+      "Bash(/dev/null)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(node:*)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/chavyleung/scripts/master/box/chavy.boxjs.json\")",
+      "Bash(git restore:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

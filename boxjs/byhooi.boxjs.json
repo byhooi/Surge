@@ -2,7 +2,7 @@
   "id": "byhooi.app.sub",
   "name": "Byhooi 脚本订阅",
   "author": "@byhooi",
-  "icon": "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png",
+  "icon": "https://avatars2.githubusercontent.com/u/17607715",
   "repo": "https://github.com/byhooi/Surge",
   "apps": [
     {
@@ -102,8 +102,7 @@
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge",
       "icons": [
-        "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png",
-        "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png"
+        "https://raw.githubusercontent.com/byhooi/surge/master/icon/jd.png"
       ]
     }
   ]

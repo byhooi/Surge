@@ -1,7 +1,6 @@
 {
   "id": "byhooi.app.sub",
   "name": "Byhooi 脚本订阅",
-  "description": "京东 WSKEY 青龙同步",
   "author": "@byhooi",
   "icon": "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png",
   "repo": "https://github.com/byhooi/Surge",
@@ -107,6 +106,5 @@
         "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png"
       ]
     }
-  ],
-  "task": []
+  ]
 }

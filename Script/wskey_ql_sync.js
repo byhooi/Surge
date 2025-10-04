@@ -138,17 +138,25 @@ class QLPanel {
 
     const identifier = envItem && typeof envItem === 'object' ? envItem : null;
 
+    // 优先使用 MongoDB _id，兼容仅返回数值 id 的青龙版本
     if (identifier) {
-      const idValue = identifier._id || identifier.id;
-      if (idValue) {
-        payload._id = String(idValue);
+      if (identifier._id) {
+        payload._id = String(identifier._id);
       }
-      if (identifier.id) {
-        payload.id = String(identifier.id);
+      if (identifier.id !== undefined && identifier.id !== null) {
+        payload.id = typeof identifier.id === 'number' ? identifier.id : String(identifier.id);
       }
-    } else if (envItem) {
-      payload._id = String(envItem);
-      payload.id = String(envItem);
+    } else if (envItem !== undefined && envItem !== null) {
+      if (typeof envItem === 'string') {
+        const trimmed = envItem.trim();
+        if (/^[0-9a-fA-F]{24}$/.test(trimmed)) {
+          payload._id = trimmed;
+        } else if (trimmed) {
+          payload.id = trimmed;
+        }
+      } else {
+        payload.id = envItem;
+      }
     }
 
     if (!payload._id && !payload.id) {

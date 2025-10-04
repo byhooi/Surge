@@ -179,6 +179,10 @@ class QLPanel {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
     }
 
+    // 调试日志：打印完整的 payload
+    this.$.log(`🔍 调试信息 - 更新 payload: ${JSON.stringify(payload)}`);
+    this.$.log(`🔍 调试信息 - 原始 envItem: ${JSON.stringify(envItem)}`);
+
     const options = {
       url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
       headers: {
@@ -191,6 +195,7 @@ class QLPanel {
 
     try {
       const response = await this.request(options, 'PUT');
+      this.$.log(`🔍 调试信息 - 响应: ${JSON.stringify(response)}`);
       if (response?.code === 200) {
         return true;
       }

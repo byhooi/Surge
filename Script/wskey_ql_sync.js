@@ -139,8 +139,9 @@ class QLPanel {
     const identifier = envItem && typeof envItem === 'object' ? envItem : null;
 
     if (identifier) {
-      if (identifier._id) {
-        payload._id = identifier._id;
+      const idValue = identifier._id || identifier.id;
+      if (idValue) {
+        payload._id = idValue;
       }
       if (identifier.id) {
         payload.id = identifier.id;

@@ -11,7 +11,7 @@
 在 BoxJS 中添加订阅地址：
 
 ```
-https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/boxjs.json
+https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 ```
 
 ### 2. 配置青龙面板

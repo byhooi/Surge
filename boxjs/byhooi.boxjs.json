@@ -34,7 +34,7 @@
         {
           "id": "wskey_sync_interval",
           "name": "同步间隔(分钟)",
-          "val": "60",
+          "val": 60,
           "type": "number",
           "desc": "自动同步的时间间隔，默认 60 分钟"
         },

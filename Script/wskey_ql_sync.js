@@ -144,18 +144,29 @@ class QLPanel {
         payload._id = String(identifier._id);
       }
       if (identifier.id !== undefined && identifier.id !== null) {
-        payload.id = typeof identifier.id === 'number' ? identifier.id : String(identifier.id);
+        const numericId = Number(identifier.id);
+        if (Number.isFinite(numericId)) {
+          payload.id = numericId;
+        } else if (typeof identifier.id === 'string' && identifier.id.trim()) {
+          payload.id = identifier.id.trim();
+        } else {
+          payload.id = identifier.id;
+        }
       }
     } else if (envItem !== undefined && envItem !== null) {
       if (typeof envItem === 'string') {
         const trimmed = envItem.trim();
         if (/^[0-9a-fA-F]{24}$/.test(trimmed)) {
           payload._id = trimmed;
+        } else if (/^\d+$/.test(trimmed)) {
+          payload.id = Number(trimmed);
         } else if (trimmed) {
           payload.id = trimmed;
         }
-      } else {
+      } else if (typeof envItem === 'number') {
         payload.id = envItem;
+      } else if (envItem !== null) {
+        payload.id = String(envItem);
       }
     }
 

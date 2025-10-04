@@ -1,113 +1,81 @@
 // 单独获取青龙 Token 的脚本
 const SCRIPT_NAME = '获取青龙 Token';
 
-function Env(name) {
-  this.name = name;
-  this.startTime = Date.now();
-  this.log("", `🔔${this.name}, 开始!`);
-}
+// 获取配置
+const baseUrl = ($persistentStore.read('ql_url') || '').replace(/\/$/, '');
+const clientId = $persistentStore.read('ql_client_id') || '';
+const clientSecret = $persistentStore.read('ql_client_secret') || '';
 
-Env.prototype.log = function (...messages) {
-  console.log(messages.join('\n'));
-};
+// 检查配置
+if (!baseUrl || !clientId || !clientSecret) {
+  const msg = '❌ 青龙面板配置不完整\n\n请在 BoxJS 中填写：\n1. 青龙面板地址\n2. Client ID\n3. Client Secret';
+  console.log(msg);
+  $notification.post(SCRIPT_NAME, '', msg);
+  $done({});
+} else {
+  console.log(`🔑 开始获取 Token...`);
+  console.log(`📍 青龙地址: ${baseUrl}`);
 
-Env.prototype.getdata = function (key) {
-  return $persistentStore.read(key);
-};
+  // 构造请求
+  const options = {
+    url: `${baseUrl}/open/auth/token?client_id=${clientId}&client_secret=${clientSecret}`,
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0'
+    }
+  };
 
-Env.prototype.setdata = function (val, key) {
-  return $persistentStore.write(val, key);
-};
+  // 发送请求
+  $httpClient.get(options, function(error, response, data) {
+    let msg = '';
 
-Env.prototype.done = function () {
-  const endTime = Date.now();
-  const duration = ((endTime - this.startTime) / 1000).toFixed(2);
-  this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
-  $done();
-};
+    if (error) {
+      msg = `❌ 网络错误\n\n${error}`;
+      console.log(msg);
+    } else {
+      console.log(`📦 响应状态: ${response.status}`);
+      console.log(`📄 响应数据: ${data}`);
 
-const $ = new Env(SCRIPT_NAME);
-const messages = [];
+      try {
+        const result = JSON.parse(data);
 
-(async () => {
-  try {
-    const baseUrl = ($.getdata('ql_url') || '').replace(/\/$/, '');
-    const clientId = $.getdata('ql_client_id') || '';
-    const clientSecret = $.getdata('ql_client_secret') || '';
+        if (result.code === 200 && result.data && result.data.token) {
+          const token = result.data.token;
+          const expires = Date.now() + (6.5 * 24 * 60 * 60 * 1000);
 
-    if (!baseUrl || !clientId || !clientSecret) {
-      messages.push('❌ 青龙面板配置不完整');
-      messages.push('请填写：');
-      messages.push('1. 青龙面板地址');
-      messages.push('2. Client ID');
-      messages.push('3. Client Secret');
-      return;
+          // 保存 Token
+          $persistentStore.write(token, 'ql_token');
+          $persistentStore.write(String(expires), 'ql_token_expires');
+
+          const expireDate = new Date(expires).toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          msg = `✅ Token 获取成功！\n\n📅 有效期至: ${expireDate}`;
+          console.log(msg);
+        } else {
+          msg = `❌ 获取 Token 失败\n\n错误代码: ${result.code}\n错误信息: ${result.message || '未知错误'}`;
+
+          if (result.code === 400) {
+            msg += '\n\n💡 请检查:\n- Client ID 是否正确\n- Client Secret 是否正确\n- 应用权限是否包含"环境变量"';
+          } else if (result.code === 401) {
+            msg += '\n\n💡 认证失败，请检查 Client ID 和 Secret';
+          }
+
+          console.log(msg);
+        }
+      } catch (err) {
+        msg = `❌ 解析响应失败\n\n错误: ${err.message || err}\n\n原始数据:\n${data}`;
+        console.log(msg);
+      }
     }
 
-    $.log(`🔑 正在获取 Token...`);
-    $.log(`📍 地址: ${baseUrl}`);
-
-    const options = {
-      url: `${baseUrl}/open/auth/token?client_id=${clientId}&client_secret=${clientSecret}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0'
-      }
-    };
-
-    await new Promise((resolve) => {
-      $httpClient.get(options, (error, response, data) => {
-        try {
-          if (error) {
-            $.log(`❌ 网络错误: ${error}`);
-            messages.push(`❌ 网络错误: ${error.message || error}`);
-            resolve();
-            return;
-          }
-
-          $.log(`📦 响应状态: ${response.status}`);
-          $.log(`📄 响应数据: ${data}`);
-
-          const result = JSON.parse(data);
-
-          if (result.code === 200 && result.data?.token) {
-            const token = result.data.token;
-            const expires = Date.now() + (6.5 * 24 * 60 * 60 * 1000);
-
-            $.setdata(token, 'ql_token');
-            $.setdata(String(expires), 'ql_token_expires');
-
-            messages.push('✅ Token 获取成功');
-            messages.push(`📅 有效期至: ${new Date(expires).toLocaleString('zh-CN')}`);
-            $.log('✅ Token 已保存');
-          } else {
-            messages.push(`❌ 获取失败: ${result.message || '未知错误'}`);
-            messages.push(`📋 错误代码: ${result.code}`);
-            if (result.code === 400) {
-              messages.push('💡 提示: 请检查 Client ID 和 Secret 是否正确');
-            }
-          }
-        } catch (err) {
-          $.log(`❌ 解析错误: ${err}`);
-          messages.push(`❌ 解析错误: ${err.message || err}`);
-          messages.push(`原始数据: ${data}`);
-        }
-        resolve();
-      });
-    });
-
-  } catch (error) {
-    $.log(`❌ 脚本错误: ${error}`);
-    messages.push(`❌ 脚本错误: ${error.message || error}`);
-  }
-})()
-  .catch(err => {
-    $.log(`❌ 执行错误: ${err}`);
-    messages.push(`❌ 执行错误: ${err.message || err}`);
-  })
-  .finally(() => {
-    const msg = messages.join('\n');
-    $.log(`\n=== 最终结果 ===\n${msg}`);
+    // 发送通知
     $notification.post(SCRIPT_NAME, '', msg);
-    $.done();
+    $done({});
   });
+}

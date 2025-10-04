@@ -1,99 +1,111 @@
 {
-  "id": "wskey.ql.sync",
-  "name": "京东 WSKEY 青龙同步",
-  "desc_html": "自动将 BoxJS 中的京东 WSKEY 同步到青龙面板",
-  "icons": [
-    "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png",
-    "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png"
-  ],
-  "keys": [
-    "wskeyList",
-    "ql_url",
-    "ql_client_id",
-    "ql_client_secret",
-    "ql_token",
-    "ql_token_expires",
-    "auto_sync_ql",
-    "wskey_sync_interval"
-  ],
-  "settings": [
-    {
-      "id": "auto_sync_ql",
-      "name": "自动同步到青龙",
-      "val": false,
-      "type": "boolean",
-      "desc": "获取到新的 WSKEY 后自动同步到青龙面板"
-    },
-    {
-      "id": "wskey_sync_interval",
-      "name": "同步间隔(分钟)",
-      "val": "60",
-      "type": "number",
-      "desc": "自动同步的时间间隔，默认 60 分钟"
-    },
-    {
-      "id": "ql_url",
-      "name": "青龙面板地址",
-      "val": "",
-      "type": "text",
-      "placeholder": "http://192.168.1.100:5700",
-      "desc": "青龙面板的完整地址，如 http://192.168.1.100:5700"
-    },
-    {
-      "id": "ql_client_id",
-      "name": "青龙 Client ID",
-      "val": "",
-      "type": "text",
-      "placeholder": "请输入 Client ID",
-      "desc": "在青龙面板系统设置-应用设置中创建应用后获取"
-    },
-    {
-      "id": "ql_client_secret",
-      "name": "青龙 Client Secret",
-      "val": "",
-      "type": "text",
-      "placeholder": "请输入 Client Secret",
-      "desc": "在青龙面板系统设置-应用设置中创建应用后获取"
-    },
-    {
-      "id": "ql_token",
-      "name": "青龙 Token",
-      "val": "",
-      "type": "text",
-      "desc": "自动获取的 Token，无需手动填写"
-    },
-    {
-      "id": "ql_token_expires",
-      "name": "Token 过期时间",
-      "val": "",
-      "type": "text",
-      "desc": "自动记录的 Token 过期时间，无需手动填写"
-    },
-    {
-      "id": "wskeyList",
-      "name": "WSKEY 列表",
-      "val": "",
-      "type": "textarea",
-      "autoGrow": true,
-      "rows": 5,
-      "desc": "存储的 WSKEY 列表，JSON 格式"
-    }
-  ],
-  "repo": "https://github.com/byhooi/Surge",
-  "scripts": [
-    {
-      "name": "同步 WSKEY 到青龙",
-      "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_ql_sync.js"
-    },
-    {
-      "name": "获取青龙 Token",
-      "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_ql_token.js"
-    },
-    {
-      "name": "清空 WSKEY 列表",
-      "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_clear.js"
-    }
-  ],
+  "id": "byhooi.app.sub",
+  "name": "Byhooi 脚本订阅",
+  "description": "京东 WSKEY 青龙同步",
   "author": "@byhooi",
-  "url": "https://github.com/byhooi/Surge"
+  "icon": "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png",
+  "repo": "https://github.com/byhooi/Surge",
+  "apps": [
+    {
+      "id": "JD_WSKEY_QL",
+      "name": "京东 WSKEY 青龙同步",
+      "keys": [
+        "wskeyList",
+        "ql_url",
+        "ql_client_id",
+        "ql_client_secret",
+        "ql_token",
+        "ql_token_expires",
+        "auto_sync_ql",
+        "wskey_sync_interval"
+      ],
+      "descs_html": [
+        "<h4 align=\"center\">自动将 BoxJS 中的京东 WSKEY 同步到青龙面板</h4>",
+        "<h4 align=\"center\">使用说明请查看 <a href=\"https://github.com/byhooi/Surge/tree/main/boxjs\">GitHub 文档</a></h4>"
+      ],
+      "settings": [
+        {
+          "id": "auto_sync_ql",
+          "name": "自动同步到青龙",
+          "val": false,
+          "type": "boolean",
+          "desc": "获取到新的 WSKEY 后自动同步到青龙面板"
+        },
+        {
+          "id": "wskey_sync_interval",
+          "name": "同步间隔(分钟)",
+          "val": "60",
+          "type": "number",
+          "desc": "自动同步的时间间隔，默认 60 分钟"
+        },
+        {
+          "id": "ql_url",
+          "name": "青龙面板地址",
+          "val": "",
+          "type": "text",
+          "placeholder": "http://192.168.1.100:5700",
+          "desc": "青龙面板的完整地址，如 http://192.168.1.100:5700"
+        },
+        {
+          "id": "ql_client_id",
+          "name": "青龙 Client ID",
+          "val": "",
+          "type": "text",
+          "placeholder": "请输入 Client ID",
+          "desc": "在青龙面板系统设置-应用设置中创建应用后获取"
+        },
+        {
+          "id": "ql_client_secret",
+          "name": "青龙 Client Secret",
+          "val": "",
+          "type": "text",
+          "placeholder": "请输入 Client Secret",
+          "desc": "在青龙面板系统设置-应用设置中创建应用后获取"
+        },
+        {
+          "id": "ql_token",
+          "name": "青龙 Token",
+          "val": "",
+          "type": "text",
+          "desc": "自动获取的 Token，无需手动填写"
+        },
+        {
+          "id": "ql_token_expires",
+          "name": "Token 过期时间",
+          "val": "",
+          "type": "text",
+          "desc": "自动记录的 Token 过期时间，无需手动填写"
+        },
+        {
+          "id": "wskeyList",
+          "name": "WSKEY 列表",
+          "val": "",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 5,
+          "desc": "存储的 WSKEY 列表，JSON 格式"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "同步 WSKEY 到青龙",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_ql_sync.js"
+        },
+        {
+          "name": "获取青龙 Token",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_ql_token.js"
+        },
+        {
+          "name": "清空 WSKEY 列表",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_clear.js"
+        }
+      ],
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png",
+        "https://raw.githubusercontent.com/58xinian/icon/master/jd_icon.png"
+      ]
+    }
+  ]
 }

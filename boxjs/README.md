@@ -8,10 +8,16 @@
 
 ### 1. 安装 BoxJS 订阅
 
-在 BoxJS 中添加订阅：
+在 BoxJS 中添加订阅地址：
 
 ```
 https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/wskey.boxjs.json
+```
+
+或使用短链接（推荐）：
+
+```
+@byhooi/wskey.boxjs.json
 ```
 
 ### 2. 配置青龙面板

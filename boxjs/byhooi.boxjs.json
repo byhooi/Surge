@@ -6,7 +6,7 @@
   "repo": "https://github.com/byhooi/Surge",
   "apps": [
     {
-      "id": "JD_WSKEY_QL",
+      "id": "byhooi_wskey_ql",
       "name": "京东 WSKEY 青龙同步",
       "keys": [
         "wskeyList",

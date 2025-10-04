@@ -127,8 +127,32 @@ class QLPanel {
   }
 
   // 更新环境变量
-  async updateEnv(id, name, value, remarks = '') {
+  async updateEnv(envItem, name, value, remarks = '') {
     await this.ensureToken();
+
+    const payload = {
+      name: name,
+      value: value,
+      remarks: remarks
+    };
+
+    const identifier = envItem && typeof envItem === 'object' ? envItem : null;
+
+    if (identifier) {
+      if (identifier._id) {
+        payload._id = identifier._id;
+      }
+      if (identifier.id) {
+        payload.id = identifier.id;
+      }
+    } else if (envItem) {
+      payload._id = envItem;
+      payload.id = envItem;
+    }
+
+    if (!payload._id && !payload.id) {
+      throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
+    }
 
     const options = {
       url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
@@ -137,12 +161,7 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify({
-        _id: id,
-        name: name,
-        value: value,
-        remarks: remarks
-      })
+      body: JSON.stringify(payload)
     };
 
     try {
@@ -295,7 +314,7 @@ async function main() {
         } else {
           // 更新环境变量
           $.log(`🔄 更新 ${userName}...`);
-          await ql.updateEnv(existingEnv.id, envName, envValue, envRemarks);
+          await ql.updateEnv(existingEnv, envName, envValue, envRemarks);
           $.log(`✅ 更新成功: ${userName}`);
           updateCount++;
         }

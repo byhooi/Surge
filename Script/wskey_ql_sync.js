@@ -138,19 +138,24 @@ class QLPanel {
 
     const identifier = envItem && typeof envItem === 'object' ? envItem : null;
 
-    // 优先使用 MongoDB _id，兼容仅返回数值 id 的青龙版本
+    // 优先使用 _id（MongoDB ObjectId），否则使用 id（数值型）
     if (identifier) {
       if (identifier._id) {
+        // 使用 _id（字符串格式的 MongoDB ObjectId）
         payload._id = String(identifier._id);
-      }
-      if (identifier.id !== undefined && identifier.id !== null) {
-        const numericId = Number(identifier.id);
-        if (Number.isFinite(numericId)) {
-          payload.id = numericId;
-        } else if (typeof identifier.id === 'string' && identifier.id.trim()) {
-          payload.id = identifier.id.trim();
-        } else {
-          payload.id = identifier.id;
+      } else if (identifier.id !== undefined && identifier.id !== null) {
+        // 使用 id（数值或字符串）
+        const idValue = identifier.id;
+        if (typeof idValue === 'number') {
+          payload.id = idValue;
+        } else if (typeof idValue === 'string') {
+          const trimmed = idValue.trim();
+          // 如果是纯数字字符串，转为数字
+          if (/^\d+$/.test(trimmed)) {
+            payload.id = Number(trimmed);
+          } else {
+            payload.id = trimmed;
+          }
         }
       }
     } else if (envItem !== undefined && envItem !== null) {
@@ -170,7 +175,7 @@ class QLPanel {
       }
     }
 
-    if (!payload._id && !payload.id) {
+    if (!payload._id && payload.id === undefined) {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
     }
 

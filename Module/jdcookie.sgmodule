@@ -1,0 +1,10 @@
+#!name=京东 Cookie
+#!desc=自动获取京东 Cookie (pt_pin, pt_key)
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+京东 Cookie = type=http-request,pattern=^https:\/\/mars\.jd\.com,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/jdcookie.js,script-update-interval=0
+
+[MITM]
+hostname = %APPEND% mars.jd.com

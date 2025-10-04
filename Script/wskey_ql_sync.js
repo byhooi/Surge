@@ -138,7 +138,7 @@ class QLPanel {
         'User-Agent': 'Mozilla/5.0'
       },
       body: JSON.stringify({
-        id: id,
+        _id: id,
         name: name,
         value: value,
         remarks: remarks

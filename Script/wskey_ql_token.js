@@ -26,20 +26,26 @@ Env.prototype.done = function () {
   $done();
 };
 
-async function getToken() {
-  const $ = new Env(SCRIPT_NAME);
-  const messages = [];
+const $ = new Env(SCRIPT_NAME);
+const messages = [];
 
+(async () => {
   try {
     const baseUrl = ($.getdata('ql_url') || '').replace(/\/$/, '');
     const clientId = $.getdata('ql_client_id') || '';
     const clientSecret = $.getdata('ql_client_secret') || '';
 
     if (!baseUrl || !clientId || !clientSecret) {
-      throw new Error('❌ 青龙面板配置不完整');
+      messages.push('❌ 青龙面板配置不完整');
+      messages.push('请填写：');
+      messages.push('1. 青龙面板地址');
+      messages.push('2. Client ID');
+      messages.push('3. Client Secret');
+      return;
     }
 
-    $.log('🔑 正在获取 Token...');
+    $.log(`🔑 正在获取 Token...`);
+    $.log(`📍 地址: ${baseUrl}`);
 
     const options = {
       url: `${baseUrl}/open/auth/token?client_id=${clientId}&client_secret=${clientSecret}`,
@@ -49,42 +55,59 @@ async function getToken() {
       }
     };
 
-    $httpClient.get(options, (error, response, data) => {
-      try {
-        if (error) {
-          throw error;
+    await new Promise((resolve) => {
+      $httpClient.get(options, (error, response, data) => {
+        try {
+          if (error) {
+            $.log(`❌ 网络错误: ${error}`);
+            messages.push(`❌ 网络错误: ${error.message || error}`);
+            resolve();
+            return;
+          }
+
+          $.log(`📦 响应状态: ${response.status}`);
+          $.log(`📄 响应数据: ${data}`);
+
+          const result = JSON.parse(data);
+
+          if (result.code === 200 && result.data?.token) {
+            const token = result.data.token;
+            const expires = Date.now() + (6.5 * 24 * 60 * 60 * 1000);
+
+            $.setdata(token, 'ql_token');
+            $.setdata(String(expires), 'ql_token_expires');
+
+            messages.push('✅ Token 获取成功');
+            messages.push(`📅 有效期至: ${new Date(expires).toLocaleString('zh-CN')}`);
+            $.log('✅ Token 已保存');
+          } else {
+            messages.push(`❌ 获取失败: ${result.message || '未知错误'}`);
+            messages.push(`📋 错误代码: ${result.code}`);
+            if (result.code === 400) {
+              messages.push('💡 提示: 请检查 Client ID 和 Secret 是否正确');
+            }
+          }
+        } catch (err) {
+          $.log(`❌ 解析错误: ${err}`);
+          messages.push(`❌ 解析错误: ${err.message || err}`);
+          messages.push(`原始数据: ${data}`);
         }
-
-        const result = JSON.parse(data);
-
-        if (result.code === 200 && result.data?.token) {
-          const token = result.data.token;
-          const expires = Date.now() + (6.5 * 24 * 60 * 60 * 1000);
-
-          $.setdata(token, 'ql_token');
-          $.setdata(String(expires), 'ql_token_expires');
-
-          messages.push('✅ Token 获取成功');
-          messages.push(`📅 有效期至: ${new Date(expires).toLocaleString()}`);
-        } else {
-          throw new Error(result.message || '获取失败');
-        }
-      } catch (err) {
-        messages.push(`❌ 获取失败: ${err.message || err}`);
-      } finally {
-        const msg = messages.join('\n');
-        $.log(msg);
-        $notification.post(SCRIPT_NAME, '', msg);
-        $.done();
-      }
+        resolve();
+      });
     });
 
   } catch (error) {
-    const msg = `❌ ${error.message}`;
-    $.log(msg);
+    $.log(`❌ 脚本错误: ${error}`);
+    messages.push(`❌ 脚本错误: ${error.message || error}`);
+  }
+})()
+  .catch(err => {
+    $.log(`❌ 执行错误: ${err}`);
+    messages.push(`❌ 执行错误: ${err.message || err}`);
+  })
+  .finally(() => {
+    const msg = messages.join('\n');
+    $.log(`\n=== 最终结果 ===\n${msg}`);
     $notification.post(SCRIPT_NAME, '', msg);
     $.done();
-  }
-}
-
-getToken();
+  });

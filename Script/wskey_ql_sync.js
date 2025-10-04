@@ -167,6 +167,8 @@ class QLPanel {
     // 确保是数组格式
     const ids = Array.isArray(envIds) ? envIds : [envIds];
 
+    this.$.log(`🔍 调试 - 删除 ID: ${JSON.stringify(ids)}`);
+
     const options = {
       url: `${this.baseUrl}${QL_API.ENVS}`,
       headers: {
@@ -179,6 +181,7 @@ class QLPanel {
 
     try {
       const response = await this.request(options, 'DELETE');
+      this.$.log(`🔍 调试 - 删除响应: ${JSON.stringify(response)}`);
       if (response?.code === 200) {
         return true;
       }

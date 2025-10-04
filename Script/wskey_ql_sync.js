@@ -130,10 +130,14 @@ class QLPanel {
   async updateEnv(envItem, name, value, remarks = '') {
     await this.ensureToken();
 
+    // 调试日志：打印原始数据
+    this.$.log(`🔍 调试 - 原始 envItem: ${JSON.stringify(envItem)}`);
+
+    // 青龙更新接口需要发送完整的环境变量对象
     const payload = {
-      name: name,
       value: value,
-      remarks: remarks
+      name: name,
+      remarks: remarks || ''
     };
 
     const identifier = envItem && typeof envItem === 'object' ? envItem : null;
@@ -180,8 +184,7 @@ class QLPanel {
     }
 
     // 调试日志：打印完整的 payload
-    this.$.log(`🔍 调试信息 - 更新 payload: ${JSON.stringify(payload)}`);
-    this.$.log(`🔍 调试信息 - 原始 envItem: ${JSON.stringify(envItem)}`);
+    this.$.log(`🔍 调试 - 更新 payload: ${JSON.stringify(payload)}`);
 
     const options = {
       url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
@@ -195,13 +198,14 @@ class QLPanel {
 
     try {
       const response = await this.request(options, 'PUT');
-      this.$.log(`🔍 调试信息 - 响应: ${JSON.stringify(response)}`);
+      this.$.log(`🔍 调试 - 响应: ${JSON.stringify(response)}`);
       if (response?.code === 200) {
         return true;
       }
       throw new Error(response?.message || '更新环境变量失败');
     } catch (error) {
-      this.$.log(`❌ 更新环境变量失败: ${error.message}`);
+      this.$.log(`❌ 更新失败详情: ${error.message}`);
+      this.$.log(`🔍 调试 - 错误对象: ${JSON.stringify(error)}`);
       throw error;
     }
   }

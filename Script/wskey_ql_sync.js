@@ -141,14 +141,14 @@ class QLPanel {
     if (identifier) {
       const idValue = identifier._id || identifier.id;
       if (idValue) {
-        payload._id = idValue;
+        payload._id = String(idValue);
       }
       if (identifier.id) {
-        payload.id = identifier.id;
+        payload.id = String(identifier.id);
       }
     } else if (envItem) {
-      payload._id = envItem;
-      payload.id = envItem;
+      payload._id = String(envItem);
+      payload.id = String(envItem);
     }
 
     if (!payload._id && !payload.id) {

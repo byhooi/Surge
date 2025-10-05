@@ -168,7 +168,7 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify(requestBody)  // PUT 更新接口期望单个对象，不是数组
+      body: JSON.stringify([requestBody])  // 实际API要求数组格式（与文档不符）
     };
 
     try {

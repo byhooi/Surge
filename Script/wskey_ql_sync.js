@@ -1,4 +1,4 @@
-// 青龙面板 WSKEY 同步脚本 v1.1
+// 青龙面板 WSKEY 同步脚本 v1.2
 const SCRIPT_NAME = '青龙 WSKEY 同步';
 const QL_API = {
   LOGIN: '/open/auth/token',
@@ -161,6 +161,11 @@ class QLPanel {
 
     this.$.log(`🔍 调试 - 更新请求体: ${JSON.stringify(requestBody)}`);
 
+    const bodyArray = [requestBody];  // 实际API要求数组格式（与文档不符）
+    const bodyString = JSON.stringify(bodyArray);
+
+    this.$.log(`🔍 调试 - 数组格式请求体: ${bodyString}`);
+
     const options = {
       url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
       headers: {
@@ -168,7 +173,7 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify([requestBody])  // 实际API要求数组格式（与文档不符）
+      body: bodyString
     };
 
     try {

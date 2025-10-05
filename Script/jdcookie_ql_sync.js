@@ -1,5 +1,6 @@
-// 青龙面板 JD Cookie 同步脚本
+// 青龙面板 JD Cookie 同步脚本 v1.8.4
 const SCRIPT_NAME = '青龙 Cookie 同步';
+const SCRIPT_VERSION = '1.8.4';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -85,7 +86,7 @@ class QLPanel {
     };
 
     try {
-      const response = await this.request(options);
+      const response = await this.request(options, 'GET', false);
       if (response?.code === 200) {
         return response.data || [];
       }
@@ -115,7 +116,7 @@ class QLPanel {
     };
 
     try {
-      const response = await this.request(options, 'POST');
+      const response = await this.request(options, 'POST', false);
       if (response?.code === 200) {
         return true;
       }
@@ -126,34 +127,41 @@ class QLPanel {
     }
   }
 
-  // 更新环境变量（先删后加）
+  // 更新环境变量 - 使用 PUT 方法直接更新
   async updateEnv(envItem, name, value, remarks = '') {
     await this.ensureToken();
 
-    const identifier = envItem && typeof envItem === 'object' ? envItem : null;
-    let envId;
-
-    // 获取环境变量 ID
-    if (identifier) {
-      if (identifier._id) {
-        envId = String(identifier._id);
-      } else if (identifier.id !== undefined && identifier.id !== null) {
-        envId = identifier.id;
-      }
-    } else if (envItem !== undefined && envItem !== null) {
-      envId = envItem;
+    if (!envItem || typeof envItem !== 'object') {
+      throw new Error('❌ 更新环境变量失败: envItem 必须是对象');
     }
 
-    if (!envId) {
-      throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
-    }
+    const envId = envItem.id || envItem._id;
 
     try {
-      // 先删除旧的环境变量
-      await this.deleteEnv(envId);
-      // 再添加新的环境变量
-      await this.addEnv(name, value, remarks);
-      return true;
+      // 根据官方文档，请求体必须包含 id, name, value, remarks
+      const updateBody = {
+        id: envId,        // 必须使用 id 字段（不是 _id）
+        name,
+        value,
+        remarks
+      };
+
+      const options = {
+        url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0'
+        },
+        body: JSON.stringify(updateBody)  // 单个对象，不是数组
+      };
+
+      const response = await this.request(options, 'PUT', false);
+
+      if (response?.code === 200) {
+        return true;
+      }
+      throw new Error(response?.message || '更新环境变量失败');
     } catch (error) {
       this.$.log(`❌ 更新环境变量失败: ${error.message}`);
       throw error;
@@ -161,13 +169,33 @@ class QLPanel {
   }
 
   // 删除环境变量
-  async deleteEnv(envIds) {
+  async deleteEnv(envItems) {
     await this.ensureToken();
 
     // 确保是数组格式
-    const ids = Array.isArray(envIds) ? envIds : [envIds];
+    const items = Array.isArray(envItems) ? envItems : [envItems];
 
-    this.$.log(`🔍 调试 - 删除 ID: ${JSON.stringify(ids)}`);
+    // 构造删除请求体: ID 字符串数组
+    const deleteBody = items
+      .map(item => {
+        if (typeof item === 'object' && item !== null) {
+          // 提取 _id 或 id
+          const id = item._id || item.id;
+          if (!id) {
+            return null;
+          }
+          return String(id);
+        }
+        if (typeof item === 'string' && item) {
+          return item;
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    if (deleteBody.length === 0) {
+      throw new Error('❌ 删除环境变量失败: 未找到有效的 ID');
+    }
 
     const options = {
       url: `${this.baseUrl}${QL_API.ENVS}`,
@@ -176,12 +204,11 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify(ids)
+      body: JSON.stringify(deleteBody)
     };
 
     try {
-      const response = await this.request(options, 'DELETE');
-      this.$.log(`🔍 调试 - 删除响应: ${JSON.stringify(response)}`);
+      const response = await this.request(options, 'DELETE', false);
       if (response?.code === 200) {
         return true;
       }
@@ -193,18 +220,35 @@ class QLPanel {
   }
 
   // HTTP 请求封装
-  async request(options, method = 'GET') {
+  async request(options, method = 'GET', debug = false) {
     return new Promise((resolve, reject) => {
       options.method = method;
 
+      // 可选的调试日志
+      if (debug) {
+        this.$.log(`🔍 调试 - 请求方法: ${method}, URL: ${options.url}`);
+        if (options.body) {
+          this.$.log(`🔍 调试 - 请求 Body: ${options.body}`);
+        }
+      }
+
       const callback = (error, response, data) => {
         if (error) {
+          if (debug) {
+            this.$.log(`🔍 调试 - 请求错误: ${JSON.stringify(error)}`);
+          }
           reject(error);
         } else {
           try {
             const result = typeof data === 'string' ? JSON.parse(data) : data;
+            if (debug) {
+              this.$.log(`🔍 调试 - 响应数据: ${JSON.stringify(result)}`);
+            }
             resolve(result);
           } catch (e) {
+            if (debug) {
+              this.$.log(`🔍 调试 - 响应原始数据: ${data}`);
+            }
             resolve(data);
           }
         }
@@ -215,11 +259,9 @@ class QLPanel {
       } else if (method === 'POST') {
         this.$.$httpClient.post(options, callback);
       } else if (method === 'PUT') {
-        options.method = 'PUT';
-        this.$.$httpClient.post(options, callback);
+        this.$.$httpClient.put(options, callback);
       } else if (method === 'DELETE') {
-        options.method = 'DELETE';
-        this.$.$httpClient.post(options, callback);
+        this.$.$httpClient.delete(options, callback);
       }
     });
   }
@@ -282,6 +324,8 @@ Env.prototype.done = function () {
 async function main() {
   const $ = new Env(SCRIPT_NAME);
   const messages = [];
+
+  $.log(`📌 脚本版本: ${SCRIPT_VERSION}`);
 
   try {
     // 获取 Cookie 列表

@@ -1,7 +1,7 @@
-// 青龙面板 WSKEY 同步脚本 v1.6.1 - 2025-10-05
+// 青龙面板 WSKEY 同步脚本 v1.6.2 - 2025-10-05
 // 更新策略: 删除旧记录 + 添加新记录
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.6.1';
+const SCRIPT_VERSION = '1.6.2';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -174,10 +174,13 @@ class QLPanel {
   async deleteEnv(envIds) {
     await this.ensureToken();
 
-    // 确保是数组格式,保持原始类型(字符串或数字)
+    // 确保是数组格式
     let ids = Array.isArray(envIds) ? envIds : [envIds];
 
-    this.$.log(`🔍 调试 - 删除 ID (原始类型): ${JSON.stringify(ids)}`);
+    // 转换为对象数组格式 [{_id: xxx}]
+    const deleteBody = ids.map(id => ({ _id: id }));
+
+    this.$.log(`🔍 调试 - 删除请求体: ${JSON.stringify(deleteBody)}`);
 
     const options = {
       url: `${this.baseUrl}${QL_API.ENVS}`,
@@ -186,7 +189,7 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify(ids)
+      body: JSON.stringify(deleteBody)
     };
 
     try {

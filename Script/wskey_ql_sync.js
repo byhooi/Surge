@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.7.2
+// 青龙面板 WSKEY 同步脚本 v1.7.3
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.7.2';
+const SCRIPT_VERSION = '1.7.3';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -154,7 +154,7 @@ class QLPanel {
           'Content-Type': 'application/json',
           'User-Agent': 'Mozilla/5.0'
         },
-        body: JSON.stringify(updateBody)
+        body: JSON.stringify([updateBody])  // PUT 接口要求数组格式
       };
 
       const response = await this.request(options, 'PUT');

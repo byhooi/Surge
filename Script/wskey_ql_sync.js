@@ -164,8 +164,11 @@ class QLPanel {
   async deleteEnv(envIds) {
     await this.ensureToken();
 
-    // 确保是数组格式
-    const ids = Array.isArray(envIds) ? envIds : [envIds];
+    // 确保是数组格式，并转换为青龙期望的格式
+    let ids = Array.isArray(envIds) ? envIds : [envIds];
+
+    // 如果是简单的 ID 数组，转换为对象数组
+    ids = ids.map(id => typeof id === 'object' ? id : String(id));
 
     this.$.log(`🔍 调试 - 删除 ID: ${JSON.stringify(ids)}`);
 

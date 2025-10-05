@@ -128,6 +128,8 @@ class QLPanel {
 
   // 更新环境变量
   async updateEnv(envItem, name, value, remarks = '') {
+    this.$.log(`🔍 调试 - updateEnv 开始，envItem: ${JSON.stringify(envItem)}`);
+
     await this.ensureToken();
 
     const identifier = envItem && typeof envItem === 'object' ? envItem : null;
@@ -143,6 +145,8 @@ class QLPanel {
     } else if (envItem !== undefined && envItem !== null) {
       envId = envItem;
     }
+
+    this.$.log(`🔍 调试 - 提取的 envId: ${envId}`);
 
     if (!envId) {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');

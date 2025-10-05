@@ -148,6 +148,15 @@ class QLPanel {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
     }
 
+    const requestBody = {
+      id: envId,
+      name: name,
+      value: value,
+      remarks: remarks
+    };
+
+    this.$.log(`🔍 调试 - 更新请求体: ${JSON.stringify(requestBody)}`);
+
     const options = {
       url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
       headers: {
@@ -155,16 +164,12 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify({
-        id: envId,
-        name: name,
-        value: value,
-        remarks: remarks
-      })
+      body: JSON.stringify(requestBody)
     };
 
     try {
       const response = await this.request(options, 'PUT');
+      this.$.log(`🔍 调试 - 更新响应: ${JSON.stringify(response)}`);
       if (response?.code === 200) {
         return true;
       }

@@ -1,5 +1,7 @@
-// 青龙面板 WSKEY 同步脚本 v1.5
+// 青龙面板 WSKEY 同步脚本 v1.5.1 - 2025-10-05
+// 修复: 更新环境变量必须包含 id 字段
 const SCRIPT_NAME = '青龙 WSKEY 同步';
+const SCRIPT_VERSION = '1.5.1';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -321,6 +323,8 @@ Env.prototype.done = function () {
 async function main() {
   const $ = new Env(SCRIPT_NAME);
   const messages = [];
+
+  $.log(`📌 脚本版本: ${SCRIPT_VERSION}`);
 
   try {
     // 获取 WSKEY 列表

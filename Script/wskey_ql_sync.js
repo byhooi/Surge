@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.7.1
+// 青龙面板 WSKEY 同步脚本 v1.7.2
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.7.1';
+const SCRIPT_VERSION = '1.7.2';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -127,7 +127,7 @@ class QLPanel {
     }
   }
 
-  // 更新环境变量 - 通过删除旧记录并添加新记录实现
+  // 更新环境变量 - 使用 PUT 方法直接更新
   async updateEnv(envItem, name, value, remarks = '') {
     this.$.log(`🔍 调试 - updateEnv 开始，envItem: ${JSON.stringify(envItem)}`);
 
@@ -138,15 +138,33 @@ class QLPanel {
     }
 
     try {
-      // 策略: 先删除旧记录(传递完整对象)，再添加新记录
-      this.$.log(`🔍 步骤1: 删除旧记录`);
-      await this.deleteEnv(envItem);
+      const updateBody = {
+        id: envItem.id || envItem._id,
+        name,
+        value,
+        remarks
+      };
 
-      this.$.log(`🔍 步骤2: 添加新记录`);
-      await this.addEnv(name, value, remarks);
+      this.$.log(`🔍 调试 - 更新请求体: ${JSON.stringify(updateBody)}`);
 
-      this.$.log(`✅ 更新成功`);
-      return true;
+      const options = {
+        url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0'
+        },
+        body: JSON.stringify(updateBody)
+      };
+
+      const response = await this.request(options, 'PUT');
+      this.$.log(`🔍 调试 - 更新响应: ${JSON.stringify(response)}`);
+
+      if (response?.code === 200) {
+        this.$.log(`✅ 更新成功`);
+        return true;
+      }
+      throw new Error(response?.message || '更新环境变量失败');
     } catch (error) {
       this.$.log(`❌ 更新环境变量失败: ${error.message}`);
       throw error;

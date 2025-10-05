@@ -153,7 +153,7 @@ class QLPanel {
     }
 
     const requestBody = {
-      _id: envId,
+      id: envId,
       name: name,
       value: value,
       remarks: remarks

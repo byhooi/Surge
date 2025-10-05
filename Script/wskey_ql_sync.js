@@ -168,7 +168,7 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify([requestBody])  // 青龙面板期望数组格式
     };
 
     try {

@@ -1,6 +1,6 @@
 // 青龙面板 WSKEY 同步脚本 v1.6.5
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.6.4';
+const SCRIPT_VERSION = '1.6.5';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -160,23 +160,28 @@ class QLPanel {
     // 确保是数组格式
     const items = Array.isArray(envItems) ? envItems : [envItems];
 
-    // 构造删除请求体: 保留 id 以通过新版校验
+    // 构造删除请求体: 保留 id 与 value 以通过新版校验
     const deleteBody = items
       .map(item => {
         if (typeof item === 'object' && item !== null) {
           const id = item.id || item._id;
-          if (!id) {
-            this.$.log(`⚠️ 调试 - 跳过删除项: 未找到 id, item=${JSON.stringify(item)}`);
+          const value = item.value;
+          if (!id || typeof value !== 'string') {
+            this.$.log(`⚠️ 调试 - 跳过删除项: 缺少 id 或 value, item=${JSON.stringify(item)}`);
             return null;
           }
-          return { id };
+          const body = { id, value };
+          if (item.name) body.name = item.name;
+          if (item.remarks) body.remarks = item.remarks;
+          return body;
         }
-        return { id: item };
+        this.$.log(`⚠️ 调试 - 跳过删除项: 类型无效, item=${JSON.stringify(item)}`);
+        return null;
       })
       .filter(Boolean);
 
     if (deleteBody.length === 0) {
-      throw new Error('❌ 删除环境变量失败: 未找到有效的变量 ID');
+      throw new Error('❌ 删除环境变量失败: 未找到有效的变量 ID 和内容');
     }
 
     this.$.log(`🔍 调试 - 删除请求体: ${JSON.stringify(deleteBody)}`);

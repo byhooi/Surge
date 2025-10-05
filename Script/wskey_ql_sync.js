@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.8.0
+// 青龙面板 WSKEY 同步脚本 v1.8.1
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.8.0';
+const SCRIPT_VERSION = '1.8.1';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -86,7 +86,7 @@ class QLPanel {
     };
 
     try {
-      const response = await this.request(options);
+      const response = await this.request(options, 'GET', false);
       if (response?.code === 200) {
         return response.data || [];
       }
@@ -116,7 +116,7 @@ class QLPanel {
     };
 
     try {
-      const response = await this.request(options, 'POST');
+      const response = await this.request(options, 'POST', false);
       if (response?.code === 200) {
         return true;
       }
@@ -129,8 +129,6 @@ class QLPanel {
 
   // 更新环境变量 - 使用 PUT 方法直接更新
   async updateEnv(envItem, name, value, remarks = '') {
-    this.$.log(`🔍 调试 - updateEnv 开始，envItem: ${JSON.stringify(envItem)}`);
-
     await this.ensureToken();
 
     if (!envItem || typeof envItem !== 'object') {
@@ -148,8 +146,6 @@ class QLPanel {
         remarks
       };
 
-      this.$.log(`🔍 调试 - 更新请求体: ${JSON.stringify(updateBody)}`);
-
       const options = {
         url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
         headers: {
@@ -160,11 +156,9 @@ class QLPanel {
         body: JSON.stringify(updateBody)  // 单个对象，不是数组
       };
 
-      const response = await this.request(options, 'PUT');
-      this.$.log(`🔍 调试 - 更新响应: ${JSON.stringify(response)}`);
+      const response = await this.request(options, 'PUT', false);
 
       if (response?.code === 200) {
-        this.$.log(`✅ 更新成功`);
         return true;
       }
       throw new Error(response?.message || '更新环境变量失败');
@@ -188,7 +182,6 @@ class QLPanel {
           // 提取 _id 或 id
           const id = item._id || item.id;
           if (!id) {
-            this.$.log(`⚠️ 调试 - 跳过删除项: 缺少 id, item=${JSON.stringify(item)}`);
             return null;
           }
           return String(id);
@@ -196,7 +189,6 @@ class QLPanel {
         if (typeof item === 'string' && item) {
           return item;
         }
-        this.$.log(`⚠️ 调试 - 跳过删除项: 类型无效, item=${JSON.stringify(item)}`);
         return null;
       })
       .filter(Boolean);
@@ -204,8 +196,6 @@ class QLPanel {
     if (deleteBody.length === 0) {
       throw new Error('❌ 删除环境变量失败: 未找到有效的 ID');
     }
-
-    this.$.log(`🔍 调试 - 删除请求体 (ID数组): ${JSON.stringify(deleteBody)}`);
 
     const options = {
       url: `${this.baseUrl}${QL_API.ENVS}`,
@@ -218,8 +208,7 @@ class QLPanel {
     };
 
     try {
-      const response = await this.request(options, 'DELETE');
-      this.$.log(`🔍 调试 - 删除响应: ${JSON.stringify(response)}`);
+      const response = await this.request(options, 'DELETE', false);
       if (response?.code === 200) {
         return true;
       }
@@ -231,27 +220,35 @@ class QLPanel {
   }
 
   // HTTP 请求封装
-  async request(options, method = 'GET') {
+  async request(options, method = 'GET', debug = false) {
     return new Promise((resolve, reject) => {
       options.method = method;
 
-      // 调试日志
-      this.$.log(`🔍 调试 - 请求方法: ${method}, URL: ${options.url}`);
-      if (options.body) {
-        this.$.log(`🔍 调试 - 请求 Body: ${options.body}`);
+      // 可选的调试日志
+      if (debug) {
+        this.$.log(`🔍 调试 - 请求方法: ${method}, URL: ${options.url}`);
+        if (options.body) {
+          this.$.log(`🔍 调试 - 请求 Body: ${options.body}`);
+        }
       }
 
       const callback = (error, response, data) => {
         if (error) {
-          this.$.log(`🔍 调试 - 请求错误: ${JSON.stringify(error)}`);
+          if (debug) {
+            this.$.log(`🔍 调试 - 请求错误: ${JSON.stringify(error)}`);
+          }
           reject(error);
         } else {
           try {
             const result = typeof data === 'string' ? JSON.parse(data) : data;
-            this.$.log(`🔍 调试 - 响应数据: ${JSON.stringify(result)}`);
+            if (debug) {
+              this.$.log(`🔍 调试 - 响应数据: ${JSON.stringify(result)}`);
+            }
             resolve(result);
           } catch (e) {
-            this.$.log(`🔍 调试 - 响应原始数据: ${data}`);
+            if (debug) {
+              this.$.log(`🔍 调试 - 响应原始数据: ${data}`);
+            }
             resolve(data);
           }
         }
@@ -348,11 +345,6 @@ async function main() {
     // 获取现有的环境变量
     $.log('🔍 正在查询青龙面板中的现有变量...');
     const existingEnvs = await ql.getEnvs('JD_WSCK');
-
-    // 调试：输出环境变量结构
-    if (existingEnvs.length > 0) {
-      $.log(`🔍 调试 - 环境变量样例: ${JSON.stringify(existingEnvs[0])}`);
-    }
 
     let addCount = 0;
     let updateCount = 0;

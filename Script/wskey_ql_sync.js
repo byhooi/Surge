@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.7.4
+// 青龙面板 WSKEY 同步脚本 v1.7.5
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.7.4';
+const SCRIPT_VERSION = '1.7.5';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -139,7 +139,7 @@ class QLPanel {
 
     try {
       const updateBody = {
-        _id: String(envItem.id || envItem._id),
+        id: String(envItem.id || envItem._id),
         name,
         value,
         remarks

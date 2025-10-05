@@ -13,7 +13,12 @@
       "Bash(node:*)",
       "Bash(curl -s \"https://raw.githubusercontent.com/chavyleung/scripts/master/box/chavy.boxjs.json\")",
       "Bash(git restore:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:qinglong.apifox.cn)",
+      "WebFetch(domain:qinglong.online)",
+      "Bash(curl -s \"https://qinglong.online/api/env\")"
     ],
     "deny": [],
     "ask": []

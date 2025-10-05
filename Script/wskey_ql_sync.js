@@ -153,17 +153,13 @@ class QLPanel {
     }
 
     const requestBody = {
+      id: envId,       // 必须包含 id 字段来指定要更新的环境变量
       name: name,
       value: value,
       remarks: remarks
     };
 
     this.$.log(`🔍 调试 - 更新请求体: ${JSON.stringify(requestBody)}`);
-
-    const bodyArray = [requestBody];  // 实际API要求数组格式（与文档不符）
-    const bodyString = JSON.stringify(bodyArray);
-
-    this.$.log(`🔍 调试 - 数组格式请求体: ${bodyString}`);
 
     const options = {
       url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
@@ -172,7 +168,7 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: bodyString
+      body: JSON.stringify(requestBody)  // 单个对象,不是数组
     };
 
     try {

@@ -1,4 +1,4 @@
-// 青龙面板 WSKEY 同步脚本
+// 青龙面板 WSKEY 同步脚本 v1.1
 const SCRIPT_NAME = '青龙 WSKEY 同步';
 const QL_API = {
   LOGIN: '/open/auth/token',

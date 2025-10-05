@@ -1,7 +1,7 @@
-// 青龙面板 WSKEY 同步脚本 v1.6.3 - 2025-10-05
+// 青龙面板 WSKEY 同步脚本 v1.6.4 - 2025-10-05
 // 更新策略: 删除旧记录 + 添加新记录
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.6.3';
+const SCRIPT_VERSION = '1.6.4';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -161,11 +161,19 @@ class QLPanel {
     // 确保是数组格式
     let items = Array.isArray(envItems) ? envItems : [envItems];
 
-    // 如果传入的是完整对象，直接使用；否则构造最小对象
+    // 构造删除请求体: 只保留 _id, name, value, remarks 字段 (排除 id)
     const deleteBody = items.map(item => {
       if (typeof item === 'object' && item !== null) {
-        // 传递完整的环境变量对象
-        return item;
+        const body = {
+          value: item.value,
+          name: item.name
+        };
+        // 使用 _id 而非 id
+        if (item._id) body._id = item._id;
+        else if (item.id) body._id = item.id;
+
+        if (item.remarks) body.remarks = item.remarks;
+        return body;
       } else {
         // 如果只传了 ID，构造最小对象
         return { _id: item };

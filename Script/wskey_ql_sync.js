@@ -223,14 +223,23 @@ class QLPanel {
     return new Promise((resolve, reject) => {
       options.method = method;
 
+      // 调试日志
+      this.$.log(`🔍 调试 - 请求方法: ${method}, URL: ${options.url}`);
+      if (options.body) {
+        this.$.log(`🔍 调试 - 请求 Body: ${options.body}`);
+      }
+
       const callback = (error, response, data) => {
         if (error) {
+          this.$.log(`🔍 调试 - 请求错误: ${JSON.stringify(error)}`);
           reject(error);
         } else {
           try {
             const result = typeof data === 'string' ? JSON.parse(data) : data;
+            this.$.log(`🔍 调试 - 响应数据: ${JSON.stringify(result)}`);
             resolve(result);
           } catch (e) {
+            this.$.log(`🔍 调试 - 响应原始数据: ${data}`);
             resolve(data);
           }
         }

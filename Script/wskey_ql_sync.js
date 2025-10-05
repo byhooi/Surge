@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.6.6
+// 青龙面板 WSKEY 同步脚本 v1.6.7
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.6.6';
+const SCRIPT_VERSION = '1.6.7';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -164,16 +164,12 @@ class QLPanel {
     const deleteBody = items
       .map(item => {
         if (typeof item === 'object' && item !== null) {
-          const value = typeof item.value === 'string' ? item.value : '';
-          const name = typeof item.name === 'string' ? item.name : '';
-          if (!value) {
-            this.$.log(`⚠️ 调试 - 跳过删除项: 缺少 value, item=${JSON.stringify(item)}`);
+          const id = typeof item.id === 'number' ? item.id : (typeof item._id === 'string' ? item._id : null);
+          if (!id) {
+            this.$.log(`⚠️ 调试 - 跳过删除项: 缺少 id, item=${JSON.stringify(item)}`);
             return null;
           }
-          const body = { value };
-          if (name) body.name = name;
-          if (typeof item.remarks === 'string' && item.remarks) body.remarks = item.remarks;
-          return body;
+          return { id };
         }
         if (typeof item === 'string' && item) {
           return { value: item };

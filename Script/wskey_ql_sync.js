@@ -1,7 +1,7 @@
-// 青龙面板 WSKEY 同步脚本 v1.5.1 - 2025-10-05
-// 修复: 更新环境变量必须包含 id 字段
+// 青龙面板 WSKEY 同步脚本 v1.5.2 - 2025-10-05
+// 修复: PUT 接口使用数组格式且包含 id 字段
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.5.1';
+const SCRIPT_VERSION = '1.5.2';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -154,12 +154,13 @@ class QLPanel {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
     }
 
-    const requestBody = {
+    // 青龙面板 PUT 接口需要数组格式，且必须包含 id 字段
+    const requestBody = [{
       id: envId,       // 必须包含 id 字段来指定要更新的环境变量
       name: name,
       value: value,
       remarks: remarks
-    };
+    }];
 
     this.$.log(`🔍 调试 - 更新请求体: ${JSON.stringify(requestBody)}`);
 
@@ -170,7 +171,7 @@ class QLPanel {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0'
       },
-      body: JSON.stringify(requestBody)  // 单个对象,不是数组
+      body: JSON.stringify(requestBody)
     };
 
     try {

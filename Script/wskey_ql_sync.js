@@ -1,7 +1,7 @@
-// 青龙面板 WSKEY 同步脚本 v1.6.2 - 2025-10-05
+// 青龙面板 WSKEY 同步脚本 v1.6.3 - 2025-10-05
 // 更新策略: 删除旧记录 + 添加新记录
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.6.2';
+const SCRIPT_VERSION = '1.6.3';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -134,30 +134,14 @@ class QLPanel {
 
     await this.ensureToken();
 
-    const identifier = envItem && typeof envItem === 'object' ? envItem : null;
-    let envId;
-
-    // 获取环境变量 ID
-    if (identifier) {
-      if (identifier._id) {
-        envId = identifier._id;
-      } else if (identifier.id !== undefined && identifier.id !== null) {
-        envId = identifier.id;
-      }
-    } else if (envItem !== undefined && envItem !== null) {
-      envId = envItem;
-    }
-
-    this.$.log(`🔍 调试 - 提取的 envId: ${envId}`);
-
-    if (!envId) {
-      throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
+    if (!envItem || typeof envItem !== 'object') {
+      throw new Error('❌ 更新环境变量失败: envItem 必须是对象');
     }
 
     try {
-      // 策略: 先删除旧记录，再添加新记录
-      this.$.log(`🔍 步骤1: 删除旧记录 ID=${envId}`);
-      await this.deleteEnv(envId);
+      // 策略: 先删除旧记录(传递完整对象)，再添加新记录
+      this.$.log(`🔍 步骤1: 删除旧记录`);
+      await this.deleteEnv(envItem);
 
       this.$.log(`🔍 步骤2: 添加新记录`);
       await this.addEnv(name, value, remarks);
@@ -171,14 +155,22 @@ class QLPanel {
   }
 
   // 删除环境变量
-  async deleteEnv(envIds) {
+  async deleteEnv(envItems) {
     await this.ensureToken();
 
     // 确保是数组格式
-    let ids = Array.isArray(envIds) ? envIds : [envIds];
+    let items = Array.isArray(envItems) ? envItems : [envItems];
 
-    // 转换为对象数组格式 [{_id: xxx}]
-    const deleteBody = ids.map(id => ({ _id: id }));
+    // 如果传入的是完整对象，直接使用；否则构造最小对象
+    const deleteBody = items.map(item => {
+      if (typeof item === 'object' && item !== null) {
+        // 传递完整的环境变量对象
+        return item;
+      } else {
+        // 如果只传了 ID，构造最小对象
+        return { _id: item };
+      }
+    });
 
     this.$.log(`🔍 调试 - 删除请求体: ${JSON.stringify(deleteBody)}`);
 

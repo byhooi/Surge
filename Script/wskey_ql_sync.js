@@ -1,5 +1,4 @@
-// 青龙面板 WSKEY 同步脚本 v1.6.4 - 2025-10-05
-// 更新策略: 删除旧记录 + 添加新记录
+// 青龙面板 WSKEY 同步脚本 v1.6.5
 const SCRIPT_NAME = '青龙 WSKEY 同步';
 const SCRIPT_VERSION = '1.6.4';
 const QL_API = {
@@ -146,7 +145,7 @@ class QLPanel {
       this.$.log(`🔍 步骤2: 添加新记录`);
       await this.addEnv(name, value, remarks);
 
-      this.$.log(`✅ 更新成功 (通过删除+添加)`);
+      this.$.log(`✅ 更新成功`);
       return true;
     } catch (error) {
       this.$.log(`❌ 更新环境变量失败: ${error.message}`);
@@ -159,26 +158,26 @@ class QLPanel {
     await this.ensureToken();
 
     // 确保是数组格式
-    let items = Array.isArray(envItems) ? envItems : [envItems];
+    const items = Array.isArray(envItems) ? envItems : [envItems];
 
-    // 构造删除请求体: 只保留 _id, name, value, remarks 字段 (排除 id)
-    const deleteBody = items.map(item => {
-      if (typeof item === 'object' && item !== null) {
-        const body = {
-          value: item.value,
-          name: item.name
-        };
-        // 使用 _id 而非 id
-        if (item._id) body._id = item._id;
-        else if (item.id) body._id = item.id;
+    // 构造删除请求体: 保留 id 以通过新版校验
+    const deleteBody = items
+      .map(item => {
+        if (typeof item === 'object' && item !== null) {
+          const id = item.id || item._id;
+          if (!id) {
+            this.$.log(`⚠️ 调试 - 跳过删除项: 未找到 id, item=${JSON.stringify(item)}`);
+            return null;
+          }
+          return { id };
+        }
+        return { id: item };
+      })
+      .filter(Boolean);
 
-        if (item.remarks) body.remarks = item.remarks;
-        return body;
-      } else {
-        // 如果只传了 ID，构造最小对象
-        return { _id: item };
-      }
-    });
+    if (deleteBody.length === 0) {
+      throw new Error('❌ 删除环境变量失败: 未找到有效的变量 ID');
+    }
 
     this.$.log(`🔍 调试 - 删除请求体: ${JSON.stringify(deleteBody)}`);
 
@@ -401,3 +400,4 @@ main().catch(err => {
   console.log(`❌ 脚本执行出错: ${err.message || err}`);
   $done();
 });
+

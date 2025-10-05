@@ -1,7 +1,7 @@
-// 青龙面板 WSKEY 同步脚本 v1.5.4 - 2025-10-05
-// 修复: PUT 接口在 URL 中指定 ID
+// 青龙面板 WSKEY 同步脚本 v1.6.0 - 2025-10-05
+// 更新策略: 删除旧记录 + 添加新记录
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.5.4';
+const SCRIPT_VERSION = '1.6.0';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -128,7 +128,7 @@ class QLPanel {
     }
   }
 
-  // 更新环境变量
+  // 更新环境变量 - 通过删除旧记录并添加新记录实现
   async updateEnv(envItem, name, value, remarks = '') {
     this.$.log(`🔍 调试 - updateEnv 开始，envItem: ${JSON.stringify(envItem)}`);
 
@@ -154,32 +154,16 @@ class QLPanel {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
     }
 
-    // 青龙面板 PUT 接口: URL 中指定 ID, 请求体不包含 ID
-    const requestBody = {
-      name: name,
-      value: value,
-      remarks: remarks
-    };
-
-    this.$.log(`🔍 调试 - 更新请求体: ${JSON.stringify(requestBody)}`);
-
-    const options = {
-      url: `${this.baseUrl}${QL_API.ENV_UPDATE}/${envId}`,
-      headers: {
-        'Authorization': `Bearer ${this.token}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0'
-      },
-      body: JSON.stringify(requestBody)
-    };
-
     try {
-      const response = await this.request(options, 'PUT');
-      this.$.log(`🔍 调试 - 更新响应: ${JSON.stringify(response)}`);
-      if (response?.code === 200) {
-        return true;
-      }
-      throw new Error(response?.message || '更新环境变量失败');
+      // 策略: 先删除旧记录，再添加新记录
+      this.$.log(`🔍 步骤1: 删除旧记录 ID=${envId}`);
+      await this.deleteEnv(envId);
+
+      this.$.log(`🔍 步骤2: 添加新记录`);
+      await this.addEnv(name, value, remarks);
+
+      this.$.log(`✅ 更新成功 (通过删除+添加)`);
+      return true;
     } catch (error) {
       this.$.log(`❌ 更新环境变量失败: ${error.message}`);
       throw error;

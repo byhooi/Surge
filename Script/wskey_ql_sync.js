@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.7.8
+// 青龙面板 WSKEY 同步脚本 v1.8.0
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.7.8';
+const SCRIPT_VERSION = '1.8.0';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -140,8 +140,9 @@ class QLPanel {
     const envId = envItem.id || envItem._id;
 
     try {
+      // 根据官方文档，请求体必须包含 id, name, value, remarks
       const updateBody = {
-        _id: String(envId),
+        id: envId,        // 必须使用 id 字段（不是 _id）
         name,
         value,
         remarks
@@ -156,7 +157,7 @@ class QLPanel {
           'Content-Type': 'application/json',
           'User-Agent': 'Mozilla/5.0'
         },
-        body: JSON.stringify([updateBody])  // PUT 接口要求数组格式
+        body: JSON.stringify(updateBody)  // 单个对象，不是数组
       };
 
       const response = await this.request(options, 'PUT');

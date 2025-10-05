@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.7.6
+// 青龙面板 WSKEY 同步脚本 v1.7.7
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.7.6';
+const SCRIPT_VERSION = '1.7.7';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -260,11 +260,9 @@ class QLPanel {
       } else if (method === 'POST') {
         this.$.$httpClient.post(options, callback);
       } else if (method === 'PUT') {
-        options.method = 'PUT';
-        this.$.$httpClient.post(options, callback);
+        this.$.$httpClient.put(options, callback);
       } else if (method === 'DELETE') {
-        options.method = 'DELETE';
-        this.$.$httpClient.post(options, callback);
+        this.$.$httpClient.delete(options, callback);
       }
     });
   }

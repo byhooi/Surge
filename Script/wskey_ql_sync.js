@@ -1,6 +1,6 @@
-// 青龙面板 WSKEY 同步脚本 v1.6.5
+// 青龙面板 WSKEY 同步脚本 v1.6.6
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.6.5';
+const SCRIPT_VERSION = '1.6.6';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -160,20 +160,23 @@ class QLPanel {
     // 确保是数组格式
     const items = Array.isArray(envItems) ? envItems : [envItems];
 
-    // 构造删除请求体: 保留 id 与 value 以通过新版校验
+    // 构造删除请求体: 使用 name + value 通过新版校验
     const deleteBody = items
       .map(item => {
         if (typeof item === 'object' && item !== null) {
-          const id = item.id || item._id;
-          const value = item.value;
-          if (!id || typeof value !== 'string') {
-            this.$.log(`⚠️ 调试 - 跳过删除项: 缺少 id 或 value, item=${JSON.stringify(item)}`);
+          const value = typeof item.value === 'string' ? item.value : '';
+          const name = typeof item.name === 'string' ? item.name : '';
+          if (!value) {
+            this.$.log(`⚠️ 调试 - 跳过删除项: 缺少 value, item=${JSON.stringify(item)}`);
             return null;
           }
-          const body = { id, value };
-          if (item.name) body.name = item.name;
-          if (item.remarks) body.remarks = item.remarks;
+          const body = { value };
+          if (name) body.name = name;
+          if (typeof item.remarks === 'string' && item.remarks) body.remarks = item.remarks;
           return body;
+        }
+        if (typeof item === 'string' && item) {
+          return { value: item };
         }
         this.$.log(`⚠️ 调试 - 跳过删除项: 类型无效, item=${JSON.stringify(item)}`);
         return null;
@@ -181,7 +184,7 @@ class QLPanel {
       .filter(Boolean);
 
     if (deleteBody.length === 0) {
-      throw new Error('❌ 删除环境变量失败: 未找到有效的变量 ID 和内容');
+      throw new Error('❌ 删除环境变量失败: 未找到有效的变量值');
     }
 
     this.$.log(`🔍 调试 - 删除请求体: ${JSON.stringify(deleteBody)}`);

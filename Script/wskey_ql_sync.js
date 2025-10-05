@@ -126,7 +126,7 @@ class QLPanel {
     }
   }
 
-  // 更新环境变量（先删后加）
+  // 更新环境变量
   async updateEnv(envItem, name, value, remarks = '') {
     await this.ensureToken();
 
@@ -136,7 +136,7 @@ class QLPanel {
     // 获取环境变量 ID
     if (identifier) {
       if (identifier._id) {
-        envId = String(identifier._id);
+        envId = identifier._id;
       } else if (identifier.id !== undefined && identifier.id !== null) {
         envId = identifier.id;
       }
@@ -148,12 +148,27 @@ class QLPanel {
       throw new Error('❌ 更新环境变量失败: 未找到变量 ID');
     }
 
+    const options = {
+      url: `${this.baseUrl}${QL_API.ENV_UPDATE}`,
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+      },
+      body: JSON.stringify({
+        id: envId,
+        name: name,
+        value: value,
+        remarks: remarks
+      })
+    };
+
     try {
-      // 先删除旧的环境变量
-      await this.deleteEnv(envId);
-      // 再添加新的环境变量
-      await this.addEnv(name, value, remarks);
-      return true;
+      const response = await this.request(options, 'PUT');
+      if (response?.code === 200) {
+        return true;
+      }
+      throw new Error(response?.message || '更新环境变量失败');
     } catch (error) {
       this.$.log(`❌ 更新环境变量失败: ${error.message}`);
       throw error;
@@ -164,11 +179,14 @@ class QLPanel {
   async deleteEnv(envIds) {
     await this.ensureToken();
 
-    // 确保是数组格式，并转换为青龙期望的格式
+    // 确保是数组格式
     let ids = Array.isArray(envIds) ? envIds : [envIds];
 
-    // 如果是简单的 ID 数组，转换为对象数组
-    ids = ids.map(id => typeof id === 'object' ? id : String(id));
+    // 转换为数字类型（青龙面板期望数字 ID）
+    ids = ids.map(id => {
+      const numId = typeof id === 'number' ? id : parseInt(id);
+      return isNaN(numId) ? id : numId;
+    });
 
     this.$.log(`🔍 调试 - 删除 ID: ${JSON.stringify(ids)}`);
 
@@ -304,6 +322,11 @@ async function main() {
     // 获取现有的环境变量
     $.log('🔍 正在查询青龙面板中的现有变量...');
     const existingEnvs = await ql.getEnvs('JD_WSCK');
+
+    // 调试：输出环境变量结构
+    if (existingEnvs.length > 0) {
+      $.log(`🔍 调试 - 环境变量样例: ${JSON.stringify(existingEnvs[0])}`);
+    }
 
     let addCount = 0;
     let updateCount = 0;

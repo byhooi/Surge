@@ -1,7 +1,7 @@
 #!name=❀ 班级小管家
 #!category=Record module
 #!desc=班级小管家签到
-#!arguments=scriptName:班级小管家,ckName:bjxgj,cron:8 8 * * *,hostname:b.welife001.com,regx:^https:\/\/b\.welife001\.com\/addJiFen,path:"res.msg",bodyRegx:"",isGetCookie:1, accountIndex:0
+#!arguments=scriptName:班级小管家,ckName:bjxgj,cron:8 8 * * *,hostname:b.welife001.com,regx:^https:\/\/b\.welife001\.com\/addJiFen,path:res.msg,bodyRegx:"",isGetCookie:1, accountIndex:0
 #!arguments-desc= ☆　　╱╲*╱╲　☆\n ╱╳+▲╱　　╲　☆\n╱╱ ◢◣+　　╳╲ \n╱ +◢█◣　／　　╲☆\n☆　◢██◣   Sakura \n _▂▂█▂▂   樱花交流会·2.0.0 \n若是对你有所帮助～不妨点个star🌟!:|\n\n[参数设置]\n ├ scriptName: 脚本名称，默认由捷径生成\n ├ ckName: 变量名称，默认由捷径生成\n ├ cron: 定时运行，默认30 0 * * *\n ├ hostname: mitm域名，默认由捷径生成\n ├ regx: 匹配正则，默认由捷径生成\n ├ isGetCookie:获取ck开关，0关闭，1打开\n ├ accountIndex: 账号数组下标，默认为0\n ├ bodyRegx: 正则匹配body，默认留空\n └ path: 通知result的子路径，为空则返回全部 \n\n[脚本说明]\n├作者: @Sliverkiss\n├频道: @sliverkiss_blog\n└致谢: @mieqq、@xream、@id77
 
 [Script]

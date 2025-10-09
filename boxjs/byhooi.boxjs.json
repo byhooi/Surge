@@ -230,6 +230,44 @@
       ],
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge"
+    },
+    {
+      "id": "byhooi_videourl_stats",
+      "name": "跳绳成绩统计",
+      "keys": [
+        "videourl_total_qualified",
+        "videourl_normal_qualified",
+        "videourl_excellent_qualified"
+      ],
+      "descs_html": [
+        "<h4 align=\"center\">管理 Script/VideoUrl.js 的合格统计数据</h4>",
+        "<p>脚本会把统计信息写入持久化存储，也可在此手动调整。</p>"
+      ],
+      "settings": [
+        {
+          "id": "videourl_total_qualified",
+          "name": "合格次数",
+          "val": 0,
+          "type": "number",
+          "desc": "历史累计合格次数"
+        },
+        {
+          "id": "videourl_normal_qualified",
+          "name": "普通合格个数",
+          "val": 0,
+          "type": "number",
+          "desc": "符合普通合格标准的次数"
+        },
+        {
+          "id": "videourl_excellent_qualified",
+          "name": "优秀合格个数",
+          "val": 0,
+          "type": "number",
+          "desc": "符合优秀合格标准的次数"
+        }
+      ],
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge"
     }
   ]
 }

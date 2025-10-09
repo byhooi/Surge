@@ -62,17 +62,16 @@ https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 
 ### 5. 其他功能
 
-#### 获取青龙 Token
-
-- 用途：手动刷新青龙 Token
-- 操作：点击 **获取青龙 Token** 按钮
-- 说明：Token 有效期 7 天，脚本会自动刷新，一般无需手动操作
-
 #### 清空 WSKEY 列表
 
 - 用途：清空本地存储的所有 WSKEY
 - 操作：点击 **清空 WSKEY 列表** 按钮
 - 说明：清空后不影响青龙面板中已同步的数据
+
+#### 关于青龙 Token
+
+- Token 由同步脚本自动管理，有效期 7 天，脚本会在 6.5 天时自动刷新
+- 无需手动操作，Token 失效时会自动重新获取
 
 ## 青龙面板变量说明
 
@@ -89,7 +88,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 1. 检查青龙面板地址是否正确（注意端口号）
 2. 检查 Client ID 和 Client Secret 是否正确
 3. 检查青龙面板应用权限是否包含环境变量的查看、新增、更新
-4. 尝试手动点击 **获取青龙 Token** 按钮
+4. 查看 Surge 日志了解详细错误信息
 
 ### Q: 如何知道同步成功？
 
@@ -121,12 +120,16 @@ https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 |------|------|
 | `wskey.sgmodule` | Surge 模块，用于获取 WSKEY |
 | `wskey.js` | WSKEY 获取脚本 |
-| `wskey_ql_sync.js` | 青龙同步脚本 |
-| `wskey_ql_token.js` | 获取青龙 Token 脚本 |
+| `wskey_ql_sync.js` | 青龙同步脚本（内置自动 Token 管理） |
 | `wskey_clear.js` | 清空 WSKEY 列表脚本 |
-| `wskey.boxjs.json` | BoxJS 配置文件 |
+| `byhooi.boxjs.json` | BoxJS 配置文件 |
 
 ## 更新日志
+
+### v1.1.0
+- 移除"获取青龙 Token"按钮，Token 完全自动管理
+- 简化 BoxJS 配置界面，隐藏技术细节字段
+- 优化用户体验，减少不必要的手动操作
 
 ### v1.0.0
 - 初始版本

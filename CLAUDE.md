@@ -44,15 +44,15 @@ Surge 拦截请求 (.sgmodule)
    - 使用缓存机制 (`jd_temp`) 收集分散在不同请求中的数据
    - 数据完整后自动组合为完整 Cookie
 3. **wskey_ql_sync.js** - 同步到青龙面板 (环境变量名: `JD_WSCK`)
-4. **wskey_ql_token.js** - 管理青龙 API Token
-5. **wskey_clear.js** - 清空本地存储
+   - 内置 `QLPanel` 类自动管理 Token（自动刷新，无需手动操作）
+4. **wskey_clear.js** - 清空本地存储
 
 #### B. Cookie 管理流程（京东 Cookie 同步）
 1. **jdcookie.sgmodule** - 定义拦截规则
 2. **jdcookie.js** - 提取并存储 Cookie
 3. **jdcookie_ql_sync.js** - 同步到青龙面板 (环境变量名: `JD_COOKIE`)
-4. **jdcookie_ql_token.js** - Token 管理
-5. **jdcookie_clear.js** - 清空操作
+   - 内置 `QLPanel` 类自动管理 Token（自动刷新，无需手动操作）
+4. **jdcookie_clear.js** - 清空操作
 
 #### C. VideoUrl 跳绳统计（独立功能）
 1. **VideoUrl.sgmodule** - 拦截 `a.yufanai.cn/cloudSports/recordsByPage` 响应

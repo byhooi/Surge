@@ -77,10 +77,6 @@
           "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/jdcookie_ql_sync.js"
         },
         {
-          "name": "获取青龙 Token",
-          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/jdcookie_ql_token.js"
-        },
-        {
           "name": "清空 Cookie 列表",
           "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/jdcookie_clear.js"
         }
@@ -162,10 +158,6 @@
         {
           "name": "同步 WSKEY 到青龙",
           "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_ql_sync.js"
-        },
-        {
-          "name": "获取青龙 Token",
-          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey_ql_token.js"
         },
         {
           "name": "清空 WSKEY 列表",

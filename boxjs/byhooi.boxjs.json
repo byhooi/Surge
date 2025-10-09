@@ -242,12 +242,6 @@
           "desc": "对应 EXCELLENT_THRESHOLD，一分钟跳绳数达到该值计为优秀。"
         }
       ],
-      "scripts": [
-        {
-          "name": "运行跳绳统计",
-          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/VideoUrl.js"
-        }
-      ],
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge"
     },

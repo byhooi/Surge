@@ -62,20 +62,6 @@
           "desc": "在青龙面板系统设置-应用设置中创建应用后获取"
         },
         {
-          "id": "ql_token",
-          "name": "青龙 Token",
-          "val": "",
-          "type": "text",
-          "desc": "自动获取的 Token，无需手动填写"
-        },
-        {
-          "id": "ql_token_expires",
-          "name": "Token 过期时间",
-          "val": "",
-          "type": "text",
-          "desc": "自动记录的 Token 过期时间，无需手动填写"
-        },
-        {
           "id": "jdCookieList",
           "name": "Cookie 列表",
           "val": "",
@@ -161,20 +147,6 @@
           "type": "text",
           "placeholder": "请输入 Client Secret",
           "desc": "在青龙面板系统设置-应用设置中创建应用后获取"
-        },
-        {
-          "id": "ql_token",
-          "name": "青龙 Token",
-          "val": "",
-          "type": "text",
-          "desc": "自动获取的 Token，无需手动填写"
-        },
-        {
-          "id": "ql_token_expires",
-          "name": "Token 过期时间",
-          "val": "",
-          "type": "text",
-          "desc": "自动记录的 Token 过期时间，无需手动填写"
         },
         {
           "id": "wskeyList",

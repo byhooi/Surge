@@ -208,6 +208,50 @@
       ]
     },
     {
+      "id": "byhooi_videourl_config",
+      "name": "跳绳视频统计参数",
+      "keys": [
+        "DEFAULT_REQUIRED_QUALIFIED_COUNT",
+        "QUALIFIED_THRESHOLD",
+        "EXCELLENT_THRESHOLD"
+      ],
+      "descs_html": [
+        "<h4 align=\"center\">配置 Script/VideoUrl.js 的默认判定阈值</h4>",
+        "<p>根据实际需求调整默认合格次数、达标阈值和优秀阈值。</p>"
+      ],
+      "settings": [
+        {
+          "id": "DEFAULT_REQUIRED_QUALIFIED_COUNT",
+          "name": "默认合格次数",
+          "val": 3,
+          "type": "number",
+          "desc": "对应 DEFAULT_REQUIRED_QUALIFIED_COUNT，满足多少次合格视为通过。"
+        },
+        {
+          "id": "QUALIFIED_THRESHOLD",
+          "name": "达标跳绳数阈值",
+          "val": 195,
+          "type": "number",
+          "desc": "对应 QUALIFIED_THRESHOLD，一分钟跳绳数达到该值计为合格。"
+        },
+        {
+          "id": "EXCELLENT_THRESHOLD",
+          "name": "优秀跳绳数阈值",
+          "val": 200,
+          "type": "number",
+          "desc": "对应 EXCELLENT_THRESHOLD，一分钟跳绳数达到该值计为优秀。"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "运行跳绳统计",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/VideoUrl.js"
+        }
+      ],
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge"
+    },
+    {
       "id": "bsh_token_manager",
       "name": "伴生活 Token 管理",
       "keys": [

@@ -5,13 +5,17 @@
 (function () {
 
 // 常量定义
-const QUALIFIED_THRESHOLD = 195;
+const DEFAULT_QUALIFIED_THRESHOLD = 195;
 const DEFAULT_REQUIRED_QUALIFIED_COUNT = 3;
-const EXCELLENT_THRESHOLD = 200;
+const DEFAULT_EXCELLENT_THRESHOLD = 200;
 const DEFAULT_QUALIFIED_LABEL = '✅ 普通合格';
 const DEFAULT_EXCELLENT_LABEL = '✅ 优秀合格';
 const DEFAULT_FAIL_LABEL = '❌ 不合格';
-const SCRIPT_VERSION = '1.0.1';
+const SCRIPT_VERSION = '1.1.0';
+
+const configuredQualifiedThreshold = readNumberSetting('QUALIFIED_THRESHOLD', DEFAULT_QUALIFIED_THRESHOLD);
+const configuredRequiredQualifiedCount = readNumberSetting('DEFAULT_REQUIRED_QUALIFIED_COUNT', DEFAULT_REQUIRED_QUALIFIED_COUNT);
+const configuredExcellentThreshold = readNumberSetting('EXCELLENT_THRESHOLD', DEFAULT_EXCELLENT_THRESHOLD);
 
 const body = typeof $response?.body === 'string' ? $response.body : '';
 let jsonData;
@@ -77,7 +81,7 @@ let qualifiedCount = 0;
 let hasExcellent = false;
 
 const args = parseArguments(typeof $argument === 'string' ? $argument : '');
-const requiredQualifiedCount = Math.max(0, parseInt(args.requiredCount, 10) || DEFAULT_REQUIRED_QUALIFIED_COUNT);
+const requiredQualifiedCount = Math.max(0, parseInt(args.requiredCount, 10) || configuredRequiredQualifiedCount);
 const qualifiedLabel = args.qualifiedLabel || DEFAULT_QUALIFIED_LABEL;
 const excellentLabel = args.excellentLabel || DEFAULT_EXCELLENT_LABEL;
 const failLabel = args.failLabel || DEFAULT_FAIL_LABEL;
@@ -97,11 +101,11 @@ if (validateResponseData(jsonData)) {
         const sportTimeMs = record.sportTime >= 1000 ? record.sportTime : record.sportTime * 1000;
         totalSportTime += sportTimeMs;
         
-        if (sportTimeMs <= 60000 && record.sportCount >= QUALIFIED_THRESHOLD) {
+        if (sportTimeMs <= 60000 && record.sportCount >= configuredQualifiedThreshold) {
             qualifiedCount++;
         }
 
-        if (record.sportCount >= EXCELLENT_THRESHOLD) {
+        if (record.sportCount >= configuredExcellentThreshold) {
             hasExcellent = true;
         }
 
@@ -143,5 +147,42 @@ if (maxSportCountRecord) {
 
 // 返回原始响应体
 $done({ body });
+
+function readNumberSetting(key, fallback) {
+    const rawValue = readPersistentValue(key);
+    if (rawValue === undefined || rawValue === null) {
+        return fallback;
+    }
+    if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+        return rawValue;
+    }
+    if (typeof rawValue === 'string' && rawValue.trim().length > 0) {
+        const parsed = Number(rawValue);
+        if (Number.isFinite(parsed)) {
+            return parsed;
+        }
+    }
+    return fallback;
+}
+
+function readPersistentValue(key) {
+    try {
+        if (typeof $persistentStore !== 'undefined' && typeof $persistentStore.read === 'function') {
+            const value = $persistentStore.read(key);
+            if (value !== null && value !== undefined) {
+                return value;
+            }
+        }
+        if (typeof $prefs !== 'undefined' && typeof $prefs.valueForKey === 'function') {
+            const value = $prefs.valueForKey(key);
+            if (value !== null && value !== undefined) {
+                return value;
+            }
+        }
+    } catch (error) {
+        console.log('读取 BoxJS 配置失败: ' + error);
+    }
+    return null;
+}
 
 })();

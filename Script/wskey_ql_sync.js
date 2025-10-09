@@ -1,11 +1,70 @@
 // 青龙面板 WSKEY 同步脚本 v1.8.4
 const SCRIPT_NAME = '青龙 WSKEY 同步';
-const SCRIPT_VERSION = '1.8.4';
+const SCRIPT_VERSION = '1.8.5';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
   ENV_UPDATE: '/open/envs'
 };
+const DEFAULT_TOKEN_VALIDITY_MS = 6.5 * 24 * 60 * 60 * 1000;
+const REQUEST_INTERVAL = 300;
+const PT_PIN_REGEX = /pt_pin=([^=;]+)(?=;|$)/i;
+const PIN_REGEX = /pin=([^=;]+)(?=;|$)/i;
+
+function wait(ms = 0) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function extractPtPin(source) {
+  if (typeof source !== 'string' || source.length === 0) return '';
+  const match = source.match(PT_PIN_REGEX) || source.match(PIN_REGEX);
+  if (!match) return '';
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
+function resolveTokenExpiration(data = {}) {
+  const now = Date.now();
+  const absoluteKeys = ['expiration', 'expiration_time', 'expirationTime', 'exp'];
+  for (const key of absoluteKeys) {
+    const value = data[key];
+    if (value === undefined || value === null) continue;
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) {
+      if (String(value).trim().length >= 13 || num > 1e12) {
+        return num;
+      }
+      if (num > 1e6) {
+        return now + num;
+      }
+      return now + num * 1000;
+    }
+    if (typeof value === 'string') {
+      const parsed = Date.parse(value);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  const relativeKeys = ['expires_in', 'expiresIn', 'expire_in', 'exp_in', 're_expire_in'];
+  for (const key of relativeKeys) {
+    const value = data[key];
+    if (value === undefined || value === null) continue;
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) {
+      if (num > 1e6) {
+        return now + num;
+      }
+      return now + num * 1000;
+    }
+  }
+
+  return now + DEFAULT_TOKEN_VALIDITY_MS;
+}
 
 class QLPanel {
   constructor($) {
@@ -14,7 +73,8 @@ class QLPanel {
     this.clientId = $.getdata('ql_client_id') || '';
     this.clientSecret = $.getdata('ql_client_secret') || '';
     this.token = $.getdata('ql_token') || '';
-    this.tokenExpires = parseInt($.getdata('ql_token_expires') || '0');
+    this.tokenExpires = parseInt($.getdata('ql_token_expires') || '0', 10);
+    this.lastRequestTime = 0;
   }
 
   // 检查配置是否完整
@@ -29,6 +89,23 @@ class QLPanel {
   // 检查 Token 是否有效
   isTokenValid() {
     return this.token && this.tokenExpires > Date.now();
+  }
+
+  invalidateToken() {
+    this.token = '';
+    this.tokenExpires = 0;
+    this.$.setdata('', 'ql_token');
+    this.$.setdata('0', 'ql_token_expires');
+  }
+
+  async applyRequestThrottle() {
+    if (REQUEST_INTERVAL <= 0) return;
+    const now = Date.now();
+    const waitTime = this.lastRequestTime + REQUEST_INTERVAL - now;
+    if (waitTime > 0) {
+      await wait(waitTime);
+    }
+    this.lastRequestTime = Date.now();
   }
 
   // 获取 Token
@@ -48,18 +125,19 @@ class QLPanel {
 
       if (response?.code === 200 && response?.data?.token) {
         this.token = response.data.token;
-        // Token 有效期为 7 天，这里设置为 6.5 天后过期
-        this.tokenExpires = Date.now() + (6.5 * 24 * 60 * 60 * 1000);
+        this.tokenExpires = Math.floor(resolveTokenExpiration(response.data));
 
         this.$.setdata(this.token, 'ql_token');
         this.$.setdata(String(this.tokenExpires), 'ql_token_expires');
 
-        this.$.log('✅ Token 获取成功');
+        const expireInHours = ((this.tokenExpires - Date.now()) / (60 * 60 * 1000)).toFixed(1);
+        this.$.log(`✅ Token 获取成功，有效期约 ${expireInHours} 小时`);
         return true;
       } else {
         throw new Error(response?.message || '获取 Token 失败');
       }
     } catch (error) {
+      this.invalidateToken();
       this.$.log(`❌ 获取 Token 失败: ${error.message}`);
       throw error;
     }
@@ -253,50 +331,99 @@ class QLPanel {
   }
 
   // HTTP 请求封装
-  async request(options, method = 'GET', debug = false) {
-    return new Promise((resolve, reject) => {
-      options.method = method;
+  async request(options, method = 'GET', debug = false, allowRetry = true) {
+    const requestOptions = {
+      ...options,
+      method
+    };
+    requestOptions.headers = {
+      ...(options.headers || {})
+    };
 
-      // 可选的调试日志
-      if (debug) {
-        this.$.log(`🔍 调试 - 请求方法: ${method}, URL: ${options.url}`);
-        if (options.body) {
-          this.$.log(`🔍 调试 - 请求 Body: ${options.body}`);
-        }
+    const methodName = method.toLowerCase();
+    const requester = this.$.$httpClient[methodName];
+    if (typeof requester !== 'function') {
+      throw new Error(`❌ 不支持的请求方法: ${method}`);
+    }
+
+    if (debug) {
+      this.$.log(`🔍 调试 - 请求方法: ${method}, URL: ${requestOptions.url}`);
+      if (requestOptions.body) {
+        this.$.log(`🔍 调试 - 请求 Body: ${requestOptions.body}`);
       }
+    }
 
+    await this.applyRequestThrottle();
+
+    const { status, body, rawBody } = await new Promise((resolve, reject) => {
       const callback = (error, response, data) => {
         if (error) {
-          if (debug) {
-            this.$.log(`🔍 调试 - 请求错误: ${JSON.stringify(error)}`);
-          }
-          reject(error);
-        } else {
+          return reject(error);
+        }
+
+        let parsed = data;
+        if (typeof data === 'string') {
           try {
-            const result = typeof data === 'string' ? JSON.parse(data) : data;
-            if (debug) {
-              this.$.log(`🔍 调试 - 响应数据: ${JSON.stringify(result)}`);
-            }
-            resolve(result);
-          } catch (e) {
-            if (debug) {
-              this.$.log(`🔍 调试 - 响应原始数据: ${data}`);
-            }
-            resolve(data);
+            parsed = JSON.parse(data);
+          } catch {
+            parsed = data;
           }
         }
+
+        if (debug) {
+          this.$.log(`🔍 调试 - 响应状态: ${response?.status || response?.statusCode || '未知'}`);
+          this.$.log(`🔍 调试 - 响应数据: ${typeof parsed === 'object' ? JSON.stringify(parsed) : String(parsed)}`);
+        }
+
+        resolve({
+          status: response?.status ?? response?.statusCode ?? 0,
+          body: parsed,
+          rawBody: data
+        });
       };
 
-      if (method === 'GET') {
-        this.$.$httpClient.get(options, callback);
-      } else if (method === 'POST') {
-        this.$.$httpClient.post(options, callback);
-      } else if (method === 'PUT') {
-        this.$.$httpClient.put(options, callback);
-      } else if (method === 'DELETE') {
-        this.$.$httpClient.delete(options, callback);
+      try {
+        requester.call(this.$.$httpClient, requestOptions, callback);
+      } catch (invokeError) {
+        reject(invokeError);
       }
+    }).catch(error => {
+      if (debug) {
+        this.$.log(`🔍 调试 - 请求异常: ${error.message || JSON.stringify(error)}`);
+      } else {
+        this.$.log(`❌ 请求失败: ${error.message || error}`);
+      }
+      throw error;
     });
+
+    const code = (body && typeof body === 'object') ? body.code : undefined;
+    const hadToken = Boolean(this.token);
+    if ((status && [400, 401].includes(status)) || [400, 401].includes(code)) {
+      if (allowRetry && hadToken) {
+        this.$.log('🔄 检测到 Token 失效，尝试重新获取...');
+        this.invalidateToken();
+        await this.ensureToken();
+        if (this.token) {
+          requestOptions.headers.Authorization = `Bearer ${this.token}`;
+          return this.request(requestOptions, method, debug, false);
+        }
+      }
+      if (!hadToken) {
+        this.$.log('⚠️ 青龙认证失败，请确认 Client ID 与 Client Secret 配置是否正确');
+      }
+      this.invalidateToken();
+      const message = (body && typeof body === 'object' && body.message) ? body.message : '请求未授权';
+      const error = new Error(message);
+      error.status = status;
+      error.response = body ?? rawBody;
+      throw error;
+    }
+
+    if (code && code !== 200 && !debug) {
+      this.$.log(`⚠️ 接口返回异常 code=${code}: ${body?.message || '未知错误'}`);
+    }
+
+    return body;
   }
 }
 
@@ -395,35 +522,38 @@ async function main() {
 
       const envName = 'JD_WSCK';
       const envValue = cookie;
-      const envRemarks = `${userName} - 由 Surge 同步`;
+      const pinFromCookie = extractPtPin(envValue);
+      const compareKey = pinFromCookie || userName;
+      const envRemarks = `${compareKey || userName} - 由 Surge 同步`;
 
       // 查找是否存在相同 pt_pin 的环境变量
-      const existingEnv = existingEnvs.find(env =>
-        env.remarks && env.remarks.includes(userName)
-      );
+      const existingEnv = existingEnvs.find(env => {
+        const envKey = extractPtPin(env.value) || extractPtPin(env.remarks) || (typeof env.remarks === 'string' ? env.remarks.split(' - ')[0] : '');
+        return envKey && compareKey && envKey === compareKey;
+      });
 
       if (existingEnv) {
         // 检查值是否相同
         if (existingEnv.value === envValue) {
-          $.log(`⏭️ 跳过 ${userName}: 值未变化`);
+          $.log(`⏭️ 跳过 ${compareKey}: 值未变化`);
           skipCount++;
         } else {
           // 更新环境变量
-          $.log(`🔄 更新 ${userName}...`);
+          $.log(`🔄 更新 ${compareKey}...`);
           await ql.updateEnv(existingEnv, envName, envValue, envRemarks);
-          $.log(`✅ 更新成功: ${userName}`);
+          $.log(`✅ 更新成功: ${compareKey}`);
           updateCount++;
         }
       } else {
         // 添加新的环境变量
-        $.log(`➕ 添加 ${userName}...`);
+        $.log(`➕ 添加 ${compareKey}...`);
         await ql.addEnv(envName, envValue, envRemarks);
-        $.log(`✅ 添加成功: ${userName}`);
+        $.log(`✅ 添加成功: ${compareKey}`);
         addCount++;
       }
 
       // 避免请求过快
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await wait(500);
     }
 
     // 统计结果
@@ -449,4 +579,3 @@ main().catch(err => {
   console.log(`❌ 脚本执行出错: ${err.message || err}`);
   $done();
 });
-

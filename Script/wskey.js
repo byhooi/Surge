@@ -1,5 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
+const SCRIPT_VERSION = '1.8.5';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -19,7 +20,8 @@ function Env(name, options = {}) {
   this.startTime = Date.now();
   
   Object.assign(this, options);
-  this.log("", `🔔${this.name}, 开始!`);
+  const versionSuffix = this.version ? ` v${this.version}` : '';
+  this.log("", `🔔${this.name}${versionSuffix}, 开始!`);
 }
 
 Env.prototype.log = function (...messages) {
@@ -124,7 +126,8 @@ Env.prototype.time = function (format) {
 Env.prototype.done = function () {
   const endTime = Date.now();
   const duration = ((endTime - this.startTime) / 1000).toFixed(2);
-  this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
+  const versionSuffix = this.version ? ` v${this.version}` : '';
+  this.log("", `🔔${this.name}${versionSuffix}, 结束! 🕛 ${duration} 秒`);
   $done();
 };
 
@@ -151,7 +154,7 @@ function createCookie(ptPin, wskey) {
 }
 
 // 脚本配置和初始化
-const $ = new Env(SCRIPT_NAME);
+const $ = new Env(SCRIPT_NAME, { version: SCRIPT_VERSION });
 const IS_DEBUG = $.getdata('is_debug') || 'false';
 $.Messages = [];
 $.cookie = '';
@@ -159,8 +162,8 @@ $.cookie = '';
 // 脚本执行入口
 !(async () => {
   if (typeof $request !== 'undefined') {
-    await getCookie();
-    if ($.cookie) {
+    const cookieUpdated = await getCookie();
+    if (cookieUpdated && $.cookie) {
       $.Messages.push(`🎉 WSKEY 获取成功\n${$.cookie}`);
       $.setjson($.wskeyList, WSKEY_KEY);
     }
@@ -184,14 +187,14 @@ async function getCookie() {
     
     if (!headers?.cookie) {
       $.log('⚠️ 请求中未找到 cookie 信息');
-      return;
+      return false;
     }
     
     const wskey = extractFromCookie(headers.cookie, WSKEY_REGEX);
     const ptPin = extractFromCookie(headers.cookie, PT_PIN_REGEX);
     
     // 等待规则请求
-    if ($request.url.includes('/getRule')) {
+    if (typeof $request.url === 'string' && $request.url.includes('/getRule')) {
       await $.wait(WAIT_TIME_FOR_RULE);
     }
     
@@ -224,11 +227,12 @@ async function getCookie() {
     }
     
     // 处理完整的 WSKEY
-    await processCookie();
+    return await processCookie();
     
   } catch (error) {
     $.log('❌ 用户数据获取失败');
     $.logErr(error);
+    return false;
   }
 }
 
@@ -236,14 +240,14 @@ async function getCookie() {
 async function processCookie() {
   if (!$.jd_temp?.wskey || !$.jd_temp?.pt_pin) {
     $.log('⚠️ WSKEY 或 pt_pin 数据不完整，等待后续请求');
-    return;
+    return false;
   }
   
   $.cookie = createCookie($.jd_temp.pt_pin, $.jd_temp.wskey);
   
   if (!$.cookie) {
     $.log('❌ Cookie 创建失败');
-    return;
+    return false;
   }
   
   $.log(`🍪 获取到的完整 Cookie: ${$.cookie}`);
@@ -252,17 +256,19 @@ async function processCookie() {
   
   if (existingUser) {
     if (existingUser.cookie === $.cookie) {
-      $.log('⚠️ 当前 WSKEY 与缓存一致, 结束运行。');
-      return $.done();
+      $.log('⚠️ 当前 WSKEY 与缓存一致，无需更新。');
+      return false;
     }
     $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
     existingUser.cookie = $.cookie;
+    return true;
   } else {
     $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
     $.wskeyList.push({ 
       userName: $.jd_temp.pt_pin, 
       cookie: $.cookie 
     });
+    return true;
   }
 }
 
@@ -270,9 +276,15 @@ function objectKeys2LowerCase(obj) {
   const _lower = Object.fromEntries(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]));
   return new Proxy(_lower, {
     get(target, propKey, receiver) {
+      if (typeof propKey !== 'string') {
+        return Reflect.get(target, propKey, receiver);
+      }
       return Reflect.get(target, propKey.toLowerCase(), receiver);
     },
     set(target, propKey, value, receiver) {
+      if (typeof propKey !== 'string') {
+        return Reflect.set(target, propKey, value, receiver);
+      }
       return Reflect.set(target, propKey.toLowerCase(), value, receiver);
     }
   });
@@ -296,33 +308,56 @@ async function request(options) {
     const respType = options._respType || DEFAULT_RESP_TYPE;
     const timeout = options._timeout || DEFAULT_TIMEOUT;
     
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error(`请求超时: ${options.url}`)), timeout)
-    );
+    const methodName = method.toLowerCase();
+    const requester = $[methodName];
     
-    const requestPromise = new Promise((resolve, reject) => {
-      debug(options, '[Request]');
+    if (typeof requester !== 'function') {
+      throw new Error(`不支持的请求方法: ${method}`);
+    }
+    
+    return await new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (fn, value) => {
+        if (settled) return;
+        settled = true;
+        fn(value);
+      };
+      
+      const timer = setTimeout(() => {
+        finish(reject, new Error(`请求超时: ${options.url}`));
+      }, timeout);
       
       const callback = (error, response, data) => {
+        clearTimeout(timer);
+        if (settled) return;
         debug(response, '[Response]');
         
         if (error) {
           $.logErr(error);
-          return reject(error);
+          return finish(reject, error);
         }
         
         if (respType === 'all') {
-          resolve(response);
-        } else {
-          const result = response?.[respType];
-          resolve($.toObj(result, result));
+          return finish(resolve, response);
         }
+        
+        let result;
+        if (respType === 'body') {
+          result = data !== undefined ? data : response?.body;
+        } else {
+          result = response?.[respType];
+        }
+        finish(resolve, $.toObj(result, result));
       };
       
-      $[method.toLowerCase()](options, callback);
+      debug(options, '[Request]');
+      try {
+        requester.call($, options, callback);
+      } catch (invokeError) {
+        clearTimeout(timer);
+        finish(reject, invokeError);
+      }
     });
-    
-    return await Promise.race([timeoutPromise, requestPromise]);
     
   } catch (error) {
     $.logErr(error);

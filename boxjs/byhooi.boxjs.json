@@ -230,44 +230,6 @@
       ],
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge"
-    },
-    {
-      "id": "byhooi_videourl_stats",
-      "name": "跳绳合格阈值",
-      "keys": [
-        "videourl_total_qualified",
-        "videourl_normal_qualified",
-        "videourl_excellent_qualified"
-      ],
-      "descs_html": [
-        "<h4 align=\"center\">管理 Script/VideoUrl.js 的合格判定阈值</h4>",
-        "<p>可在此处自定义合格次数与普通/优秀判定的最低跳绳数，脚本将自动读取并应用。</p>"
-      ],
-      "settings": [
-        {
-          "id": "videourl_total_qualified",
-          "name": "最低合格次数",
-          "val": 3,
-          "type": "number",
-          "desc": "默认需达到的合格次数（默认值 3，对应 DEFAULT_REQUIRED_QUALIFIED_COUNT）"
-        },
-        {
-          "id": "videourl_normal_qualified",
-          "name": "普通合格阈值",
-          "val": 195,
-          "type": "number",
-          "desc": "普通合格最低跳绳数（默认值 195，对应 QUALIFIED_THRESHOLD）"
-        },
-        {
-          "id": "videourl_excellent_qualified",
-          "name": "优秀合格阈值",
-          "val": 200,
-          "type": "number",
-          "desc": "优秀合格最低跳绳数（默认值 200，对应 EXCELLENT_THRESHOLD）"
-        }
-      ],
-      "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge"
     }
   ]
 }

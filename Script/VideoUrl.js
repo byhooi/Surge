@@ -2,6 +2,8 @@
 // Surge 规则配置: [Script] 部分添加规则
 // 示例: https://app130229.eapps.dingtalkcloud.com/studentTask/sport/record url script-response-body 获取统计.js
 
+(function () {
+
 // 常量定义
 const QUALIFIED_THRESHOLD = 195;
 const DEFAULT_REQUIRED_QUALIFIED_COUNT = 3;
@@ -9,7 +11,7 @@ const EXCELLENT_THRESHOLD = 200;
 const DEFAULT_QUALIFIED_LABEL = '✅ 普通合格';
 const DEFAULT_EXCELLENT_LABEL = '✅ 优秀合格';
 const DEFAULT_FAIL_LABEL = '❌ 不合格';
-const SCRIPT_VERSION = '1.0.0';
+const SCRIPT_VERSION = '1.0.1';
 
 const body = typeof $response?.body === 'string' ? $response.body : '';
 let jsonData;
@@ -18,7 +20,8 @@ try {
     jsonData = JSON.parse(body);
 } catch (error) {
     console.log("响应解析失败: " + error);
-    return $done({ body });
+    $done({ body });
+    return;
 }
 
 // 工具函数
@@ -140,3 +143,5 @@ if (maxSportCountRecord) {
 
 // 返回原始响应体
 $done({ body });
+
+})();

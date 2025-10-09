@@ -208,8 +208,8 @@
       ]
     },
     {
-      "id": "byhooi_token_manager",
-      "name": "通用 Token 管理",
+      "id": "bsh_token_manager",
+      "name": "伴生活 Token 管理",
       "keys": [
         "token"
       ],

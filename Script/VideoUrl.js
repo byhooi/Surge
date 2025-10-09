@@ -62,25 +62,17 @@ function isValidSportRecord(record) {
            typeof record.videoUrl === 'string';
 }
 
-function readPersistentCount(key) {
+function readNumberSetting(key, defaultValue) {
     const rawValue = $persistentStore.read(key);
     if (rawValue === null || rawValue === undefined || rawValue === '') {
-        $persistentStore.write('0', key);
-        return 0;
+        return defaultValue;
     }
-    const parsed = parseInt(rawValue, 10);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-        console.log(`[v${SCRIPT_VERSION}] 发现无效的 ${key} 持久化值: ${rawValue}，已重置为 0`);
-        $persistentStore.write('0', key);
-        return 0;
+    const parsed = Number(rawValue);
+    if (!Number.isFinite(parsed)) {
+        console.log(`[v${SCRIPT_VERSION}] 发现无效的 ${key} 配置值: ${rawValue}，已使用默认值 ${defaultValue}`);
+        return defaultValue;
     }
     return parsed;
-}
-
-function writePersistentCount(key, value) {
-    const normalized = Math.max(0, Number.isFinite(value) ? value : 0);
-    $persistentStore.write(String(normalized), key);
-    return normalized;
 }
 
 function validateResponseData(jsonData) {
@@ -98,10 +90,15 @@ let qualifiedCount = 0;
 let hasExcellent = false;
 
 const args = parseArguments(typeof $argument === 'string' ? $argument : '');
-const requiredQualifiedCount = Math.max(0, parseInt(args.requiredCount, 10) || DEFAULT_REQUIRED_QUALIFIED_COUNT);
+const storedRequiredQualifiedCount = readNumberSetting(TOTAL_QUALIFIED_KEY, DEFAULT_REQUIRED_QUALIFIED_COUNT);
+const storedQualifiedThreshold = readNumberSetting(NORMAL_QUALIFIED_KEY, QUALIFIED_THRESHOLD);
+const storedExcellentThreshold = readNumberSetting(EXCELLENT_QUALIFIED_KEY, EXCELLENT_THRESHOLD);
+const requiredQualifiedCount = Math.max(0, parseInt(args.requiredCount, 10) || storedRequiredQualifiedCount);
 const qualifiedLabel = args.qualifiedLabel || DEFAULT_QUALIFIED_LABEL;
 const excellentLabel = args.excellentLabel || DEFAULT_EXCELLENT_LABEL;
 const failLabel = args.failLabel || DEFAULT_FAIL_LABEL;
+
+console.log(`[v${SCRIPT_VERSION}] 判定参数 -> 最低合格次数: ${requiredQualifiedCount}, 普通阈值: ${storedQualifiedThreshold}, 优秀阈值: ${storedExcellentThreshold}`);
 
 if (validateResponseData(jsonData)) {
     const sportRecords = jsonData.data
@@ -118,11 +115,11 @@ if (validateResponseData(jsonData)) {
         const sportTimeMs = record.sportTime >= 1000 ? record.sportTime : record.sportTime * 1000;
         totalSportTime += sportTimeMs;
         
-        if (sportTimeMs <= 60000 && record.sportCount >= QUALIFIED_THRESHOLD) {
+        if (sportTimeMs <= 60000 && record.sportCount >= storedQualifiedThreshold) {
             qualifiedCount++;
         }
 
-        if (record.sportCount >= EXCELLENT_THRESHOLD) {
+        if (record.sportCount >= storedExcellentThreshold) {
             hasExcellent = true;
         }
 
@@ -147,20 +144,6 @@ if (maxSportCountRecord) {
     }
     
     console.log(`考核结果（v${SCRIPT_VERSION}）：${qualificationStatus}`);
-    let totalQualifiedStored = readPersistentCount(TOTAL_QUALIFIED_KEY);
-    let normalQualifiedStored = readPersistentCount(NORMAL_QUALIFIED_KEY);
-    let excellentQualifiedStored = readPersistentCount(EXCELLENT_QUALIFIED_KEY);
-    if (isQualified) {
-        totalQualifiedStored = writePersistentCount(TOTAL_QUALIFIED_KEY, totalQualifiedStored + 1);
-        if (hasExcellent) {
-            excellentQualifiedStored = writePersistentCount(EXCELLENT_QUALIFIED_KEY, excellentQualifiedStored + 1);
-        } else {
-            normalQualifiedStored = writePersistentCount(NORMAL_QUALIFIED_KEY, normalQualifiedStored + 1);
-        }
-        console.log(`[v${SCRIPT_VERSION}] 合格统计已更新 -> 总合格: ${totalQualifiedStored}, 普通合格: ${normalQualifiedStored}, 优秀合格: ${excellentQualifiedStored}`);
-    } else {
-        console.log(`[v${SCRIPT_VERSION}] 本次未达到合格标准，统计数据未更新 -> 总合格: ${totalQualifiedStored}, 普通合格: ${normalQualifiedStored}, 优秀合格: ${excellentQualifiedStored}`);
-    }
     
     $notification.post(
         `结果: ${qualificationStatus}`,

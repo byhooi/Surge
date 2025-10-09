@@ -10,6 +10,9 @@ const DEFAULT_QUALIFIED_LABEL = '✅ 普通合格';
 const DEFAULT_EXCELLENT_LABEL = '✅ 优秀合格';
 const DEFAULT_FAIL_LABEL = '❌ 不合格';
 const SCRIPT_VERSION = '1.0.0';
+const TOTAL_QUALIFIED_KEY = 'videourl_total_qualified';
+const NORMAL_QUALIFIED_KEY = 'videourl_normal_qualified';
+const EXCELLENT_QUALIFIED_KEY = 'videourl_excellent_qualified';
 
 const body = typeof $response?.body === 'string' ? $response.body : '';
 let jsonData;
@@ -57,6 +60,27 @@ function isValidSportRecord(record) {
            typeof record.sportCount === 'number' && 
            typeof record.sportTime === 'number' &&
            typeof record.videoUrl === 'string';
+}
+
+function readPersistentCount(key) {
+    const rawValue = $persistentStore.read(key);
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+        $persistentStore.write('0', key);
+        return 0;
+    }
+    const parsed = parseInt(rawValue, 10);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        console.log(`[v${SCRIPT_VERSION}] 发现无效的 ${key} 持久化值: ${rawValue}，已重置为 0`);
+        $persistentStore.write('0', key);
+        return 0;
+    }
+    return parsed;
+}
+
+function writePersistentCount(key, value) {
+    const normalized = Math.max(0, Number.isFinite(value) ? value : 0);
+    $persistentStore.write(String(normalized), key);
+    return normalized;
 }
 
 function validateResponseData(jsonData) {
@@ -123,6 +147,20 @@ if (maxSportCountRecord) {
     }
     
     console.log(`考核结果（v${SCRIPT_VERSION}）：${qualificationStatus}`);
+    let totalQualifiedStored = readPersistentCount(TOTAL_QUALIFIED_KEY);
+    let normalQualifiedStored = readPersistentCount(NORMAL_QUALIFIED_KEY);
+    let excellentQualifiedStored = readPersistentCount(EXCELLENT_QUALIFIED_KEY);
+    if (isQualified) {
+        totalQualifiedStored = writePersistentCount(TOTAL_QUALIFIED_KEY, totalQualifiedStored + 1);
+        if (hasExcellent) {
+            excellentQualifiedStored = writePersistentCount(EXCELLENT_QUALIFIED_KEY, excellentQualifiedStored + 1);
+        } else {
+            normalQualifiedStored = writePersistentCount(NORMAL_QUALIFIED_KEY, normalQualifiedStored + 1);
+        }
+        console.log(`[v${SCRIPT_VERSION}] 合格统计已更新 -> 总合格: ${totalQualifiedStored}, 普通合格: ${normalQualifiedStored}, 优秀合格: ${excellentQualifiedStored}`);
+    } else {
+        console.log(`[v${SCRIPT_VERSION}] 本次未达到合格标准，统计数据未更新 -> 总合格: ${totalQualifiedStored}, 普通合格: ${normalQualifiedStored}, 优秀合格: ${excellentQualifiedStored}`);
+    }
     
     $notification.post(
         `结果: ${qualificationStatus}`,

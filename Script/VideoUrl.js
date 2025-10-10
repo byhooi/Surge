@@ -11,7 +11,7 @@ const DEFAULT_EXCELLENT_THRESHOLD = 200;
 const DEFAULT_QUALIFIED_LABEL = '✅ 普通合格';
 const DEFAULT_EXCELLENT_LABEL = '✅ 优秀合格';
 const DEFAULT_FAIL_LABEL = '❌ 不合格';
-const SCRIPT_VERSION = '1.3.0';
+const SCRIPT_VERSION = '1.4.0';
 
 const configuredQualifiedThreshold = readNumberSetting('QUALIFIED_THRESHOLD', DEFAULT_QUALIFIED_THRESHOLD);
 const configuredRequiredQualifiedCount = readNumberSetting('DEFAULT_REQUIRED_QUALIFIED_COUNT', DEFAULT_REQUIRED_QUALIFIED_COUNT);
@@ -59,6 +59,15 @@ function formatTime(milliseconds) {
     return parts.join('');
 }
 
+function isSameDay(timestamp1, timestamp2) {
+    if (!timestamp1 || !timestamp2) return false;
+    const date1 = new Date(timestamp1);
+    const date2 = new Date(timestamp2);
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+}
+
 function isValidSportRecord(record) {
     return record && 
            typeof record.sportCount === 'number' && 
@@ -87,20 +96,30 @@ const excellentLabel = args.excellentLabel || DEFAULT_EXCELLENT_LABEL;
 const failLabel = args.failLabel || DEFAULT_FAIL_LABEL;
 
 if (validateResponseData(jsonData)) {
-    const sportRecords = jsonData.data
+    const now = Date.now();
+
+    // 只处理包含 dateTime 且为今天的数据分组
+    const todayData = jsonData.data.filter(item => {
+        if (!item.dateTime) {
+            return false;
+        }
+        return isSameDay(item.dateTime, now);
+    });
+
+    const sportRecords = todayData
         .flatMap(item => Array.isArray(item?.sportRecordDTOS) ? item.sportRecordDTOS : [])
         .filter(Boolean);
-    
+
     sportRecords.forEach(record => {
         if (!isValidSportRecord(record)) {
             console.log("跳过无效记录:", record);
             return;
         }
-        
+
         totalSportCount += record.sportCount;
         const sportTimeMs = record.sportTime >= 1000 ? record.sportTime : record.sportTime * 1000;
         totalSportTime += sportTimeMs;
-        
+
         if (sportTimeMs <= 60000 && record.sportCount >= configuredQualifiedThreshold) {
             qualifiedCount++;
         }

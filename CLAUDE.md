@@ -11,6 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 核心设计模式：`Surge 拦截 → 数据提取 → 持久化存储 (BoxJS) → 远程同步 (可选)`
 
+**重要**：所有脚本通过 GitHub raw 链接引用，修改后需提交到 GitHub 才能生效。Surge 会缓存远程脚本，修改后可能需要等待 CDN 刷新（约 5 分钟）或手动更新模块。
+
 ## 核心架构
 
 ### 1. 目录结构
@@ -89,7 +91,7 @@ Surge 拦截请求 (.sgmodule)
 **byhooi.boxjs.json** 定义四个应用:
 - `byhooi_jdcookie_ql` - Cookie 同步配置
 - `byhooi_wskey_ql` - WSKEY 同步配置
-- `byhooi_videourl_config` - 跳绳统计阈值配置
+- `byhooi_videourl_config` - 跳绳统计阈值配置和日志输出
 - `bsh_token_manager` - 伴生活 Token 管理
 
 **京东同步应用的共享配置项**:
@@ -102,6 +104,7 @@ Surge 拦截请求 (.sgmodule)
 - `DEFAULT_REQUIRED_QUALIFIED_COUNT` - 默认合格次数 (默认: 3)
 - `QUALIFIED_THRESHOLD` - 达标阈值 (默认: 195)
 - `EXCELLENT_THRESHOLD` - 优秀阈值 (默认: 200)
+- `videourl_logs` - 日志输出存储 (每次运行覆盖，只保留最新日志)
 
 **配置读取机制**:
 - 所有脚本通过 `$persistentStore.read(key)` 读取 BoxJS 配置
@@ -291,11 +294,11 @@ hostname = %APPEND% blackhole.m.jd.com, mars.jd.com
 ## 常见开发任务
 
 ### 创建新的拦截脚本
-1. 在 `Script/` 目录创建 `.js` 文件
+1. 在 `Script/` 目录创建 `.js` 文件，定义 `SCRIPT_VERSION` 常量
 2. 在 `Module/` 目录创建对应 `.sgmodule` 文件
 3. 在 `byhooi.boxjs.json` 的 `apps` 数组添加配置项（如需 Web UI）
-4. 提交到 GitHub
-5. 在 Surge 中安装模块测试
+4. 提交到 GitHub（必须，否则脚本不生效）
+5. 等待 CDN 刷新或在 Surge 中手动更新模块测试
 
 ### 修改青龙同步逻辑
 青龙相关代码集中在 `*_ql_sync.js` 和 `QLPanel` 类中：

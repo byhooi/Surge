@@ -11,7 +11,7 @@ const DEFAULT_EXCELLENT_THRESHOLD = 200;
 const DEFAULT_QUALIFIED_LABEL = '✅ 普通合格';
 const DEFAULT_EXCELLENT_LABEL = '✅ 优秀合格';
 const DEFAULT_FAIL_LABEL = '❌ 不合格';
-const SCRIPT_VERSION = '1.2.0';
+const SCRIPT_VERSION = '1.3.0';
 
 const configuredQualifiedThreshold = readNumberSetting('QUALIFIED_THRESHOLD', DEFAULT_QUALIFIED_THRESHOLD);
 const configuredRequiredQualifiedCount = readNumberSetting('DEFAULT_REQUIRED_QUALIFIED_COUNT', DEFAULT_REQUIRED_QUALIFIED_COUNT);
@@ -129,7 +129,7 @@ if (maxSportCountRecord) {
         qualificationStatus = failLabel;
     }
 
-    console.log(`考核结果（v${SCRIPT_VERSION}）：${qualificationStatus}`);
+    console.log(`v${SCRIPT_VERSION} 考核结果：${qualificationStatus}`);
 
     $notification.post(
         `结果: ${qualificationStatus}`,
@@ -137,10 +137,10 @@ if (maxSportCountRecord) {
         `总跳绳数: ${totalSportCount}个, 总跳绳时间: ${formattedTotalTime}`
     );
 
-    console.log(`[v${SCRIPT_VERSION}] 一分钟最多: ${maxSportCountRecord.sportCount}个`);
-    console.log(`[v${SCRIPT_VERSION}] 对应的 videoUrl: ${maxSportCountRecord.videoUrl}`);
-    console.log(`[v${SCRIPT_VERSION}] 总跳绳数: ${totalSportCount}个`);
-    console.log(`[v${SCRIPT_VERSION}] 总跳绳时间：${formattedTotalTime}`);
+    console.log(`一分钟最多: ${maxSportCountRecord.sportCount}个`);
+    console.log(`总跳绳数: ${totalSportCount}个`);
+    console.log(`总跳绳时间：${formattedTotalTime}`);
+    console.log(`视频链接: ${maxSportCountRecord.videoUrl}`);
 
     // 保存日志到 BoxJS
     saveLogs({
@@ -150,10 +150,7 @@ if (maxSportCountRecord) {
         maxSportCount: maxSportCountRecord.sportCount,
         videoUrl: maxSportCountRecord.videoUrl,
         totalSportCount,
-        totalSportTime: formattedTotalTime,
-        qualifiedCount,
-        hasExcellent,
-        requiredQualifiedCount: adjustedRequiredCount
+        totalSportTime: formattedTotalTime
     });
 } else {
     console.log(`未找到符合条件的记录（v${SCRIPT_VERSION}）`);
@@ -217,18 +214,11 @@ function saveLogs(logData) {
             // 正常日志格式
             logContent = [
                 `执行时间: ${logData.timestamp}`,
-                `版本: v${logData.version}`,
-                ``,
-                `考核结果: ${logData.qualificationStatus}`,
+                `v${logData.version} 考核结果：${logData.qualificationStatus}`,
                 ``,
                 `一分钟最多: ${logData.maxSportCount}个`,
                 `总跳绳数: ${logData.totalSportCount}个`,
-                `总跳绳时间: ${logData.totalSportTime}`,
-                ``,
-                `合格次数: ${logData.qualifiedCount}次`,
-                `要求合格次数: ${logData.requiredQualifiedCount}次`,
-                `是否有优秀: ${logData.hasExcellent ? '是' : '否'}`,
-                ``,
+                `总跳绳时间：${logData.totalSportTime}`,
                 `视频链接: ${logData.videoUrl}`
             ].join('\n');
         }
@@ -236,12 +226,12 @@ function saveLogs(logData) {
         // 写入持久化存储
         if (typeof $persistentStore !== 'undefined' && typeof $persistentStore.write === 'function') {
             $persistentStore.write(logContent, 'videourl_logs');
-            console.log('[v' + logData.version + '] 日志已保存到 BoxJS');
+            console.log('日志已保存到 BoxJS');
         } else if (typeof $prefs !== 'undefined' && typeof $prefs.setValueForKey === 'function') {
             $prefs.setValueForKey(logContent, 'videourl_logs');
-            console.log('[v' + logData.version + '] 日志已保存到 BoxJS');
+            console.log('日志已保存到 BoxJS');
         } else {
-            console.log('[v' + logData.version + '] 持久化存储不可用，日志未保存');
+            console.log('持久化存储不可用，日志未保存');
         }
     } catch (error) {
         console.log('保存日志失败: ' + error);

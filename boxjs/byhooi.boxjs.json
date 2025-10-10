@@ -173,7 +173,7 @@
     },
     {
       "id": "byhooi_videourl_config",
-      "name": "跳绳视频统计参数",
+      "name": "AI运动跳绳统计参数",
       "keys": [
         "DEFAULT_REQUIRED_QUALIFIED_COUNT",
         "QUALIFIED_THRESHOLD",

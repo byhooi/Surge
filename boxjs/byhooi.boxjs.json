@@ -173,7 +173,7 @@
     },
     {
       "id": "byhooi_videourl_config",
-      "name": "AI运动跳绳统计参数",
+      "name": "跳绳统计参数",
       "keys": [
         "DEFAULT_REQUIRED_QUALIFIED_COUNT",
         "QUALIFIED_THRESHOLD",
@@ -211,14 +211,13 @@
     },
     {
       "id": "byhooi_videourl_logs",
-      "name": "AI运动跳绳统计日志",
+      "name": "跳绳统计日志",
       "keys": [
         "videourl_logs"
       ],
       "descs_html": [
         "<h4 align=\"center\">Script/VideoUrl.js 的运行日志记录</h4>",
-        "<p>⚠️ 此区域由脚本自动更新，每次运行覆盖为最新统计结果。</p>",
-        "<p>可通过快捷指令读取此数据，包含视频链接和统计信息。</p>"
+        "<p>⚠️ 此区域由脚本自动更新，每次运行覆盖为最新统计结果。</p>"
       ],
       "settings": [
         {

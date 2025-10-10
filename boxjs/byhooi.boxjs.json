@@ -177,7 +177,8 @@
       "keys": [
         "DEFAULT_REQUIRED_QUALIFIED_COUNT",
         "QUALIFIED_THRESHOLD",
-        "EXCELLENT_THRESHOLD"
+        "EXCELLENT_THRESHOLD",
+        "videourl"
       ],
       "descs_html": [
         "<h4 align=\"center\">配置 Script/VideoUrl.js 的默认判定阈值</h4>",
@@ -204,6 +205,15 @@
           "val": 200,
           "type": "number",
           "desc": "对应 EXCELLENT_THRESHOLD，一分钟跳绳数达到该值计为优秀。"
+        },
+        {
+          "id": "videourl",
+          "name": "日志输出",
+          "val": "",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 8,
+          "desc": "Script/VideoUrl.js 的运行日志输出"
         }
       ],
       "author": "@byhooi",

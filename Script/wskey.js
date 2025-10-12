@@ -270,11 +270,6 @@ async function processCookie() {
     const newWskey = extractFromCookie($.cookie, WSKEY_REGEX);
     const existingWskey = extractFromCookie(existingUser.cookie, WSKEY_REGEX);
 
-    $.log(`🔍 比较 WSKEY:`);
-    $.log(`  新值: ${newWskey}`);
-    $.log(`  旧值: ${existingWskey}`);
-    $.log(`  相等: ${existingWskey === newWskey}`);
-
     if (existingWskey === newWskey) {
       $.log('⚠️ 当前 WSKEY 与缓存一致，无需更新。');
       return false;

@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
-const SCRIPT_VERSION = '1.8.6';
+const SCRIPT_VERSION = '1.8.7';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -215,10 +215,16 @@ async function getCookie() {
       $.jd_temp.ts = Date.now();
       hasUpdate = true;
     }
-    
+
     if (isValidString(ptPin)) {
-      $.jd_temp.pt_pin = ptPin;
-      $.jd_temp.ts = Date.now();
+      // 如果 pt_pin 变化，清空缓存，避免使用上一个用户的 wskey
+      if ($.jd_temp.pt_pin && $.jd_temp.pt_pin !== ptPin) {
+        $.log(`🔄 检测到用户切换: ${$.jd_temp.pt_pin} → ${ptPin}`);
+        $.jd_temp = { pt_pin: ptPin, ts: Date.now() };
+      } else {
+        $.jd_temp.pt_pin = ptPin;
+        $.jd_temp.ts = Date.now();
+      }
       hasUpdate = true;
     }
     

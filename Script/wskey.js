@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
-const SCRIPT_VERSION = '1.8.5';
+const SCRIPT_VERSION = '1.8.6';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -242,31 +242,46 @@ async function processCookie() {
     $.log('⚠️ WSKEY 或 pt_pin 数据不完整，等待后续请求');
     return false;
   }
-  
+
   $.cookie = createCookie($.jd_temp.pt_pin, $.jd_temp.wskey);
-  
+
   if (!$.cookie) {
     $.log('❌ Cookie 创建失败');
     return false;
   }
-  
+
   $.log(`🍪 获取到的完整 Cookie: ${$.cookie}`);
-  
-  const existingUser = $.wskeyList.find(user => user.userName === $.jd_temp.pt_pin);
-  
+
+  // 标准化 pt_pin 用于用户查找（统一解码后比较）
+  const normalizedPin = decodeURIComponent($.jd_temp.pt_pin);
+  const existingUser = $.wskeyList.find(user => {
+    const existingPin = decodeURIComponent(user.userName);
+    return existingPin === normalizedPin;
+  });
+
   if (existingUser) {
-    if (existingUser.cookie === $.cookie) {
+    // 提取 wskey 值进行比较（已通过 pin 匹配用户，只需比较 wskey 是否变化）
+    const newWskey = extractFromCookie($.cookie, WSKEY_REGEX);
+    const existingWskey = extractFromCookie(existingUser.cookie, WSKEY_REGEX);
+
+    $.log(`🔍 比较 WSKEY:`);
+    $.log(`  新值: ${newWskey}`);
+    $.log(`  旧值: ${existingWskey}`);
+    $.log(`  相等: ${existingWskey === newWskey}`);
+
+    if (existingWskey === newWskey) {
       $.log('⚠️ 当前 WSKEY 与缓存一致，无需更新。');
       return false;
     }
     $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
+    existingUser.userName = normalizedPin;
     existingUser.cookie = $.cookie;
     return true;
   } else {
     $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
-    $.wskeyList.push({ 
-      userName: $.jd_temp.pt_pin, 
-      cookie: $.cookie 
+    $.wskeyList.push({
+      userName: normalizedPin,
+      cookie: $.cookie
     });
     return true;
   }

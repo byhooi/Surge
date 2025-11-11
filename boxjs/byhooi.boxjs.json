@@ -14,29 +14,14 @@
         "ql_client_id",
         "ql_client_secret",
         "ql_token",
-        "ql_token_expires",
-        "auto_sync_jdcookie_ql",
-        "jdcookie_sync_interval"
+        "ql_token_expires"
       ],
       "descs_html": [
-        "<h4 align=\"center\">自动将 BoxJS 中的京东 Cookie 同步到青龙面板</h4>",
+        "<h4 align=\"center\">手动将 BoxJS 中的京东 Cookie 同步到青龙面板</h4>",
+        "<p style=\"text-align: center;\">⚠️ 注意:此功能为手动同步,需在获取 Cookie 后点击下方按钮触发同步</p>",
         "<h4 align=\"center\">使用说明请查看 <a href=\"https://github.com/byhooi/Surge/tree/main/boxjs\">GitHub 文档</a></h4>"
       ],
       "settings": [
-        {
-          "id": "auto_sync_jdcookie_ql",
-          "name": "自动同步到青龙",
-          "val": false,
-          "type": "boolean",
-          "desc": "获取到新的 Cookie 后自动同步到青龙面板"
-        },
-        {
-          "id": "jdcookie_sync_interval",
-          "name": "同步间隔(分钟)",
-          "val": 60,
-          "type": "number",
-          "desc": "自动同步的时间间隔，默认 60 分钟"
-        },
         {
           "id": "ql_url",
           "name": "青龙面板地址",
@@ -97,29 +82,14 @@
         "ql_client_id",
         "ql_client_secret",
         "ql_token",
-        "ql_token_expires",
-        "auto_sync_ql",
-        "wskey_sync_interval"
+        "ql_token_expires"
       ],
       "descs_html": [
-        "<h4 align=\"center\">自动将 BoxJS 中的京东 WSKEY 同步到青龙面板</h4>",
+        "<h4 align=\"center\">手动将 BoxJS 中的京东 WSKEY 同步到青龙面板</h4>",
+        "<p style=\"text-align: center;\">⚠️ 注意:此功能为手动同步,需在获取 WSKEY 后点击下方按钮触发同步</p>",
         "<h4 align=\"center\">使用说明请查看 <a href=\"https://github.com/byhooi/Surge/tree/main/boxjs\">GitHub 文档</a></h4>"
       ],
       "settings": [
-        {
-          "id": "auto_sync_ql",
-          "name": "自动同步到青龙",
-          "val": false,
-          "type": "boolean",
-          "desc": "获取到新的 WSKEY 后自动同步到青龙面板"
-        },
-        {
-          "id": "wskey_sync_interval",
-          "name": "同步间隔(分钟)",
-          "val": 60,
-          "type": "number",
-          "desc": "自动同步的时间间隔，默认 60 分钟"
-        },
         {
           "id": "ql_url",
           "name": "青龙面板地址",

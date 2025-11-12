@@ -1,6 +1,6 @@
 #!name=途虎养车app小程序积分签到
 #!desc=公众号搜索途虎小程序登录，点击积分页面
-#!arguments=定时签到:30 10 * * *,禁用脚本:途虎获取cookie,禁用MITM:hostname
+#!arguments=定时签到:12 8 * * *,禁用脚本:途虎获取cookie,禁用MITM:hostname
 #!arguments-desc=定时签到：Cron表达式，默认每日 10:30 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
 #!category=🎈 Bingo
 #!system=ios

@@ -6,7 +6,7 @@
 #!system=ios
 
 [Script]
-买菜币 = type=cron,cronexp="0 6,8 * * *",wake-system=1,script-path=https://raw.githubusercontent.com/JoJoJotarou/myScript/master/script/meituan/mall.meituan.mallcoin.task.js,script-update-interval=0
+买菜币 = type=cron,cronexp="5,10 8 * * *",wake-system=1,script-path=https://raw.githubusercontent.com/JoJoJotarou/myScript/master/script/meituan/mall.meituan.mallcoin.task.js,script-update-interval=0
 
 {{{禁用脚本}}} = type=http-request, pattern=^https?:\/\/mall\.meituan\.com\/api\/c\/mallcoin\/checkIn\/queryTaskListInfoV.\?,script-path=https://raw.githubusercontent.com/JoJoJotarou/myScript/master/script/meituan/mall.meituan.cookie.js
 

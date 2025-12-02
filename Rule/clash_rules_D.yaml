@@ -1,5 +1,5 @@
-# 更新时间: 2025/11/01 22:25:15
-# 规则数量：当前共 267 条规则
+# 更新时间: 2025/12/02 10:19:53
+# 规则数量：当前共 268 条规则
 payload:
   - DOMAIN-SUFFIX,0cicgw0mte7y.com
   - DOMAIN-SUFFIX,360zy.com
@@ -112,6 +112,7 @@ payload:
   - DOMAIN-SUFFIX,doordu.com
   - DOMAIN-SUFFIX,douban.com
   - DOMAIN-SUFFIX,doubanio.com
+  - DOMAIN-SUFFIX,doubao.com
   - DOMAIN-SUFFIX,doubleclick-cn.net
   - DOMAIN-SUFFIX,douyincdn.com
   - DOMAIN-SUFFIX,douyinpic.com

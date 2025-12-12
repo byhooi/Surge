@@ -1,6 +1,19 @@
-# 更新时间: 2025/12/02 10:19:53
-# 规则数量：当前共 79 条规则
+# 更新时间: 2025/12/12 23:23:05
+# 规则数量：当前共 92 条规则
 payload:
+  - DOMAIN,ai.google.dev
+  - DOMAIN,alkalimakersuite-pa.clients6.google.com
+  - DOMAIN,makersuite.google.com
+  - DOMAIN-SUFFIX,bard.google.com
+  - DOMAIN-SUFFIX,deepmind.com
+  - DOMAIN-SUFFIX,deepmind.google
+  - DOMAIN-SUFFIX,gemini.google.com
+  - DOMAIN-SUFFIX,generativeai.google
+  - DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com
+  - DOMAIN-SUFFIX,apis.google.com
+  - DOMAIN-KEYWORD,colab
+  - DOMAIN-KEYWORD,developerprofiles
+  - DOMAIN-KEYWORD,generativelanguage
   - DOMAIN-SUFFIX,admaster.cc
   - DOMAIN-SUFFIX,adobetm.com
   - DOMAIN-SUFFIX,appx

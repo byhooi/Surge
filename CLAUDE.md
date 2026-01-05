@@ -17,11 +17,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 1. 目录结构
 
-- **Module/** - Surge 模块文件 (`.sgmodule`)，定义 HTTP 拦截规则和脚本绑定
-- **Script/** - JavaScript 脚本文件，实现具体业务逻辑
+- **Module/** - Surge 模块文件 (`.sgmodule`)，定义 HTTP 拦截规则和脚本绑定（15 个模块）
+- **Script/** - JavaScript 脚本文件，实现具体业务逻辑（8 个核心脚本）
 - **boxjs/** - BoxJS 配置文件 (`byhooi.boxjs.json`)，提供 Web UI 配置界面
-- **Rule/** - Surge/Clash 规则列表文件
-- **icon/** - 图标资源
+- **Rule/** - 规则列表文件目录（当前为空，只有 Backup）
+- **icon/** - 图标资源（用于 BoxJS 应用图标）
 - **Backup/** - 各目录下的旧版本或备用脚本（不再维护）
 
 ### 2. 工作流程
@@ -68,6 +68,22 @@ Surge 拦截请求 (.sgmodule)
 - 自动检测 HTTP 请求头中的 `token` 字段变化
 - 持久化存储到 BoxJS 的 `token` key
 
+#### E. 其他功能模块
+仓库中还包含其他拦截模块（Module/ 目录下）：
+- **meituan.sgmodule** - 美团买菜相关
+- **amap.sgmodule** - 高德地图相关
+- **github429.sgmodule** - GitHub 429 错误处理
+- **googlesearch.sgmodule** - Google 搜索优化
+- **mallcoo.sgmodule** - 商场相关
+- **mxbc.sgmodule** - 美团相关
+- **ninebot.sgmodule** - 九号相关
+- **sycommercial.sgmodule** - 商业相关
+- **tuhu.sgmodule** - 途虎相关
+- **welife.sgmodule** - 生活相关
+- **wmbwc.sgmodule** - 物美相关
+
+这些模块大多用于特定服务的数据拦截和处理，遵循相同的架构模式。
+
 ### 4. 青龙面板集成
 
 **API 架构** (QLPanel 类):
@@ -88,10 +104,11 @@ Surge 拦截请求 (.sgmodule)
 
 ### 5. BoxJS 配置系统
 
-**byhooi.boxjs.json** 定义四个应用:
+**byhooi.boxjs.json** 定义五个应用:
 - `byhooi_jdcookie_ql` - Cookie 同步配置
 - `byhooi_wskey_ql` - WSKEY 同步配置
-- `byhooi_videourl_config` - 跳绳统计阈值配置和日志输出
+- `byhooi_videourl_config` - 跳绳统计阈值配置
+- `byhooi_videourl_logs` - 跳绳运行日志（自动更新）
 - `bsh_token_manager` - 伴生活 Token 管理
 
 **京东同步应用的共享配置项**:
@@ -110,6 +127,65 @@ Surge 拦截请求 (.sgmodule)
 - 所有脚本通过 `$persistentStore.read(key)` 读取 BoxJS 配置
 - 支持 fallback 机制：BoxJS 不可用时使用脚本内硬编码的默认值
 - 跨平台兼容：同时支持 Surge (`$persistentStore`) 和 Quantumult X (`$prefs`)
+
+## 部署和生效机制
+
+### 1. 开发到生效的完整流程
+
+```
+本地修改脚本/模块
+    ↓
+git commit & git push
+    ↓
+GitHub 更新 raw 文件
+    ↓
+等待 CDN 刷新（约 5 分钟）
+    ↓
+Surge 重新加载模块/BoxJS 重新订阅
+    ↓
+脚本生效
+```
+
+**关键点**：
+- 所有脚本和配置都通过 GitHub raw 链接引用
+- 修改后必须提交到 GitHub 才能生效
+- Surge 有缓存机制，可能需要手动更新模块或等待 CDN 刷新
+- BoxJS 订阅链接：`https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json`
+
+### 2. 本地调试 vs 远程调试
+
+**本地调试（推荐）**：
+- 在 Surge 中使用本地文件路径测试（如 `file:///path/to/script.js`）
+- 修改后立即生效，无需等待 CDN
+- 测试完成后再提交到 GitHub
+
+**远程调试**：
+- 直接修改 GitHub 文件
+- 需要等待 CDN 刷新或强制刷新缓存
+- 可以在 URL 后添加随机参数强制刷新：`?v=timestamp`
+
+### 3. 常用命令
+
+**查看 Git 状态和提交历史**：
+```bash
+git status                    # 查看当前更改
+git log --oneline -10        # 查看最近 10 次提交
+git diff                      # 查看未暂存的更改
+```
+
+**提交更改到 GitHub**：
+```bash
+git add .                     # 暂存所有更改
+git commit -m "feat: 描述"    # 提交更改
+git push                      # 推送到 GitHub
+```
+
+**查看文件内容**：
+```bash
+cat Script/wskey.js           # 查看完整脚本
+head -n 50 Script/wskey.js    # 查看前 50 行
+grep "SCRIPT_VERSION" Script/*.js  # 搜索所有脚本的版本号
+```
 
 ## 开发指南
 
@@ -271,11 +347,23 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Script/xxx.js
 #!system=ios
 
 [Script]
-京东 WSKEY = type=http-request,pattern=^https:\/\/blackhole\.m\.jd\.com\/bypass,requires-body=1,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey.js
+京东 WSKEY = type=http-request,pattern=^https:\/\/blackhole\.m\.jd\.com\/bypass,requires-body=1,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey.js,script-update-interval=0
+
+京东 PIN = type=http-request,pattern=https:\/\/mars\.jd\.com\/log\/sdk\/v2,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/wskey.js,script-update-interval=0
 
 [MITM]
 hostname = %APPEND% blackhole.m.jd.com, mars.jd.com
 ```
+
+**脚本参数说明**：
+- `type` - 拦截类型：http-request（请求）或 http-response（响应）
+- `pattern` - URL 匹配正则表达式
+- `requires-body` - 是否需要完整请求/响应体（0 或 1）
+- `max-size` - 最大处理大小（0 表示无限制）
+- `binary-body-mode` - 二进制模式（0 或 1）
+- `timeout` - 超时时间（秒）
+- `script-path` - 脚本的 GitHub raw URL
+- `script-update-interval` - 脚本更新间隔（0 表示始终使用缓存）
 
 ### BoxJS 应用配置
 `byhooi.boxjs.json` 的 `apps` 数组定义应用：

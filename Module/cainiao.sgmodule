@@ -1,0 +1,30 @@
+#!name=菜鸟包裹
+#!desc=菜鸟包裹去广告 (Rule + Script)
+#!category=ByHooi
+
+[Rule]
+AND,((USER-AGENT,Cainiao4iPhone*), (DOMAIN,amdc.m.taobao.com,extended-matching)),REJECT
+
+[URL Rewrite]
+# 首页瀑布流
+^https:\/\/nbcps-mtop\.cainiao\.com\/gw\/mtop\.cainiao\.nbcps\.presentation\.fetch\.cn - reject
+^https:\/\/netflow-mtop\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.index - reject
+
+# 搜索栏
+^https:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.adkeyword\.get\.cn - reject
+
+# 接寄卷
+^https:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.m?show - reject
+
+[Script]
+# 首页 & 我的
+菜鸟包裹_首页我的 = type=http-response,pattern=^https:\/\/(cn-acs\.m|e2e-mtop)\.cainiao\.com\/gw\/mtop\.cainiao\.app\.e2e\.engine\.page\.fetch,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/cainiao.js
+
+# 发现页
+菜鸟包裹_发现页 = type=http-response,pattern=^https:\/\/longquan-mtop\.cainiao\.com\/gw\/mtop\.com\.cainiao\.longquan\.place\.getpageresourcecontent\.cn,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/cainiao.js
+
+# 阻塞配置加载
+菜鸟包裹_配置 = type=http-response,pattern=^https:\/\/netflow-mtop\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/cainiao.js
+
+[MITM]
+hostname = %APPEND% netflow-mtop.cainiao.com, nbcps-mtop.cainiao.com, cn-acs.m.cainiao.com, e2e-mtop.cainiao.com, longquan-mtop.cainiao.com

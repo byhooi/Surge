@@ -1,12 +1,13 @@
 /**
- * 脚本名称：途虎养车（修复blackBox by @Sliverkiss）
+ * 脚本名称：途虎养车
  * 活动规则：每日签到可获取积分奖励
  * 脚本说明：添加重写进入途虎养车小程序积分页面即可获取 Token，支持多账号，兼容 NE / Node.js 环境。
  * 环境变量：TUHU_TOKEN、TUHU_BLACKBOX / CODESERVER_ADDRESS、CODESERVER_FUN、TUHU_BLACKBOX
- * 更新时间：2025-09-27
- * 脚本作者：@FoKit，修复blackBox参数 by @Sliverkiss
+ * 更新时间：2026-03-10
+ * 原作者：@FoKit，修复blackBox参数 by @Sliverkiss
+ * 修改：@byhooi（更新接口地址 GetInternalCenterInfo → GetRightsList）
 
-# BoxJs订阅：https://raw.githubusercontent.com/FoKit/Scripts/main/boxjs/fokit.boxjs.json
+# BoxJs订阅：https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 
 ------------------ Surge 配置 -----------------
 
@@ -14,9 +15,9 @@
 hostname = api.tuhu.cn
 
 [Script]
-途虎养车# = type=http-request,pattern=https:\/\/api\.tuhu\.cn\/User\/GetRightsList,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js
+途虎养车# = type=http-request,pattern=https:\/\/api\.tuhu\.cn\/User\/GetRightsList,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/tuhu.js
 
-途虎养车 = type=cron,cronexp=17 7 * * *,timeout=60,script-path=https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js,script-update-interval=0
+途虎养车 = type=cron,cronexp=17 7 * * *,timeout=60,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/tuhu.js,script-update-interval=0
 
 ------------------ Loon 配置 ------------------
 
@@ -24,9 +25,9 @@ hostname = api.tuhu.cn
 hostname = api.tuhu.cn
 
 [Script]
-http-request https:\/\/api\.tuhu\.cn\/User\/GetRightsList tag=途虎养车#, script-path=https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js,requires-body=0
+http-request https:\/\/api\.tuhu\.cn\/User\/GetRightsList tag=途虎养车#, script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/tuhu.js,requires-body=0
 
-cron "17 7 * * *" script-path=https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js,tag = 途虎养车,enable=true
+cron "17 7 * * *" script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/tuhu.js,tag = 途虎养车,enable=true
 
 -------------- Quantumult X 配置 --------------
 
@@ -34,10 +35,10 @@ cron "17 7 * * *" script-path=https://raw.githubusercontent.com/Sliverkiss/GoodN
 hostname = api.tuhu.cn
 
 [rewrite_local]
-https:\/\/api\.tuhu\.cn\/User\/GetRightsList url script-request-header https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js
+https:\/\/api\.tuhu\.cn\/User\/GetRightsList url script-request-header https://raw.githubusercontent.com/byhooi/Surge/main/Script/tuhu.js
 
 [task_local]
-17 7 * * * https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js, tag=途虎养车, img-url=https://raw.githubusercontent.com/FoKit/Scripts/main/images/tuhu.png, enabled=true
+17 7 * * * https://raw.githubusercontent.com/byhooi/Surge/main/Script/tuhu.js, tag=途虎养车, img-url=https://raw.githubusercontent.com/FoKit/Scripts/main/images/tuhu.png, enabled=true
 
 ------------------ Stash 配置 -----------------
 
@@ -58,7 +59,7 @@ http:
 
 script-providers:
   途虎养车:
-    url: https://raw.githubusercontent.com/Sliverkiss/GoodNight/master/Script/tuhu.js
+    url: https://raw.githubusercontent.com/byhooi/Surge/main/Script/tuhu.js
     interval: 86400
 
  */

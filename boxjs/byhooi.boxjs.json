@@ -231,16 +231,16 @@
       "id": "tuhu_token_manager",
       "name": "途虎养车 Token 管理",
       "keys": [
-        "TUHU_TOKEN",
-        "TUHU_BLACKBOX"
+        "tuhu_token",
+        "tuhu_blackbox"
       ],
       "descs_html": [
-        "<h4 align="center">管理 Script/tuhu.js 捕获的 Token 和 blackBox</h4>",
+        "<h4 align=\"center\">管理 Script/tuhu.js 捕获的 Token 和 blackBox</h4>",
         "<p>脚本会自动写入持久化存储，也可以在此手动更新 Token 和 blackBox。</p>"
       ],
       "settings": [
         {
-          "id": "TUHU_TOKEN",
+          "id": "tuhu_token",
           "name": "Token",
           "val": "",
           "type": "textarea",
@@ -249,7 +249,7 @@
           "desc": "Script/tuhu.js 自动捕获的 Token，可在此手动修改"
         },
         {
-          "id": "TUHU_BLACKBOX",
+          "id": "tuhu_blackbox",
           "name": "blackBox",
           "val": "",
           "type": "text",

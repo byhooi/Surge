@@ -226,6 +226,39 @@
       ],
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge"
+    },
+    {
+      "id": "tuhu_token_manager",
+      "name": "途虎养车 Token 管理",
+      "keys": [
+        "TUHU_TOKEN",
+        "TUHU_BLACKBOX"
+      ],
+      "descs_html": [
+        "<h4 align="center">管理 Script/tuhu.js 捕获的 Token 和 blackBox</h4>",
+        "<p>脚本会自动写入持久化存储，也可以在此手动更新 Token 和 blackBox。</p>"
+      ],
+      "settings": [
+        {
+          "id": "TUHU_TOKEN",
+          "name": "Token",
+          "val": "",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 4,
+          "desc": "Script/tuhu.js 自动捕获的 Token，可在此手动修改"
+        },
+        {
+          "id": "TUHU_BLACKBOX",
+          "name": "blackBox",
+          "val": "",
+          "type": "text",
+          "placeholder": "kMPSQ1710898198mf9JVT5oKB5",
+          "desc": "Script/tuhu.js 自动生成的 blackBox，可在此手动修改"
+        }
+      ],
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge"
     }
   ]
 }

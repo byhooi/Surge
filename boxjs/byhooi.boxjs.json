@@ -231,12 +231,11 @@
       "id": "tuhu_token_manager",
       "name": "途虎养车 Token 管理",
       "keys": [
-        "tuhu_token",
-        "tuhu_blackbox"
+        "tuhu_token"
       ],
       "descs_html": [
-        "<h4 align=\"center\">管理 Script/tuhu.js 捕获的 Token 和 blackBox</h4>",
-        "<p>脚本会自动写入持久化存储，也可以在此手动更新 Token 和 blackBox。</p>"
+        "<h4 align=\"center\">管理 Script/tuhu.js 捕获的 Token</h4>",
+        "<p>脚本会自动写入持久化存储，也可以在此手动更新 Token。</p>"
       ],
       "settings": [
         {
@@ -247,18 +246,14 @@
           "autoGrow": true,
           "rows": 4,
           "desc": "Script/tuhu.js 自动捕获的 Token，可在此手动修改"
-        },
-        {
-          "id": "tuhu_blackbox",
-          "name": "blackBox",
-          "val": "",
-          "type": "text",
-          "placeholder": "kMPSQ1710898198mf9JVT5oKB5",
-          "desc": "Script/tuhu.js 自动生成的 blackBox，可在此手动修改"
         }
       ],
       "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge"
+      "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tuhu.png",
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tuhu.png"
+      ]
     }
   ]
 }

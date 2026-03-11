@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
-const SCRIPT_VERSION = '1.8.7';
+const SCRIPT_VERSION = '1.8.8';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -208,16 +208,24 @@ async function getCookie() {
       $.jd_temp = {};
     }
     
-    // 更新临时数据
-    let hasUpdate = false;
-    if (isValidString(wskey)) {
-      $.jd_temp.wskey = wskey;
-      $.jd_temp.ts = Date.now();
-      hasUpdate = true;
+    // 检查上次请求的待确认数据
+    let pendingCommitted = false;
+    if ($.jd_temp.pending) {
+      const pending = $.jd_temp.pending;
+      const currentPin = isValidString(ptPin) ? ptPin : $.jd_temp.pt_pin;
+      
+      if (currentPin && decodeURIComponent(pending.pt_pin) === decodeURIComponent(currentPin)) {
+        // 同一用户确认，提交待确认数据
+        pendingCommitted = commitPending(pending);
+      } else {
+        // 用户已切换，丢弃待确认数据
+        $.log(`🔄 用户已切换，丢弃待确认的 WSKEY: ${pending.pt_pin}`);
+      }
+      delete $.jd_temp.pending;
     }
-
+    
+    // 更新临时数据（先检测用户切换，再写入 wskey）
     if (isValidString(ptPin)) {
-      // 如果 pt_pin 变化，清空缓存，避免使用上一个用户的 wskey
       if ($.jd_temp.pt_pin && $.jd_temp.pt_pin !== ptPin) {
         $.log(`🔄 检测到用户切换: ${$.jd_temp.pt_pin} → ${ptPin}`);
         $.jd_temp = { pt_pin: ptPin, ts: Date.now() };
@@ -225,15 +233,20 @@ async function getCookie() {
         $.jd_temp.pt_pin = ptPin;
         $.jd_temp.ts = Date.now();
       }
-      hasUpdate = true;
+    }
+
+    if (isValidString(wskey)) {
+      $.jd_temp.wskey = wskey;
+      $.jd_temp.ts = Date.now();
     }
     
-    if (hasUpdate) {
-      $.setjson($.jd_temp, JD_TEMP_KEY);
-    }
+    // 处理 WSKEY（变化时保存为待确认，等下次请求确认后提交）
+    processCookie();
     
-    // 处理完整的 WSKEY
-    return await processCookie();
+    // 保存临时数据（包含可能的 pending 状态）
+    $.setjson($.jd_temp, JD_TEMP_KEY);
+    
+    return pendingCommitted;
     
   } catch (error) {
     $.log('❌ 用户数据获取失败');
@@ -242,50 +255,57 @@ async function getCookie() {
   }
 }
 
-// 处理 Cookie 的独立函数
-async function processCookie() {
-  if (!$.jd_temp?.wskey || !$.jd_temp?.pt_pin) {
-    $.log('⚠️ WSKEY 或 pt_pin 数据不完整，等待后续请求');
-    return false;
-  }
-
-  $.cookie = createCookie($.jd_temp.pt_pin, $.jd_temp.wskey);
-
-  if (!$.cookie) {
-    $.log('❌ Cookie 创建失败');
-    return false;
-  }
-
-  $.log(`🍪 获取到的完整 Cookie: ${$.cookie}`);
-
-  // 标准化 pt_pin 用于用户查找（统一解码后比较）
-  const normalizedPin = decodeURIComponent($.jd_temp.pt_pin);
-  const existingUser = $.wskeyList.find(user => {
-    const existingPin = decodeURIComponent(user.userName);
-    return existingPin === normalizedPin;
-  });
+// 提交待确认的 WSKEY 数据
+function commitPending(pending) {
+  const normalizedPin = decodeURIComponent(pending.pt_pin);
+  const existingUser = $.wskeyList.find(user =>
+    decodeURIComponent(user.userName) === normalizedPin
+  );
 
   if (existingUser) {
-    // 提取 wskey 值进行比较（已通过 pin 匹配用户，只需比较 wskey 是否变化）
-    const newWskey = extractFromCookie($.cookie, WSKEY_REGEX);
+    existingUser.userName = normalizedPin;
+    existingUser.cookie = pending.cookie;
+    $.log(`✅ 确认更新用户 WSKEY: ${pending.cookie}`);
+  } else {
+    $.wskeyList.push({ userName: normalizedPin, cookie: pending.cookie });
+    $.log(`✅ 确认新增用户 WSKEY: ${pending.cookie}`);
+  }
+
+  $.cookie = pending.cookie;
+  return true;
+}
+
+// 处理 Cookie（变化时保存为待确认状态）
+function processCookie() {
+  if (!$.jd_temp?.wskey || !$.jd_temp?.pt_pin) {
+    $.log('⚠️ WSKEY 或 pt_pin 数据不完整，等待后续请求');
+    return;
+  }
+
+  const cookie = createCookie($.jd_temp.pt_pin, $.jd_temp.wskey);
+  if (!cookie) {
+    $.log('❌ Cookie 创建失败');
+    return;
+  }
+
+  const normalizedPin = decodeURIComponent($.jd_temp.pt_pin);
+  const existingUser = $.wskeyList.find(user =>
+    decodeURIComponent(user.userName) === normalizedPin
+  );
+
+  if (existingUser) {
+    const newWskey = extractFromCookie(cookie, WSKEY_REGEX);
     const existingWskey = extractFromCookie(existingUser.cookie, WSKEY_REGEX);
 
     if (existingWskey === newWskey) {
       $.log('⚠️ 当前 WSKEY 与缓存一致，无需更新。');
-      return false;
+      return;
     }
-    $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
-    existingUser.userName = normalizedPin;
-    existingUser.cookie = $.cookie;
-    return true;
-  } else {
-    $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
-    $.wskeyList.push({
-      userName: normalizedPin,
-      cookie: $.cookie
-    });
-    return true;
   }
+
+  // WSKEY 变化或新用户，保存为待确认（等下次请求确认用户未切换后再提交）
+  $.log(`⏳ 检测到 WSKEY 变化，待下次请求确认: ${cookie}`);
+  $.jd_temp.pending = { pt_pin: $.jd_temp.pt_pin, cookie };
 }
 
 function objectKeys2LowerCase(obj) {

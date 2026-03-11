@@ -217,11 +217,13 @@ class QLPanel {
 
     try {
       // 根据官方文档，请求体必须包含 id, name, value, remarks
+      // status: 0 表示启用，确保更新后变量自动启用
       const updateBody = {
         id: envId,        // 必须使用 id 字段（不是 _id）
         name,
         value,
-        remarks
+        remarks,
+        status: 0
       };
 
       const options = {

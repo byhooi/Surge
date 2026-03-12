@@ -144,7 +144,7 @@ function isCacheExpired(timestamp, expireTime = CACHE_EXPIRE_TIME) {
 
 function createCookie(ptPin, ptKey) {
   if (!ptPin || !ptKey) return '';
-  return `pt_pin=${ptPin};pt_key=${ptKey}`;
+  return `pt_pin=${ptPin};pt_key=${ptKey};`;
 }
 
 // 脚本配置和初始化

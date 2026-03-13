@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
-const SCRIPT_VERSION = '1.8.9';
+const SCRIPT_VERSION = '1.8.8';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -208,37 +208,36 @@ async function getCookie() {
       $.jd_temp = {};
     }
 
-    // 核心安全拼接与缓存更新逻辑（严防错位串号）
+    // 核心安全拼接与缓存更新逻辑（兼容独立分步获取）
     let hasUpdate = false;
+    let isUserChanged = false;
 
-    // 场景1：同时获取到 pin 和 wskey
-    if (isValidString(wskey) && isValidString(ptPin)) {
+    // 场景1：处理携带 pin 的情况（可能是新请求，也可能是同一个请求包含两者）
+    if (isValidString(ptPin)) {
       if ($.jd_temp.pt_pin && $.jd_temp.pt_pin !== ptPin) {
-        $.log(`🔄 检测到用户完全切换: ${$.jd_temp.pt_pin} → ${ptPin}`);
+        $.log(`🔄 检测到用户切换: ${$.jd_temp.pt_pin} → ${ptPin}`);
+        // 发现新账号，立即清空之前的缓存(防串号)
+        $.jd_temp = { pt_pin: ptPin, ts: Date.now() };
+        isUserChanged = true;
+      } else {
+        // 同账号或者首次记录，仅刷新/写入
+        $.jd_temp.pt_pin = ptPin;
+        $.jd_temp.ts = Date.now();
       }
-      // 直接做整体覆盖绑定，最安全的组合
-      $.jd_temp = { pt_pin: ptPin, wskey: wskey, ts: Date.now() };
       hasUpdate = true;
     }
-    // 场景2：只获取到 pin，没有 wskey
-    else if (isValidString(ptPin) && !isValidString(wskey)) {
-      if ($.jd_temp.pt_pin !== ptPin) {
-        $.log(`🔄 发现新用户PIN，为防串号清空历史WSKEY缓存: → ${ptPin}`);
-        // 发现新账号，立即清空之前的 wskey 防止拼错
-        $.jd_temp = { pt_pin: ptPin, ts: Date.now() };
-        hasUpdate = true;
-      } else {
-        // 同一账号，仅刷新时间戳
-        $.jd_temp.ts = Date.now();
-        hasUpdate = true;
-      }
-    }
-    // 场景3：只获取到 wskey，没有 pin (极易导致串号的元凶)
-    else if (isValidString(wskey) && !isValidString(ptPin)) {
-      // 只有在缓存中存在刚存不久的 pin 时才勉强允许拼接，但如果是发生账号切换瞬间极度危险
-      // 为了彻底掐断此类错位拼号行为，只有在确保有同一用户的情况下才能接收
-      // 这里采取最严格的做法：若请求未带有PIN凭证表明身份，放弃该WSKEY单独入缓存
-      $.log(`拦截 ⚠️ 提取到 WSKEY 但请求未携带验证账号(PIN)，为防串号拼合，跳过该记录！`);
+
+    // 场景2：处理携带 wskey 的情况
+    if (isValidString(wskey)) {
+      // 这里的逻辑是：如果是刚刚切换了用户(isUserChanged为true)，此时若本次请求不仅带了新 pin 还带了旧 wskey 会怎样？
+      // 但实际上 JD 的接口基本不会在一个请求中发 A的pin 和 B的wskey。
+      // 所以只要有 wskey，我们就可以信任地放进当前的 jd_temp 中。
+      // 若当前 jd_temp 还没 pin 也没关系，可以等下一个带 pin 的请求。
+      // 若 jd_temp 已经有 pin (不管是本请求刚更新的，还是上一个请求留下的)，结合即可。
+      $.log(`🔑 成功提取到 WSKEY (可独立于 PIN 提取)`);
+      $.jd_temp.wskey = wskey;
+      $.jd_temp.ts = Date.now();
+      hasUpdate = true;
     }
 
     if (hasUpdate) {

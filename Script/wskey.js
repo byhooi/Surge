@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
-const SCRIPT_VERSION = '1.8.7';
+const SCRIPT_VERSION = '1.8.9';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -8,8 +8,8 @@ const DEFAULT_RESP_TYPE = 'body';
 const CACHE_EXPIRE_TIME = 15000;
 const WAIT_TIME_FOR_RULE = 3000;
 const LOG_SEPARATOR = "\n";
-const WSKEY_REGEX = /wskey=([^=;]+?);/;
-const PT_PIN_REGEX = /pt_pin=([^=;]+?);/;
+const WSKEY_REGEX = /wskey=([^=;]+)/;
+const PT_PIN_REGEX = /(?:pt_pin|pin)=([^=;]+)/;
 
 // Env 环境类
 function Env(name, options = {}) {
@@ -18,7 +18,7 @@ function Env(name, options = {}) {
   this.isMute = false;
   this.logSeparator = LOG_SEPARATOR;
   this.startTime = Date.now();
-  
+
   Object.assign(this, options);
   const versionSuffix = this.version ? ` v${this.version}` : '';
   this.log("", `🔔${this.name}${versionSuffix}, 开始!`);
@@ -181,60 +181,73 @@ async function getCookie() {
     if (!$request?.headers) {
       throw new Error('请求头信息不存在');
     }
-    
+
     debug($request.headers);
     const headers = objectKeys2LowerCase($request.headers);
-    
+
     if (!headers?.cookie) {
       $.log('⚠️ 请求中未找到 cookie 信息');
       return false;
     }
-    
+
     const wskey = extractFromCookie(headers.cookie, WSKEY_REGEX);
     const ptPin = extractFromCookie(headers.cookie, PT_PIN_REGEX);
-    
+
     // 等待规则请求
     if (typeof $request.url === 'string' && $request.url.includes('/getRule')) {
       await $.wait(WAIT_TIME_FOR_RULE);
     }
-    
+
     // 初始化数据
     $.jd_temp = $.getjson(JD_TEMP_KEY) || {};
     $.wskeyList = $.getjson(WSKEY_KEY) || [];
-    
+
     // 清理过期缓存
     if (isCacheExpired($.jd_temp?.ts)) {
       $.log('🆑 清理过期缓存数据');
       $.jd_temp = {};
     }
-    
-    // 更新临时数据
+
+    // 核心安全拼接与缓存更新逻辑（严防错位串号）
     let hasUpdate = false;
-    if (isValidString(wskey)) {
-      $.jd_temp.wskey = wskey;
-      $.jd_temp.ts = Date.now();
+
+    // 场景1：同时获取到 pin 和 wskey
+    if (isValidString(wskey) && isValidString(ptPin)) {
+      if ($.jd_temp.pt_pin && $.jd_temp.pt_pin !== ptPin) {
+        $.log(`🔄 检测到用户完全切换: ${$.jd_temp.pt_pin} → ${ptPin}`);
+      }
+      // 直接做整体覆盖绑定，最安全的组合
+      $.jd_temp = { pt_pin: ptPin, wskey: wskey, ts: Date.now() };
       hasUpdate = true;
+    }
+    // 场景2：只获取到 pin，没有 wskey
+    else if (isValidString(ptPin) && !isValidString(wskey)) {
+      if ($.jd_temp.pt_pin !== ptPin) {
+        $.log(`🔄 发现新用户PIN，为防串号清空历史WSKEY缓存: → ${ptPin}`);
+        // 发现新账号，立即清空之前的 wskey 防止拼错
+        $.jd_temp = { pt_pin: ptPin, ts: Date.now() };
+        hasUpdate = true;
+      } else {
+        // 同一账号，仅刷新时间戳
+        $.jd_temp.ts = Date.now();
+        hasUpdate = true;
+      }
+    }
+    // 场景3：只获取到 wskey，没有 pin (极易导致串号的元凶)
+    else if (isValidString(wskey) && !isValidString(ptPin)) {
+      // 只有在缓存中存在刚存不久的 pin 时才勉强允许拼接，但如果是发生账号切换瞬间极度危险
+      // 为了彻底掐断此类错位拼号行为，只有在确保有同一用户的情况下才能接收
+      // 这里采取最严格的做法：若请求未带有PIN凭证表明身份，放弃该WSKEY单独入缓存
+      $.log(`拦截 ⚠️ 提取到 WSKEY 但请求未携带验证账号(PIN)，为防串号拼合，跳过该记录！`);
     }
 
-    if (isValidString(ptPin)) {
-      // 如果 pt_pin 变化，清空缓存，避免使用上一个用户的 wskey
-      if ($.jd_temp.pt_pin && $.jd_temp.pt_pin !== ptPin) {
-        $.log(`🔄 检测到用户切换: ${$.jd_temp.pt_pin} → ${ptPin}`);
-        $.jd_temp = { pt_pin: ptPin, ts: Date.now() };
-      } else {
-        $.jd_temp.pt_pin = ptPin;
-        $.jd_temp.ts = Date.now();
-      }
-      hasUpdate = true;
-    }
-    
     if (hasUpdate) {
       $.setjson($.jd_temp, JD_TEMP_KEY);
     }
-    
+
     // 处理完整的 WSKEY
     return await processCookie();
-    
+
   } catch (error) {
     $.log('❌ 用户数据获取失败');
     $.logErr(error);
@@ -313,24 +326,24 @@ async function request(options) {
     if (!options) {
       throw new Error('请求参数不能为空');
     }
-    
+
     options = options.url ? options : { url: options };
-    
+
     if (!options.url) {
       throw new Error('请求 URL 不能为空');
     }
-    
+
     const method = options._method || (options.body ? 'post' : 'get');
     const respType = options._respType || DEFAULT_RESP_TYPE;
     const timeout = options._timeout || DEFAULT_TIMEOUT;
-    
+
     const methodName = method.toLowerCase();
     const requester = $[methodName];
-    
+
     if (typeof requester !== 'function') {
       throw new Error(`不支持的请求方法: ${method}`);
     }
-    
+
     return await new Promise((resolve, reject) => {
       let settled = false;
       const finish = (fn, value) => {
@@ -338,25 +351,25 @@ async function request(options) {
         settled = true;
         fn(value);
       };
-      
+
       const timer = setTimeout(() => {
         finish(reject, new Error(`请求超时: ${options.url}`));
       }, timeout);
-      
+
       const callback = (error, response, data) => {
         clearTimeout(timer);
         if (settled) return;
         debug(response, '[Response]');
-        
+
         if (error) {
           $.logErr(error);
           return finish(reject, error);
         }
-        
+
         if (respType === 'all') {
           return finish(resolve, response);
         }
-        
+
         let result;
         if (respType === 'body') {
           result = data !== undefined ? data : response?.body;
@@ -365,7 +378,7 @@ async function request(options) {
         }
         finish(resolve, $.toObj(result, result));
       };
-      
+
       debug(options, '[Request]');
       try {
         requester.call($, options, callback);
@@ -374,7 +387,7 @@ async function request(options) {
         finish(reject, invokeError);
       }
     });
-    
+
   } catch (error) {
     $.logErr(error);
     throw error;
@@ -387,7 +400,7 @@ async function sendMsg(message) {
     $.log('⚠️ 消息内容为空，跳过通知发送');
     return;
   }
-  
+
   try {
     $notification.post($.name, '', message);
     $.log('📮 通知发送成功');
@@ -400,11 +413,11 @@ async function sendMsg(message) {
 // 调试输出函数 - 优化版本
 function debug(content, title = 'debug') {
   if (IS_DEBUG !== 'true') return;
-  
+
   const timestamp = $.time('HH:mm:ss');
   const start = `\n----- ${title} -----\n`;
   const end = `\n----- ${timestamp} -----\n`;
-  
+
   let debugContent;
   if (typeof content === 'string') {
     debugContent = content;
@@ -413,6 +426,6 @@ function debug(content, title = 'debug') {
   } else {
     debugContent = String(content);
   }
-  
+
   $.log(start + debugContent + end);
 }

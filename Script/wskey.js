@@ -7,6 +7,7 @@ const DEFAULT_TIMEOUT = 15000;
 const DEFAULT_RESP_TYPE = 'body';
 const CACHE_EXPIRE_TIME = 15000;
 const WAIT_TIME_FOR_RULE = 3000;
+const PIN_WSKEY_PAIR_MAX_GAP = 10000;
 const LOG_SEPARATOR = "\n";
 const WSKEY_REGEX = /wskey=([^=;]+)/;
 const PT_PIN_REGEX = /(?:pt_pin|pin)=([^=;]+)/;
@@ -153,6 +154,11 @@ function createCookie(ptPin, wskey) {
   return `pin=${encodeURIComponent(decodedPin)}; wskey=${wskey};`;
 }
 
+function clearTempCache() {
+  $.jd_temp = {};
+  $.setjson($.jd_temp, JD_TEMP_KEY);
+}
+
 // 脚本配置和初始化
 const $ = new Env(SCRIPT_NAME, { version: SCRIPT_VERSION });
 const IS_DEBUG = $.getdata('is_debug') || 'false';
@@ -210,33 +216,29 @@ async function getCookie() {
 
     // 核心安全拼接与缓存更新逻辑（兼容独立分步获取）
     let hasUpdate = false;
-    let isUserChanged = false;
+    const now = Date.now();
 
     // 场景1：处理携带 pin 的情况（可能是新请求，也可能是同一个请求包含两者）
     if (isValidString(ptPin)) {
       if ($.jd_temp.pt_pin && $.jd_temp.pt_pin !== ptPin) {
         $.log(`🔄 检测到用户切换: ${$.jd_temp.pt_pin} → ${ptPin}`);
         // 发现新账号，立即清空之前的缓存(防串号)
-        $.jd_temp = { pt_pin: ptPin, ts: Date.now() };
-        isUserChanged = true;
+        $.jd_temp = { pt_pin: ptPin, pt_pin_ts: now, ts: now };
       } else {
         // 同账号或者首次记录，仅刷新/写入
         $.jd_temp.pt_pin = ptPin;
-        $.jd_temp.ts = Date.now();
+        $.jd_temp.pt_pin_ts = now;
+        $.jd_temp.ts = now;
       }
       hasUpdate = true;
     }
 
     // 场景2：处理携带 wskey 的情况
     if (isValidString(wskey)) {
-      // 这里的逻辑是：如果是刚刚切换了用户(isUserChanged为true)，此时若本次请求不仅带了新 pin 还带了旧 wskey 会怎样？
-      // 但实际上 JD 的接口基本不会在一个请求中发 A的pin 和 B的wskey。
-      // 所以只要有 wskey，我们就可以信任地放进当前的 jd_temp 中。
-      // 若当前 jd_temp 还没 pin 也没关系，可以等下一个带 pin 的请求。
-      // 若 jd_temp 已经有 pin (不管是本请求刚更新的，还是上一个请求留下的)，结合即可。
       $.log(`🔑 成功提取到 WSKEY (可独立于 PIN 提取)`);
       $.jd_temp.wskey = wskey;
-      $.jd_temp.ts = Date.now();
+      $.jd_temp.wskey_ts = now;
+      $.jd_temp.ts = now;
       hasUpdate = true;
     }
 
@@ -258,6 +260,28 @@ async function getCookie() {
 async function processCookie() {
   if (!$.jd_temp?.wskey || !$.jd_temp?.pt_pin) {
     $.log('⚠️ WSKEY 或 pt_pin 数据不完整，等待后续请求');
+    return false;
+  }
+
+  const pinTs = Number($.jd_temp.pt_pin_ts || 0);
+  const wskeyTs = Number($.jd_temp.wskey_ts || 0);
+  if (!pinTs || !wskeyTs) {
+    $.log('⚠️ 缺少 PIN/WSKEY 时间戳，等待下一次完整采集');
+    return false;
+  }
+
+  const pairGap = Math.abs(pinTs - wskeyTs);
+  if (pairGap > PIN_WSKEY_PAIR_MAX_GAP) {
+    $.log(`⚠️ PIN 与 WSKEY 采集时间间隔过大(${pairGap}ms)，已丢弃旧数据防止串号`);
+    if (pinTs > wskeyTs) {
+      delete $.jd_temp.wskey;
+      delete $.jd_temp.wskey_ts;
+    } else {
+      delete $.jd_temp.pt_pin;
+      delete $.jd_temp.pt_pin_ts;
+    }
+    $.jd_temp.ts = Date.now();
+    $.setjson($.jd_temp, JD_TEMP_KEY);
     return false;
   }
 
@@ -284,11 +308,13 @@ async function processCookie() {
 
     if (existingWskey === newWskey) {
       $.log('⚠️ 当前 WSKEY 与缓存一致，无需更新。');
+      clearTempCache();
       return false;
     }
     $.log(`♻️ 更新用户 WSKEY: ${$.cookie}`);
     existingUser.userName = normalizedPin;
     existingUser.cookie = $.cookie;
+    clearTempCache();
     return true;
   } else {
     $.log(`🆕 新增用户 WSKEY: ${$.cookie}`);
@@ -296,6 +322,7 @@ async function processCookie() {
       userName: normalizedPin,
       cookie: $.cookie
     });
+    clearTempCache();
     return true;
   }
 }

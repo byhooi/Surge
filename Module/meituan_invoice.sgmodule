@@ -4,7 +4,7 @@
 
 [Script]
 # 获取美团发票
-美团发票提取 = type=http-request,pattern=^https:\/\/s3plus-hl01\.sankuai\.com\/common-invoice-file\/.+\.png,requires-body=0,max-size=0,script-path=../Script/meituan_invoice.js
+美团发票提取 = type=http-request,pattern=^https:\/\/s3plus-hl01\.sankuai\.com\/common-invoice-file\/.+\.png,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/meituan_invoice.js
 
 [MITM]
 hostname = %APPEND% s3plus-hl01.sankuai.com

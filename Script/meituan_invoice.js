@@ -34,7 +34,7 @@ if (match) {
             $notification.post(
                 "🧾 发票已加入批量队列", 
                 `当前共积攒 ${invoices.length} 张发票待保存`, 
-                "您可以返回美团继续查看下一张。\n攒够后，点击任意一条此类通知即可一键全存！",
+                "",
                 { 
                     "url": openUrl,
                     "media-url": url 

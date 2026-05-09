@@ -6,5 +6,11 @@
 # 获取美团发票
 美团发票提取 = type=http-request,pattern=^https:\/\/s3plus-hl01\.sankuai\.com\/common-invoice-file\/.+\.png,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/meituan_invoice.js
 
+# 获取发票列表供快捷指令读取
+获取发票API = type=http-request,pattern=^http:\/\/meituan\.invoice\.local\/get$,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/meituan_invoice_api.js
+
+# 清空发票列表
+清空发票API = type=http-request,pattern=^http:\/\/meituan\.invoice\.local\/clear$,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/meituan_invoice_api.js
+
 [MITM]
 hostname = %APPEND% s3plus-hl01.sankuai.com

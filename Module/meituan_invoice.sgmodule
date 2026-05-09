@@ -1,0 +1,10 @@
+#!name=自动提取美团发票
+#!desc=捕获美团发票 PNG 链接并发送通知以便保存到相册
+#!system=ios
+
+[Script]
+# 获取美团发票
+美团发票提取 = type=http-request,pattern=^https:\/\/s3plus-hl01\.sankuai\.com\/common-invoice-file\/.+\.png,requires-body=0,max-size=0,script-path=../Script/meituan_invoice.js
+
+[MITM]
+hostname = %APPEND% s3plus-hl01.sankuai.com

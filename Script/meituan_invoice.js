@@ -14,12 +14,16 @@ if (match) {
         try { invoices = JSON.parse(invoicesStr); } catch (e) {}
     }
     
+    let invoiceId = match[1];
+    // 使用核心 ID 去重，防止 URL 参数（如 S3 Signature）改变导致重复
+    let hasDuplicate = invoices.some(savedUrl => savedUrl.includes(invoiceId));
+    
     // 如果还没记录过这张，加入列表
-    if (!invoices.includes(url)) {
+    if (!hasDuplicate) {
         invoices.push(url);
         $persistentStore.write(JSON.stringify(invoices), CACHE_KEY);
         
-        // 极短冷却时间防连发 Bug，但不影响手动一张张查看的反馈
+        // 极短冷却时间防连发 Bug
         let lastTime = parseInt($persistentStore.read(TIME_KEY) || "0");
         let now = Date.now();
         if (now - lastTime > 500) {
@@ -29,7 +33,7 @@ if (match) {
             
             $notification.post(
                 "🧾 发票已加入批量队列", 
-                `当前已累积 ${invoices.length} 张发票`, 
+                `当前共积攒 ${invoices.length} 张发票待保存`, 
                 "您可以返回美团继续查看下一张。\n攒够后，点击任意一条此类通知即可一键全存！",
                 { 
                     "url": openUrl,

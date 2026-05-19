@@ -14,6 +14,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 2. **京东 Cookie 青龙同步** - 自动获取京东 Cookie 并同步到青龙面板
 3. **AI运动跳绳统计参数** - 跳绳数据分析和考核判定
 4. **伴生活 Token 管理** - 自动捕获和存储 Token
+5. **途虎养车 Token 管理** - 自动捕获和存储途虎 Token
 
 ---
 
@@ -220,4 +221,19 @@ MIT License
 1. 安装 `bsh.sgmodule` 模块
 2. 访问伴生活相关页面
 3. Token 自动写入 BoxJS 的 `token` 字段
+4. 可在 BoxJS 中查看或手动修改
+
+---
+
+## 五、途虎养车 Token 管理
+
+### 功能说明
+
+自动捕获途虎养车相关的 `token` 并持久化存储。
+
+### 使用方法
+
+1. 安装 `tuhu.sgmodule` 模块
+2. 访问途虎养车相关页面或小程序
+3. Token 自动写入 BoxJS 的 `tuhu_token` 字段
 4. 可在 BoxJS 中查看或手动修改

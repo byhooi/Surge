@@ -96,6 +96,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Module/VideoUrl.sgmodule
 - **GitHub 优化** (`github429.sgmodule`) - 解决 GitHub 429 错误
 - **Google 搜索** (`googlesearch.sgmodule`) - 搜索体验优化
 - **伴生活 Token** (`bsh.sgmodule` + `bsh.js`) - 自动捕获 Token
+- **途虎养车 Token** (`tuhu.sgmodule` + `tuhu.js`) - 自动捕获途虎 Token
 
 查看 [完整模块列表](Module/)
 

@@ -2,7 +2,7 @@
   "id": "byhooi.app.sub",
   "name": "Byhooi 脚本订阅",
   "author": "@byhooi",
-  "icon": "https://avatars2.githubusercontent.com/u/17607715",
+  "icon": "https://github.com/byhooi.png",
   "repo": "https://github.com/byhooi/Surge",
   "apps": [
     {
@@ -69,8 +69,7 @@
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge",
       "icons": [
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/jd.png",
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/jd.png"
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/qinglong.png"
       ]
     },
     {
@@ -137,8 +136,7 @@
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge",
       "icons": [
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/jd.png",
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/jd.png"
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/qinglong.png"
       ]
     },
     {
@@ -177,7 +175,10 @@
         }
       ],
       "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge"
+      "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tiaosheng.png"
+      ]
     },
     {
       "id": "byhooi_videourl_logs",
@@ -201,7 +202,10 @@
         }
       ],
       "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge"
+      "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tiaosheng.png"
+      ]
     },
     {
       "id": "bsh_token_manager",
@@ -225,7 +229,10 @@
         }
       ],
       "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge"
+      "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/bsh.png"
+      ]
     },
     {
       "id": "tuhu_token_manager",
@@ -251,7 +258,6 @@
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge",
       "icons": [
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tuhu.png",
         "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tuhu.png"
       ]
     }

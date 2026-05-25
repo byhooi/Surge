@@ -8,28 +8,31 @@ const $ = Env('美团买菜Token');
 const generalQueryParams = ['tenantId', 'poiId', 'poi', 'bizId', 'utm_medium', 'utm_term', 'uuid', 'app_tag', 'userid'];
 
 !(async () => {
-  const cookie = $request.headers['Cookie'] || $request.headers['cookie'];
-  const queryStr = $request.url
-    .match(/queryTaskListInfoV.\?(.*)/)[1]
+  const headers = $request.headers || {};
+  const requestUrl = $request.url || '';
+  const cookie = headers['Cookie'] || headers['cookie'] || '';
+  const queryMatch = requestUrl.match(/queryTaskListInfoV.\?(.*)/);
+  if (!queryMatch) {
+    throw '未匹配到任务列表请求参数';
+  }
+
+  const rawQuery = queryMatch[1];
+  const queryStr = rawQuery
     .split('&')
     .filter((param) => generalQueryParams.includes(param.split('=')[0]))
     .join('&');
-  const xuuid =
-    $request.url
-      .match(/queryTaskListInfoV.\?(.*)/)[1]
-      .split('&')
-      .filter((param) => 'xuuid' === param.split('=')[0])[0] || '';
+  const xuuid = rawQuery.split('&').filter((param) => 'xuuid' === param.split('=')[0])[0] || '';
 
-  if (cookie.toLocaleLowerCase().indexOf('token=') !== -1) {
+  if (cookie.toLowerCase().indexOf('token=') !== -1) {
     $.setdata(
       JSON.stringify({
         queryStr: queryStr,
         xuuid: xuuid,
         headers: {
-          'X-Titans-User': $request.headers['X-Titans-User'] || $request.headers['x-titans-user'],
-          T: $request.headers['T'] || $request.headers['t'],
+          'X-Titans-User': headers['X-Titans-User'] || headers['x-titans-user'],
+          T: headers['T'] || headers['t'],
           Cookie: cookie,
-          'User-Agent': $request.headers['User-Agent'] || $request.headers['user-agent'],
+          'User-Agent': headers['User-Agent'] || headers['user-agent'],
         },
       }),
       'jojo_mall_meituan'

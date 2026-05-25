@@ -9,6 +9,18 @@ let _coins = 0;
 let _desc = [];
 let userId = '';
 
+function parseJson(data) {
+  if (!data) return {};
+  return JSON.parse(data);
+}
+
+function getQueryParam(queryStr, key) {
+  const params = (queryStr || '').split('&');
+  const prefix = `${key}=`;
+  const target = params.find((param) => param.indexOf(prefix) === 0);
+  return target ? decodeURIComponent(target.slice(prefix.length)) : '';
+}
+
 function checkIn(queryStr, headers) {
   let eventName = '【签到】';
   headers['Content-Type'] = 'application/json';
@@ -21,9 +33,9 @@ function checkIn(queryStr, headers) {
       riskMap: {
         platform: 5,
         app: 95,
-        utm_term: queryStr.match(/utm_term=([\w|\.]+)/)[1],
-        uuid: queryStr.match(/uuid=(\w+)/)[1],
-        utm_medium: queryStr.match(/utm_medium=(\w+)/)[1],
+        utm_term: getQueryParam(queryStr, 'utm_term'),
+        uuid: getQueryParam(queryStr, 'uuid'),
+        utm_medium: getQueryParam(queryStr, 'utm_medium'),
         fingerprint: '',
       },
     }),
@@ -32,15 +44,17 @@ function checkIn(queryStr, headers) {
   return new Promise((resolve, reject) => {
     $.post(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0 && JSON.parse(data).data.result === true) {
-          _coin = JSON.parse(data).data.rewardValue;
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0 && body.data.result === true) {
+          const _coin = body.data.rewardValue;
           _coins += Number(_coin) || 0;
           _log.push(`🟢${eventName}: 获取${_coin}个买菜币`);
           _desc.push(`🟢${eventName}`);
         } else if (
+          response &&
           response.statusCode === 200 &&
-          JSON.parse(data).code === 0 &&
-          JSON.parse(data).data.result === false
+          body.code === 0 &&
+          body.data.result === false
         ) {
           _log.push(`🟡${eventName}: 今日签到已完成`);
         } else {
@@ -67,15 +81,17 @@ function share(queryStr, headers) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0 && JSON.parse(data).data.result === true) {
-          _coin = JSON.parse(data).data.rewardValue;
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0 && body.data.result === true) {
+          const _coin = body.data.rewardValue;
           _coins += Number(_coin) || 0;
           _log.push(`🟢${eventName}: 获取${_coin}个买菜币`);
           _desc.push(`🟢${eventName}`);
         } else if (
+          response &&
           response.statusCode === 200 &&
-          JSON.parse(data).code === 0 &&
-          JSON.parse(data).data.result === false
+          body.code === 0 &&
+          body.data.result === false
         ) {
           _log.push(`🟡${eventName}: 今日分享已完成`);
         } else {
@@ -101,8 +117,9 @@ function getTasks(queryStr, headers) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        tasks = JSON.parse(data).data.checkInTaskInfos;
-        if (response.statusCode === 200 && JSON.parse(data).code === 0 && tasks) {
+        const body = parseJson(data);
+        const tasks = body.data && body.data.checkInTaskInfos;
+        if (response && response.statusCode === 200 && body.code === 0 && tasks) {
           // 返回数组防止后面的任务无法执行
           resolve(tasks || []);
         } else {
@@ -119,8 +136,8 @@ function getTasks(queryStr, headers) {
 }
 
 async function takeTask(queryStr, headers) {
-  tasks = await getTasks(queryStr, headers);
-  for (task of tasks.filter((task) => task.buttonDesc === '领任务')) {
+  const tasks = await getTasks(queryStr, headers);
+  for (const task of tasks.filter((task) => task.buttonDesc === '领任务')) {
     await _takeTask(queryStr, headers, task.taskName, task.id, task.activityId);
   }
 }
@@ -136,7 +153,8 @@ function _takeTask(queryStr, headers, taskName, taskId, activityId) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0 && JSON.parse(data).data === true) {
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0 && body.data === true) {
           _log.push(`🟢${eventName}: 成功`);
           _desc.push(`🟢${eventName}`);
         } else {
@@ -153,7 +171,7 @@ function _takeTask(queryStr, headers, taskName, taskId, activityId) {
 }
 
 async function doneTasks(queryStr, headers) {
-  tasks = await getTasks(queryStr, headers).then((tasks) => {
+  const tasks = await getTasks(queryStr, headers).then((tasks) => {
     tasks
       .filter((task) => task.buttonDesc === '去购物')
       .forEach((task) => {
@@ -168,15 +186,15 @@ async function doneTasks(queryStr, headers) {
     return tasks;
   });
 
-  for (task of tasks.filter((task) => task.buttonDesc === '去逛逛' && task.taskFinishCount < 2)) {
-    res = await browseGoods1(queryStr, headers);
+  for (const task of tasks.filter((task) => task.buttonDesc === '去逛逛' && task.taskFinishCount < 2)) {
+    const res = await browseGoods1(queryStr, headers);
     if (res) {
       await browseGoods2(queryStr, headers, task);
     }
   }
 
   // 防止漏网之鱼（记不清浏览后未领取时按钮是不是叫领奖励了）
-  for (task of tasks.filter((task) => task.buttonDesc === '领奖励')) {
+  for (const task of tasks.filter((task) => task.buttonDesc === '领奖励')) {
     await browseGoods2(queryStr, headers, task);
   }
 }
@@ -192,7 +210,8 @@ function browseGoods1(queryStr, headers) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0 && JSON.parse(data).data.serverTime) {
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0 && body.data.serverTime) {
           _log.push(`🟢${eventName}: 成功`);
           _desc.push(`🟢${eventName}`);
           resolve(true);
@@ -219,8 +238,9 @@ function browseGoods2(queryStr, headers, task) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0 && JSON.parse(data).data.result === true) {
-          _coin = JSON.parse(data).data.rewardValue;
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0 && body.data.result === true) {
+          const _coin = body.data.rewardValue;
           _coins += Number(_coin) || 0;
           _log.push(`🟢${eventName}: 获取${_coin}个买菜币`);
           _desc.push(`🟢${eventName}`);
@@ -238,7 +258,7 @@ function browseGoods2(queryStr, headers, task) {
 }
 
 async function popReward(queryStr, headers) {
-  checkInCount = await isPopReward(queryStr, headers);
+  const checkInCount = await isPopReward(queryStr, headers);
   if (checkInCount) {
     await getPopReward(queryStr, headers, checkInCount);
   }
@@ -254,10 +274,10 @@ function isPopReward(queryStr, headers) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0) {
-          isPopRewarded = JSON.parse(data).data.isPopRewarded;
-          checkInCount = JSON.parse(data).data.checkInCount;
-          rewardPackageTypes = JSON.parse(data).data.rewardPackageTypes || '';
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0) {
+          const checkInCount = body.data.checkInCount;
+          const rewardPackageTypes = body.data.rewardPackageTypes || '';
 
           if ([3, 7].indexOf(checkInCount) !== -1 && rewardPackageTypes.indexOf(checkInCount) === -1) {
             _log.push(`🟢${eventName}: ${checkInCount}天礼包可领取`);
@@ -293,9 +313,9 @@ function getPopReward(queryStr, headers, checkInCount) {
       riskMap: {
         platform: 5,
         app: 95,
-        utm_term: queryStr.match(/utm_term=(\w+)/)[1],
-        uuid: queryStr.match(/uuid=(\w+)/)[1],
-        utm_medium: queryStr.match(/utm_medium=(\w+)/)[1],
+        utm_term: getQueryParam(queryStr, 'utm_term'),
+        uuid: getQueryParam(queryStr, 'uuid'),
+        utm_medium: getQueryParam(queryStr, 'utm_medium'),
         fingerprint: '',
       },
     }),
@@ -304,12 +324,13 @@ function getPopReward(queryStr, headers, checkInCount) {
   return new Promise((resolve, reject) => {
     $.post(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0) {
-          _coin = JSON.parse(data).data.rewardValue;
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0) {
+          const _coin = body.data.rewardValue;
           _coins += Number(_coin) || 0;
           _log.push(`🟢${eventName}: 从${checkInCount}天礼包中获取${_coin}个买菜币`);
           _desc.push(`🟢${eventName}`);
-        } else if (response.statusCode === 200 && JSON.parse(data).code === 100 && !JSON.parse(data).data) {
+        } else if (response && response.statusCode === 200 && body.code === 100 && !body.data) {
           _log.push(`🟡${eventName}: ${checkInCount}天礼包已领取`);
         } else {
           throw error || data;
@@ -335,12 +356,13 @@ function totalCoins(queryStr, headers) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        if (response.statusCode === 200 && JSON.parse(data).code === 0) {
-          let totalCoins = JSON.parse(data).data.balance;
+        const body = parseJson(data);
+        if (response && response.statusCode === 200 && body.code === 0) {
+          let totalCoins = body.data.balance;
           _log.push(`🟢${eventName}: 当前共有${totalCoins}个买菜币`);
           resolve(totalCoins);
-        } else if (response.statusCode === 200 && JSON.parse(data).error.msg === '请重新登录') {
-          _log.push(`🔴${eventName}: ${response.statusCode} ${JSON.parse(data).error.msg}`);
+        } else if (response && response.statusCode === 200 && body.error && body.error.msg === '请重新登录') {
+          _log.push(`🔴${eventName}: ${response.statusCode} ${body.error.msg}`);
           resolve(-1);
         } else {
           throw error || data;
@@ -364,11 +386,12 @@ function coupons(queryStr, headers, totalCoins) {
   return new Promise((resolve, reject) => {
     $.get(option, (error, response, data) => {
       try {
-        couponList = JSON.parse(data).data;
-        if (response.statusCode === 200 && JSON.parse(data).code === 0 && couponList) {
+        const body = parseJson(data);
+        const couponList = body.data;
+        if (response && response.statusCode === 200 && body.code === 0 && couponList) {
           // checked=true表示符合兑换条件
-          _couponList = couponList.filter((coupon) => Number(totalCoins) * 100 > coupon.sellPrice);
-          amount = _couponList ? _couponList.length : 0;
+          const _couponList = couponList.filter((coupon) => Number(totalCoins) * 100 > coupon.sellPrice);
+          const amount = _couponList ? _couponList.length : 0;
           _log.push(`🟢${eventName}: ${amount}种优惠券可兑换`);
           resolve(amount);
         } else {
@@ -395,7 +418,7 @@ function coupons(queryStr, headers, totalCoins) {
       jojo_mall_meituan.xuuid,
       // headers.T || headers.t,
     ].join('&');
-    userId = queryStr.match(/userid=(\d+)/)[1];
+    userId = getQueryParam(queryStr, 'userid');
 
     let _headers = {
       Host: 'mall.meituan.com',
@@ -419,12 +442,12 @@ function coupons(queryStr, headers, totalCoins) {
       // await $.wait(16000);
       await doneTasks(queryStr, headers);
       await popReward(queryStr, headers);
-      totalCoins = await totalCoins(queryStr, headers);
-      amount = await coupons(queryStr, headers, totalCoins);
+      const totalCoinsNum = await totalCoins(queryStr, headers);
+      const amount = await coupons(queryStr, headers, totalCoinsNum);
       if (amount > 0) {
-        $.subt = `买菜币: ${totalCoins}(+${_coins.toFixed(2)}), 有优惠卷可兑`;
+        $.subt = `买菜币: ${totalCoinsNum}(+${_coins.toFixed(2)}), 有优惠卷可兑`;
       } else {
-        $.subt = `买菜币: ${totalCoins}(+${_coins.toFixed(2)})`;
+        $.subt = `买菜币: ${totalCoinsNum}(+${_coins.toFixed(2)})`;
       }
     }
   } else {

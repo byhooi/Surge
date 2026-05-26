@@ -1,3 +1,4 @@
+const SCRIPT_VERSION = "2026.05.26.1";
 const STORE_KEY = "digitalflag.checkin.request";
 const CHECKIN_URL = "https://www.digitalflag.cn/gateway/for-c/checkin";
 
@@ -70,9 +71,17 @@ function formatTime(seconds) {
 function captureRequest() {
   const headers = $request.headers || {};
   const authorization = getHeader(headers, "Authorization");
+  const previous = readStore();
 
   if (!authorization) {
     log("capture skipped, Authorization missing: " + $request.url);
+    $done({});
+    return;
+  }
+
+  const payload = decodeJwtPayload(authorization);
+  if (!payload || !payload.exp) {
+    log("capture skipped, Authorization is not a valid JWT: " + $request.url);
     $done({});
     return;
   }
@@ -95,12 +104,14 @@ function captureRequest() {
   };
 
   const ok = writeStore(saved);
-  const payload = decodeJwtPayload(authorization);
-  const expText = payload && payload.exp ? "exp: " + formatTime(payload.exp) : "exp: unknown";
+  const expText = "exp: " + formatTime(payload.exp);
+  const changed = !previous || !previous.headers || previous.headers.Authorization !== authorization;
 
   if (ok) {
     log("request headers updated, " + expText + ", source: " + $request.url);
-    $notification.post("Digitalflag Checkin", "Request headers updated", expText);
+    if (changed) {
+      $notification.post("Digitalflag Checkin", "Request headers updated", expText);
+    }
   } else {
     log("failed to write request headers to persistent store");
   }
@@ -118,8 +129,15 @@ function runCheckin() {
   }
 
   const payload = decodeJwtPayload(saved.headers.Authorization);
+  if (!payload || !payload.exp) {
+    log("saved Authorization is not a valid JWT");
+    $notification.post("Digitalflag Checkin", "Invalid Authorization", "Open the mini-program again to capture a fresh token.");
+    $done();
+    return;
+  }
+
   const now = Math.floor(Date.now() / 1000);
-  if (payload && payload.exp && payload.exp <= now) {
+  if (payload.exp <= now) {
     log("Authorization expired at " + formatTime(payload.exp));
     $notification.post("Digitalflag Checkin", "Authorization expired", "expired at: " + formatTime(payload.exp));
     $done();
@@ -139,11 +157,11 @@ function runCheckin() {
     headers
   };
 
-  log("sending checkin request, token " + (payload && payload.exp ? "exp: " + formatTime(payload.exp) : "exp: unknown") + ", captured: " + (saved.capturedAt || "unknown"));
+  log("sending checkin request, version: " + SCRIPT_VERSION + ", token exp: " + formatTime(payload.exp) + ", captured: " + (saved.capturedAt || "unknown"));
 
   $httpClient.get(options, (error, response, data) => {
     if (error) {
-      log(`request failed: ${String(error)}`);
+      log("request failed: " + String(error));
       $notification.post("Digitalflag Checkin", "Request failed", String(error));
       $done();
       return;
@@ -153,12 +171,20 @@ function runCheckin() {
     log("response status: " + status + ", body: " + (data || ""));
     let title = "Checkin request accepted";
     let message = data || "";
-    const expText = payload && payload.exp ? "exp: " + formatTime(payload.exp) : "exp: unknown";
+    const expText = "exp: " + formatTime(payload.exp);
     const capturedText = saved.capturedAt ? "captured: " + saved.capturedAt : "captured: unknown";
+
+    if (status === 401 || status === 403) {
+      $notification.post("Digitalflag Checkin", "Authorization rejected", "HTTP " + status + " | " + expText);
+      $done();
+      return;
+    }
 
     try {
       const body = JSON.parse(data || "{}");
-      title = body.code === "100000" ? "Checkin request accepted" : "Checkin returned error";
+      if (body.code && body.code !== "100000") {
+        title = "Checkin returned error";
+      }
       message = (body.message || data || "HTTP " + status) + " | " + expText + " | " + capturedText;
     } catch (e) {
       message = (data || "HTTP " + status) + " | " + expText + " | " + capturedText;

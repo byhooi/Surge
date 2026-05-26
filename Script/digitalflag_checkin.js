@@ -2,7 +2,9 @@ const STORE_KEY = "digitalflag.checkin.request";
 const CHECKIN_URL = "https://www.digitalflag.cn/gateway/for-c/checkin";
 
 function log(message) {
-  console.log(`[Digitalflag Checkin] ${message}`);
+  if (typeof console !== "undefined" && console.log) {
+    console.log("[Digitalflag Checkin] " + message);
+  }
 }
 
 function readStore() {
@@ -62,7 +64,7 @@ function formatTime(seconds) {
   if (!seconds) return "unknown";
   const date = new Date(seconds * 1000);
   const pad = n => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
 }
 
 function captureRequest() {
@@ -70,7 +72,7 @@ function captureRequest() {
   const authorization = getHeader(headers, "Authorization");
 
   if (!authorization) {
-    log(`capture skipped, Authorization missing: ${$request.url}`);
+    log("capture skipped, Authorization missing: " + $request.url);
     $done({});
     return;
   }
@@ -94,10 +96,10 @@ function captureRequest() {
 
   const ok = writeStore(saved);
   const payload = decodeJwtPayload(authorization);
-  const expText = payload && payload.exp ? `exp: ${formatTime(payload.exp)}` : "exp: unknown";
+  const expText = payload && payload.exp ? "exp: " + formatTime(payload.exp) : "exp: unknown";
 
   if (ok) {
-    log(`request headers updated, ${expText}, source: ${$request.url}`);
+    log("request headers updated, " + expText + ", source: " + $request.url);
     $notification.post("Digitalflag Checkin", "Request headers updated", expText);
   } else {
     log("failed to write request headers to persistent store");
@@ -118,8 +120,8 @@ function runCheckin() {
   const payload = decodeJwtPayload(saved.headers.Authorization);
   const now = Math.floor(Date.now() / 1000);
   if (payload && payload.exp && payload.exp <= now) {
-    log(`Authorization expired at ${formatTime(payload.exp)}`);
-    $notification.post("Digitalflag Checkin", "Authorization expired", `expired at: ${formatTime(payload.exp)}`);
+    log("Authorization expired at " + formatTime(payload.exp));
+    $notification.post("Digitalflag Checkin", "Authorization expired", "expired at: " + formatTime(payload.exp));
     $done();
     return;
   }
@@ -137,7 +139,7 @@ function runCheckin() {
     headers
   };
 
-  log(`sending checkin request, token ${payload && payload.exp ? `exp: ${formatTime(payload.exp)}` : "exp: unknown"}, captured: ${saved.capturedAt || "unknown"}`);
+  log("sending checkin request, token " + (payload && payload.exp ? "exp: " + formatTime(payload.exp) : "exp: unknown") + ", captured: " + (saved.capturedAt || "unknown"));
 
   $httpClient.get(options, (error, response, data) => {
     if (error) {
@@ -148,18 +150,18 @@ function runCheckin() {
     }
 
     const status = response ? response.status || response.statusCode : "no status";
-    log(`response status: ${status}, body: ${data || ""}`);
+    log("response status: " + status + ", body: " + (data || ""));
     let title = "Checkin request accepted";
     let message = data || "";
-    const expText = payload && payload.exp ? `exp: ${formatTime(payload.exp)}` : "exp: unknown";
-    const capturedText = saved.capturedAt ? `captured: ${saved.capturedAt}` : "captured: unknown";
+    const expText = payload && payload.exp ? "exp: " + formatTime(payload.exp) : "exp: unknown";
+    const capturedText = saved.capturedAt ? "captured: " + saved.capturedAt : "captured: unknown";
 
     try {
       const body = JSON.parse(data || "{}");
       title = body.code === "100000" ? "Checkin request accepted" : "Checkin returned error";
-      message = `${body.message || data || `HTTP ${status}`} | ${expText} | ${capturedText}`;
+      message = (body.message || data || "HTTP " + status) + " | " + expText + " | " + capturedText;
     } catch (e) {
-      message = `${data || `HTTP ${status}`} | ${expText} | ${capturedText}`;
+      message = (data || "HTTP " + status) + " | " + expText + " | " + capturedText;
     }
 
     $notification.post("Digitalflag Checkin", title, message);

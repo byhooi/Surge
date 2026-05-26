@@ -1,10 +1,10 @@
-const SCRIPT_VERSION = "2026.05.26.4";
+const SCRIPT_VERSION = "2026.05.26.5";
 const STORE_KEY = "digitalflag.checkin.request";
 const CHECKIN_URL = "https://www.digitalflag.cn/gateway/for-c/checkin";
 
 function log(message) {
   if (typeof console !== "undefined" && console.log) {
-    console.log("[Digitalflag Checkin] " + message);
+    console.log("[钧濠签到] " + message);
   }
 }
 
@@ -121,7 +121,7 @@ function captureRequest() {
     if (ok) {
       log("request headers updated, " + expText + ", source: " + $request.url);
       if (changed) {
-        $notification.post("Digitalflag Checkin", "Request headers updated", expText);
+        $notification.post("钧濠签到", "已获取令牌", expText);
       }
     } else {
       log("failed to write request headers to persistent store");
@@ -138,21 +138,21 @@ function runCheckin() {
     const saved = readStore();
     if (!saved || !saved.headers || !saved.headers.Authorization) {
       log("missing saved request headers");
-      $notification.post("Digitalflag Checkin", "Missing request headers", "Open the mini-program first to capture Authorization.");
+      $notification.post("钧濠签到", "未找到令牌", "请先打开小程序");
       return;
     }
 
     const payload = decodeJwtPayload(saved.headers.Authorization);
     if (!payload || !payload.exp) {
       log("saved Authorization is not a valid JWT");
-      $notification.post("Digitalflag Checkin", "Invalid Authorization", "Open the mini-program again to capture a fresh token.");
+      $notification.post("钧濠签到", "令牌无效", "请重新打开小程序获取");
       return;
     }
 
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp <= now) {
       log("Authorization expired at " + formatTime(payload.exp));
-      $notification.post("Digitalflag Checkin", "Authorization expired", "expired at: " + formatTime(payload.exp));
+      $notification.post("钧濠签到", "令牌已过期", formatTime(payload.exp));
       return;
     }
 
@@ -173,33 +173,30 @@ function runCheckin() {
       try {
         if (error) {
           log("request failed: " + String(error));
-          $notification.post("Digitalflag Checkin", "Request failed", String(error));
+          $notification.post("钧濠签到", "请求失败", String(error));
           return;
         }
 
         const status = response ? response.status || response.statusCode : "no status";
         log("response status: " + status + ", body: " + (data || ""));
-        let title = "Checkin request accepted";
-        let message = data || "";
-        const expText = "exp: " + formatTime(payload.exp);
-        const capturedText = saved.capturedAt ? "captured: " + saved.capturedAt : "captured: unknown";
-
         if (status === 401 || status === 403) {
-          $notification.post("Digitalflag Checkin", "Authorization rejected", "HTTP " + status + " | " + expText);
+          $notification.post("钧濠签到", "令牌被拒", "HTTP " + status);
           return;
         }
 
+        let title = "签到成功";
+        let message = "";
         try {
           const body = JSON.parse(data || "{}");
           if (body.code && body.code !== "100000") {
-            title = "Checkin returned error";
+            title = "签到失败";
           }
-          message = (body.message || data || "HTTP " + status) + " | " + expText + " | " + capturedText;
+          message = body.message || body.msg || "";
         } catch (e) {
-          message = (data || "HTTP " + status) + " | " + expText + " | " + capturedText;
+          message = data || "";
         }
 
-        $notification.post("Digitalflag Checkin", title, message);
+        $notification.post("钧濠签到", title, message);
       } catch (e) {
         log("callback error: " + String(e));
       } finally {
@@ -208,7 +205,7 @@ function runCheckin() {
     });
   } catch (e) {
     log("checkin error: " + String(e));
-    $notification.post("Digitalflag Checkin", "Script error", String(e));
+    $notification.post("钧濠签到", "脚本出错", String(e));
     $done();
   }
 }

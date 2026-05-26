@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = "2026.05.26.1";
+const SCRIPT_VERSION = "2026.05.26.3";
 const STORE_KEY = "digitalflag.checkin.request";
 const CHECKIN_URL = "https://www.digitalflag.cn/gateway/for-c/checkin";
 
@@ -30,21 +30,30 @@ function getHeader(headers, name) {
   return "";
 }
 
-function setHeader(headers, name, value) {
-  if (!value) return;
-  for (const key in headers) {
-    if (key.toLowerCase() === name.toLowerCase()) {
-      headers[key] = value;
-      return;
+function decodeBase64(input) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let str = String(input || "").replace(/=+$/, "");
+  let output = "";
+  let buffer = 0;
+  let bits = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    const value = chars.indexOf(str.charAt(i));
+    if (value < 0) continue;
+    buffer = (buffer << 6) | value;
+    bits += 6;
+
+    if (bits >= 8) {
+      bits -= 8;
+      output += String.fromCharCode((buffer >> bits) & 0xff);
     }
   }
-  headers[name] = value;
-}
 
-function decodeBase64(input) {
-  if (typeof atob === "function") return atob(input);
-  if (typeof Buffer !== "undefined") return Buffer.from(input, "base64").toString("utf8");
-  throw new Error("No base64 decoder");
+  try {
+    return decodeURIComponent(escape(output));
+  } catch (e) {
+    return output;
+  }
 }
 
 function decodeJwtPayload(token) {
@@ -64,7 +73,10 @@ function decodeJwtPayload(token) {
 function formatTime(seconds) {
   if (!seconds) return "unknown";
   const date = new Date(seconds * 1000);
-  const pad = n => String(n).padStart(2, "0");
+  const pad = n => {
+    const value = String(n);
+    return value.length < 2 ? "0" + value : value;
+  };
   return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
 }
 
@@ -99,7 +111,7 @@ function captureRequest() {
       "content-type": getHeader(headers, "content-type") || "application/json;charset=UTF-8",
       "User-Agent": getHeader(headers, "User-Agent"),
       "Referer": getHeader(headers, "Referer"),
-      "Accept-Encoding": "gzip,compress,br,deflate"
+      "Accept-Encoding": "gzip,deflate"
     }
   };
 
@@ -148,8 +160,6 @@ function runCheckin() {
   Object.keys(saved.headers).forEach(key => {
     if (saved.headers[key]) headers[key] = saved.headers[key];
   });
-
-  setHeader(headers, "Connection", "keep-alive");
 
   const options = {
     url: CHECKIN_URL,

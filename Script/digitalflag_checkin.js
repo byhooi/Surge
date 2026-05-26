@@ -4,7 +4,7 @@ const CHECKIN_URL = "https://www.digitalflag.cn/gateway/for-c/checkin";
 
 function log(message) {
   if (typeof console !== "undefined" && console.log) {
-    console.log("[钧濠签到] " + message);
+    console.log("[MixPark 自动签到] " + message);
   }
 }
 
@@ -121,7 +121,7 @@ function captureRequest() {
     if (ok) {
       log("request headers updated, " + expText + ", source: " + $request.url);
       if (changed) {
-        $notification.post("钧濠签到", "已获取令牌", expText);
+        $notification.post("MixPark 自动签到", "已获取令牌", expText);
       }
     } else {
       log("failed to write request headers to persistent store");
@@ -138,21 +138,21 @@ function runCheckin() {
     const saved = readStore();
     if (!saved || !saved.headers || !saved.headers.Authorization) {
       log("missing saved request headers");
-      $notification.post("钧濠签到", "未找到令牌", "请先打开小程序");
+      $notification.post("MixPark 自动签到", "未找到令牌", "请先打开小程序");
       return;
     }
 
     const payload = decodeJwtPayload(saved.headers.Authorization);
     if (!payload || !payload.exp) {
       log("saved Authorization is not a valid JWT");
-      $notification.post("钧濠签到", "令牌无效", "请重新打开小程序获取");
+      $notification.post("MixPark 自动签到", "令牌无效", "请重新打开小程序获取");
       return;
     }
 
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp <= now) {
       log("Authorization expired at " + formatTime(payload.exp));
-      $notification.post("钧濠签到", "令牌已过期", formatTime(payload.exp));
+      $notification.post("MixPark 自动签到", "令牌已过期", formatTime(payload.exp));
       return;
     }
 
@@ -173,14 +173,14 @@ function runCheckin() {
       try {
         if (error) {
           log("request failed: " + String(error));
-          $notification.post("钧濠签到", "请求失败", String(error));
+          $notification.post("MixPark 自动签到", "请求失败", String(error));
           return;
         }
 
         const status = response ? response.status || response.statusCode : "no status";
         log("response status: " + status + ", body: " + (data || ""));
         if (status === 401 || status === 403) {
-          $notification.post("钧濠签到", "令牌被拒", "HTTP " + status);
+          $notification.post("MixPark 自动签到", "令牌被拒", "HTTP " + status);
           return;
         }
 
@@ -196,7 +196,7 @@ function runCheckin() {
           message = data || "";
         }
 
-        $notification.post("钧濠签到", title, message);
+        $notification.post("MixPark 自动签到", title, message);
       } catch (e) {
         log("callback error: " + String(e));
       } finally {
@@ -205,7 +205,7 @@ function runCheckin() {
     });
   } catch (e) {
     log("checkin error: " + String(e));
-    $notification.post("钧濠签到", "脚本出错", String(e));
+    $notification.post("MixPark 自动签到", "脚本出错", String(e));
     $done();
   }
 }

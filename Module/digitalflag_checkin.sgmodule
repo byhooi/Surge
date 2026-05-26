@@ -1,5 +1,6 @@
 #!name=Digitalflag Checkin
 #!desc=Capture latest request headers for www.digitalflag.cn and run scheduled checkin with fresh Authorization.
+#!category=🎈 Bingo
 #!system=ios
 
 [Script]

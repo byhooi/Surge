@@ -1,6 +1,10 @@
 const STORE_KEY = "digitalflag.checkin.request";
 const CHECKIN_URL = "https://www.digitalflag.cn/gateway/for-c/checkin";
 
+function log(message) {
+  console.log(`[Digitalflag Checkin] ${message}`);
+}
+
 function readStore() {
   const raw = $persistentStore.read(STORE_KEY);
   if (!raw) return null;
@@ -66,6 +70,7 @@ function captureRequest() {
   const authorization = getHeader(headers, "Authorization");
 
   if (!authorization) {
+    log(`capture skipped, Authorization missing: ${$request.url}`);
     $done({});
     return;
   }
@@ -92,7 +97,10 @@ function captureRequest() {
   const expText = payload && payload.exp ? `exp: ${formatTime(payload.exp)}` : "exp: unknown";
 
   if (ok) {
+    log(`request headers updated, ${expText}, source: ${$request.url}`);
     $notification.post("Digitalflag Checkin", "Request headers updated", expText);
+  } else {
+    log("failed to write request headers to persistent store");
   }
 
   $done({});
@@ -101,6 +109,7 @@ function captureRequest() {
 function runCheckin() {
   const saved = readStore();
   if (!saved || !saved.headers || !saved.headers.Authorization) {
+    log("missing saved request headers");
     $notification.post("Digitalflag Checkin", "Missing request headers", "Open the mini-program first to capture Authorization.");
     $done();
     return;
@@ -109,6 +118,7 @@ function runCheckin() {
   const payload = decodeJwtPayload(saved.headers.Authorization);
   const now = Math.floor(Date.now() / 1000);
   if (payload && payload.exp && payload.exp <= now) {
+    log(`Authorization expired at ${formatTime(payload.exp)}`);
     $notification.post("Digitalflag Checkin", "Authorization expired", `expired at: ${formatTime(payload.exp)}`);
     $done();
     return;
@@ -127,14 +137,18 @@ function runCheckin() {
     headers
   };
 
+  log(`sending checkin request, token ${payload && payload.exp ? `exp: ${formatTime(payload.exp)}` : "exp: unknown"}, captured: ${saved.capturedAt || "unknown"}`);
+
   $httpClient.get(options, (error, response, data) => {
     if (error) {
+      log(`request failed: ${String(error)}`);
       $notification.post("Digitalflag Checkin", "Request failed", String(error));
       $done();
       return;
     }
 
     const status = response ? response.status || response.statusCode : "no status";
+    log(`response status: ${status}, body: ${data || ""}`);
     let title = "Checkin request accepted";
     let message = data || "";
     const expText = payload && payload.exp ? `exp: ${formatTime(payload.exp)}` : "exp: unknown";

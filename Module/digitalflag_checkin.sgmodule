@@ -1,14 +1,13 @@
 #!name=Digitalflag Checkin
 #!desc=Capture latest request headers for www.digitalflag.cn and run scheduled checkin with fresh Authorization.
+#!arguments=禁用脚本:获取钧濠CK,禁用MITM:hostname
 #!category=🎈 Bingo
 #!system=ios
 
 [Script]
-# Capture Authorization and tenant context from mini-program gateway requests.
-Digitalflag Capture = type=http-request, pattern=^https:\/\/www\.digitalflag\.cn\/gateway\/for-c\/checkin\/fetch-checkin-config(?:\?|$), script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/digitalflag_checkin.js, requires-body=0, timeout=5, engine=jsc
+{{{禁用脚本}}} = type=http-request, pattern=^https:\/\/www\.digitalflag\.cn\/gateway\/for-c\/checkin\/fetch-checkin-config(?:\?|$), script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/digitalflag_checkin.js, requires-body=0, timeout=5, engine=jsc
 
-# Daily checkin at 09:05. Change cronexp if needed.
 Digitalflag Checkin = type=cron, cronexp="5 9 * * *", script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/digitalflag_checkin.js, timeout=30, argument=checkin, engine=jsc
 
 [MITM]
-hostname = %APPEND% www.digitalflag.cn
+{{{禁用MITM}}} = %APPEND% www.digitalflag.cn

@@ -266,6 +266,36 @@
         "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tuhu.png",
         "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tuhu.png"
       ]
+    },
+    {
+      "id": "byhooi_surge",
+      "name": "Surge通用重放模块",
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/githubdulong/Script/master/Images/Surge_logo.png",
+        "https://raw.githubusercontent.com/githubdulong/Script/master/Images/Surge_logo.png"
+      ],
+      "keys": [
+        "byhooi_surge_retry",
+        "@byhooi.record"
+      ],
+      "scripts": [
+        {
+          "name": "手动执行多账号重放(填写ckName，保存，执行)",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/surgeRecordMulti.js"
+        }
+      ],
+      "settings": [
+        {
+          "id": "byhooi_surge_retry",
+          "name": "ckName",
+          "val": "",
+          "type": "text",
+          "autoGrow": true,
+          "desc": "填入需要运行重放模块的ckName"
+        }
+      ]
     }
   ]
 }

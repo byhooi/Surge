@@ -1,0 +1,9 @@
+# ---- 富途 & Moomoo 分流规则 (Surge RULE-SET List) ----
+# 适用场景：Surge, Shadowrocket (Rule-Set)
+# 包含富途牛牛、国际版Moomoo的核心登录、行情、交易及社区域名
+
+DOMAIN-SUFFIX,futunn.com
+DOMAIN-SUFFIX,moomoo.com
+DOMAIN-SUFFIX,futuholdings.com
+DOMAIN-SUFFIX,futuhk.com
+DOMAIN-SUFFIX,futufin.com

@@ -1,0 +1,10 @@
+# ---- 富途 & Moomoo 分流规则 (Clash Rule Providers YAML) ----
+# 适用场景：Clash Premium, Clash Meta (Mihomo), OpenClash
+# 可作为 Rule Provider 引用，或者直接复制到 rules 数组中
+
+payload:
+  - 'DOMAIN-SUFFIX,futunn.com'
+  - 'DOMAIN-SUFFIX,moomoo.com'
+  - 'DOMAIN-SUFFIX,futuholdings.com'
+  - 'DOMAIN-SUFFIX,futuhk.com'
+  - 'DOMAIN-SUFFIX,futufin.com'

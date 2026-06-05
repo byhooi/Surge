@@ -17,10 +17,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 1. 目录结构
 
-- **Module/** - Surge 模块文件 (`.sgmodule`)，定义 HTTP 拦截规则和脚本绑定（15 个模块）
-- **Script/** - JavaScript 脚本文件，实现具体业务逻辑（8 个核心脚本）
+- **Module/** - Surge 模块文件 (`.sgmodule`)，定义 HTTP 拦截规则和脚本绑定（26 个模块）
+- **Script/** - JavaScript 脚本文件，实现具体业务逻辑（19 个脚本）
 - **boxjs/** - BoxJS 配置文件 (`byhooi.boxjs.json`)，提供 Web UI 配置界面
-- **Rule/** - 规则列表文件目录（当前为空，只有 Backup）
+- **Rule/** - Surge/Clash 分流规则（如 futu_clash.yaml、futu_surge.list）
 - **icon/** - 图标资源（用于 BoxJS 应用图标）
 - **Backup/** - 各目录下的旧版本或备用脚本（不再维护）
 
@@ -191,11 +191,10 @@ grep "SCRIPT_VERSION" Script/*.js  # 搜索所有脚本的版本号
 
 ### Git 提交规范
 
-根据最近提交历史，使用以下前缀:
-- `feat:` - 新功能
-- `fix:` - Bug 修复
+提交消息使用中文，格式为 `type: 描述` 或 `type(scope): 描述`：
+- `feat:` / `feat(scope):` - 新功能（如 `feat(meituan):`）
+- `fix:` / `fix(scope):` - Bug 修复（如 `fix(digitalflag):`）
 - `refactor:` - 代码重构
-- `debug:` - 调试相关
 - `chore:` - 构建/工具相关
 
 ### 脚本开发规范
@@ -306,6 +305,13 @@ if (Date.now() - $.jd_temp.ts >= 15000) {
 - 问题排查时的版本追溯
 
 ### 测试调试
+
+#### 语法检查
+提交前至少运行语法检查：
+```bash
+node --check Script/文件名.js
+```
+这是当前唯一的自动化验证手段，不能替代 Surge 运行测试。
 
 #### 本地调试
 1. 修改脚本中的 `is_debug` 配置启用详细日志：

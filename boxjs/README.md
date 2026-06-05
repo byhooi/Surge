@@ -2,238 +2,96 @@
 
 ## 订阅地址
 
-```
+```text
 https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 ```
 
-## 功能概览
+在 BoxJS 中添加该订阅后，可以查看脚本写入的持久化数据、填写青龙面板配置、调整跳绳参数，并手动执行同步或清理脚本。
 
-本订阅包含以下应用：
+## 应用列表
 
-1. **京东 WSKEY 青龙同步** - 自动获取京东 WSKEY 并同步到青龙面板
-2. **京东 Cookie 青龙同步** - 自动获取京东 Cookie 并同步到青龙面板
-3. **AI运动跳绳统计参数** - 跳绳数据分析和考核判定
-4. **伴生活 Token 管理** - 自动捕获和存储 Token
-5. **途虎养车 Token 管理** - 自动捕获和存储途虎 Token
+| 应用 | ID | 主要 key | 说明 |
+| --- | --- | --- | --- |
+| 京东 Cookie 青龙同步 | `byhooi_jdcookie_ql` | `jdCookieList`、`ql_url`、`ql_client_id`、`ql_client_secret` | 手动同步 Cookie 到青龙 `JD_COOKIE` |
+| 京东 WSKEY 青龙同步 | `byhooi_wskey_ql` | `wskeyList`、`ql_url`、`ql_client_id`、`ql_client_secret` | 手动同步 WSKEY 到青龙 `JD_WSCK` |
+| 跳绳参数 | `byhooi_videourl_config` | `DEFAULT_REQUIRED_QUALIFIED_COUNT`、`QUALIFIED_THRESHOLD`、`EXCELLENT_THRESHOLD` | 配置 `VideoUrl.js` 判定阈值 |
+| 跳绳日志 | `byhooi_videourl_logs` | `videourl_logs` | 查看最新一次跳绳统计日志 |
+| 伴生活 Token 管理 | `bsh_token_manager` | `token` | 查看或手动修改 `bsh.js` 捕获的 Token |
+| 途虎养车 Token 管理 | `tuhu_token_manager` | `tuhu_token` | 查看或手动修改 `tuhu.js` 捕获的 Token |
+| Surge 通用重放模块 | `byhooi_surge` | `byhooi_surge_retry`、`@byhooi.record` | 配置并执行多账号请求重放 |
 
----
+## 京东青龙同步
 
-## 一、京东 WSKEY 青龙同步
+### 前置条件
 
-### 使用步骤
+1. 在 Surge 安装 `Module/jdcookie.sgmodule` 或 `Module/wskey.sgmodule`。
+2. 在京东 App 中登录账号并触发对应请求，使脚本写入 `jdCookieList` 或 `wskeyList`。
+3. 在青龙面板“系统设置 -> 应用设置”中新建应用，授予环境变量的查看、新增、更新权限。
 
-#### 1. 安装 BoxJS 订阅
+### BoxJS 配置
 
-在 BoxJS 中添加订阅地址（见上方）
+在“京东 Cookie 青龙同步”或“京东 WSKEY 青龙同步”中填写：
 
-#### 2. 配置青龙面板
+| 配置项 | 示例 | 说明 |
+| --- | --- | --- |
+| 青龙面板地址 | `http://192.168.1.100:5700` | 不要遗漏协议和端口 |
+| 青龙 Client ID | `xxxx` | 从青龙应用设置复制 |
+| 青龙 Client Secret | `xxxx` | 从青龙应用设置复制 |
+| Cookie/WSKEY 列表 | 自动写入 | 通常不要手动改 JSON 结构 |
 
-#### 2.1 创建应用
+填写后点击“同步 Cookie 到青龙”或“同步 WSKEY 到青龙”。脚本会自动获取并缓存青龙 Token，过期后重新登录。
 
-1. 登录青龙面板
-2. 进入 **系统设置** → **应用设置**
-3. 点击 **新建应用**
-4. 填写应用名称（如：Surge WSKEY 同步）
-5. 选择权限：
-   - ✅ 环境变量
-   - ✅ 查看
-   - ✅ 新增
-   - ✅ 更新
-6. 保存后会获得 `Client ID` 和 `Client Secret`
+### 青龙变量格式
 
-#### 2.2 在 BoxJS 中配置
+| 类型 | 变量名 | 变量值 |
+| --- | --- | --- |
+| Cookie | `JD_COOKIE` | `pt_key=xxx;pt_pin=xxx;` |
+| WSKEY | `JD_WSCK` | `pin=用户名; wskey=xxxxx;` |
 
-打开 BoxJS → **京东 WSKEY 青龙同步** → 填写以下信息：
+同步脚本会按用户标识判断新增、更新或跳过，避免重复写入。
 
-| 配置项 | 说明 | 示例 |
-|--------|------|------|
-| 青龙面板地址 | 青龙面板的完整 URL | `http://192.168.1.100:5700` |
-| Client ID | 应用的 Client ID | 从青龙面板复制 |
-| Client Secret | 应用的 Client Secret | 从青龙面板复制 |
-| 自动同步到青龙 | 开启后获取 WSKEY 时自动同步 | 建议开启 |
-| 同步间隔 | 自动同步的时间间隔(分钟) | 默认 60 分钟 |
+## 跳绳参数与日志
 
-#### 3. 获取 WSKEY
+`VideoUrl.js` 会读取以下配置：
 
-1. 确保 Surge 已安装 `wskey.sgmodule` 模块
-2. 在京东 APP 中登录账号
-3. 访问京东相关页面触发抓取
-4. 在 BoxJS 中查看获取到的 WSKEY 列表
+| key | 默认值 | 说明 |
+| --- | --- | --- |
+| `DEFAULT_REQUIRED_QUALIFIED_COUNT` | `3` | 达成多少次合格视为通过 |
+| `QUALIFIED_THRESHOLD` | `195` | 一分钟跳绳数达到该值计为合格 |
+| `EXCELLENT_THRESHOLD` | `200` | 一分钟跳绳数达到该值计为优秀 |
 
-#### 4. 同步到青龙
+安装 `Module/VideoUrl.sgmodule` 后，访问跳绳记录页面即可触发分析。最新结果会写入 `videourl_logs`，并显示在“跳绳日志”应用中。
 
-**方法一：自动同步（推荐）**
+## Token 管理
 
-开启 **自动同步到青龙** 选项，获取到新的 WSKEY 后会自动同步。
+`bsh.js` 会将伴生活 Token 写入 `token`，`tuhu.js` 会将途虎 Token 写入 `tuhu_token`。如果脚本自动捕获失败，可以在 BoxJS 中手动粘贴最新 Token；不要把这些值提交到仓库或公开日志。
 
-**方法二：手动同步**
+## Surge 通用重放模块
 
-1. 打开 BoxJS
-2. 进入 **京东 WSKEY 青龙同步**
-3. 点击 **同步 WSKEY 到青龙** 按钮
+“Surge 通用重放模块”用于执行 `Script/surgeRecordMulti.js`。常见流程：
 
-#### 5. 其他功能
+1. 通过对应模块或脚本抓取请求记录，保存到 `@byhooi.record`。
+2. 在 BoxJS 的 `ckName` 中填写需要重放的记录名。
+3. 点击“手动执行多账号重放”。
 
-**清空 WSKEY 列表**
+脚本支持多账号、重试次数、间隔和响应路径提取等参数。修改记录数据前先备份，避免 JSON 结构损坏导致重放失败。
 
-- 用途：清空本地存储的所有 WSKEY
-- 操作：点击 **清空 WSKEY 列表** 按钮
-- 说明：清空后不影响青龙面板中已同步的数据
+## 发票功能说明
 
-**关于青龙 Token**
+京东和美团发票模块不依赖 BoxJS 应用，数据写入 Surge 持久化存储，并通过本地接口供快捷指令读取：
 
-- Token 由同步脚本自动管理，有效期 7 天，脚本会在 6.5 天时自动刷新
-- 无需手动操作，Token 失效时会自动重新获取
+```text
+http://jd.invoice.local/get
+http://jd.invoice.local/clear
+http://meituan.invoice.local/get
+http://meituan.invoice.local/clear
+```
 
-### 青龙面板变量说明
+安装 `Module/jd_invoice.sgmodule` 或 `Module/meituan_invoice.sgmodule` 后，打开对应发票页面即可捕获链接。通知会尝试唤起“批量保存京东发票”或“批量保存美团发票”快捷指令。
 
-同步到青龙后，环境变量格式：
+## 排查建议
 
-- **变量名**：`JD_WSCK`
-- **变量值**：`pin=用户名; wskey=xxxxx;`
-- **备注**：`用户名 - 由 Surge 同步`
-
-### 常见问题
-
-**Q: 同步失败怎么办？**
-
-1. 检查青龙面板地址是否正确（注意端口号）
-2. 检查 Client ID 和 Client Secret 是否正确
-3. 检查青龙面板应用权限是否包含环境变量的查看、新增、更新
-4. 查看 Surge 日志了解详细错误信息
-
-### Q: 如何知道同步成功？
-
-1. 查看 Surge 通知
-2. 登录青龙面板，在环境变量中查看 `JD_WSCK` 变量
-3. 备注中会显示 "由 Surge 同步" 字样
-
-### Q: WSKEY 会重复添加吗？
-
-不会。脚本会根据 `pt_pin`（用户名）自动判断：
-- 如果是新用户，会添加新的环境变量
-- 如果用户已存在但 WSKEY 变化，会更新现有变量
-- 如果 WSKEY 未变化，会跳过同步
-
-### Q: 支持多账号吗？
-
-支持。可以获取多个京东账号的 WSKEY，每个账号会作为独立的环境变量同步到青龙。
-
-## 注意事项
-
-1. **安全性**：请妥善保管 Client ID 和 Client Secret
-2. **网络**：确保运行 Surge 的设备能访问青龙面板地址
-3. **频率**：建议同步间隔不要设置太短，避免对青龙面板造成压力
-4. **备份**：定期备份青龙面板数据，避免数据丢失
-
-## 文件说明
-
-| 文件 | 说明 |
-|------|------|
-| `wskey.sgmodule` | Surge 模块，用于获取 WSKEY |
-| `wskey.js` | WSKEY 获取脚本 |
-| `wskey_ql_sync.js` | 青龙同步脚本（内置自动 Token 管理） |
-| `wskey_clear.js` | 清空 WSKEY 列表脚本 |
-| `byhooi.boxjs.json` | BoxJS 配置文件 |
-
-## 更新日志
-
-### v1.1.0
-- 移除"获取青龙 Token"按钮，Token 完全自动管理
-- 简化 BoxJS 配置界面，隐藏技术细节字段
-- 优化用户体验，减少不必要的手动操作
-
-### v1.0.0
-- 初始版本
-- 支持自动/手动同步 WSKEY 到青龙
-- 支持多账号管理
-- 自动判断新增/更新/跳过
-
-## 致谢
-
-- 参考了 [@Sliverkiss](https://github.com/Sliverkiss) 的青龙同步配置
-- 感谢京东脚本开发者们的贡献
-
-## 许可
-
-MIT License
-
----
-
-## 二、京东 Cookie 青龙同步
-
-### 功能说明
-
-与 WSKEY 同步类似，但获取的是完整的京东 Cookie（包含 `pt_key` 和 `pt_pin`）。
-
-### 配置说明
-
-1. 安装 `jdcookie.sgmodule` 模块
-2. 配置方式与 WSKEY 同步完全相同（共享青龙面板配置）
-3. 同步到青龙的环境变量名为 `JD_COOKIE`
-4. 变量格式：`pt_key=xxx;pt_pin=xxx;`
-
-### 使用场景
-
-- 某些京东脚本需要完整 Cookie 而不是 WSKEY
-- Cookie 有效期较短，需要更频繁更新
-
----
-
-## 三、AI运动跳绳统计参数
-
-### 功能说明
-
-分析跳绳运动数据，自动判定考核结果并记录日志。
-
-### 配置项
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| 默认合格次数 | 3 | 满足多少次合格视为通过 |
-| 达标跳绳数阈值 | 195 | 一分钟跳绳数达到该值计为合格 |
-| 优秀跳绳数阈值 | 200 | 一分钟跳绳数达到该值计为优秀 |
-| 日志输出 | - | 自动显示最新一次运行日志（每次覆盖） |
-
-### 判定规则
-
-- 有优秀成绩可减少 1 次合格要求
-- 脚本自动分析响应数据并推送通知
-- 日志包含：执行时间、考核结果、跳绳数据、视频链接
-
-### 使用方法
-
-1. 安装 `VideoUrl.sgmodule` 模块
-2. 在 BoxJS 中调整阈值参数（可选）
-3. 访问跳绳记录页面，脚本自动拦截并分析
-4. 查看通知或 BoxJS 日志了解结果
-
----
-
-## 四、伴生活 Token 管理
-
-### 功能说明
-
-自动捕获 HTTP 请求头中的 `token` 字段变化并持久化存储。
-
-### 使用方法
-
-1. 安装 `bsh.sgmodule` 模块
-2. 访问伴生活相关页面
-3. Token 自动写入 BoxJS 的 `token` 字段
-4. 可在 BoxJS 中查看或手动修改
-
----
-
-## 五、途虎养车 Token 管理
-
-### 功能说明
-
-自动捕获途虎养车相关的 `token` 并持久化存储。
-
-### 使用方法
-
-1. 安装 `tuhu.sgmodule` 模块
-2. 访问途虎养车相关页面或小程序
-3. Token 自动写入 BoxJS 的 `tuhu_token` 字段
-4. 可在 BoxJS 中查看或手动修改
+- BoxJS 没有数据：先确认 Surge 模块已启用，并检查 MITM 域名是否生效。
+- 青龙同步失败：检查面板地址、应用权限、Client ID 和 Client Secret。
+- JSON 列表异常：优先使用清空按钮重置，不要手动删除部分括号或引号。
+- 远程脚本未更新：在 Surge 中手动更新模块，或等待 GitHub raw/CDN 缓存刷新。

@@ -1,278 +1,127 @@
 # Surge 脚本与模块集合
 
-> 自动化 HTTP 拦截、数据提取和远程同步工具集
+> 面向 Surge 的 HTTP 拦截、数据提取、签到、发票捕获和 BoxJS 配置集合。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-Surge-orange.svg)](https://nssurge.com/)
 
 ## 项目简介
 
-这是一个基于 Surge 的脚本和模块集合仓库，提供以下核心功能：
+本仓库维护一组 Surge 模块、JavaScript 脚本、BoxJS 订阅和分流规则。常见用途包括：
 
-- 🛒 **京东账号管理** - 自动获取 WSKEY/Cookie 并同步到青龙面板
-- 🏃 **跳绳统计分析** - 运动数据分析和考核结果判定
-- 🔐 **通用 Token 管理** - 自动捕获和存储 HTTP 请求中的 Token
-- 🔄 **多服务拦截** - 支持美团、高德地图等多个服务的数据拦截
+- 京东 WSKEY/Cookie 获取，并手动同步到青龙面板
+- 京东和美团发票链接捕获，供快捷指令批量保存
+- 跳绳记录分析和 BoxJS 阈值配置
+- 伴生活、途虎等服务的 Token 捕获和签到
+- 菜鸟、CamScanner、GitHub 429、Google 搜索等功能模块
+- 富途/Moomoo 的 Surge 与 Clash 分流规则
 
-**核心设计模式**：`Surge 拦截 → 数据提取 → 持久化存储 (BoxJS) → 远程同步 (可选)`
+基础流程：`Surge 模块拦截请求 -> Script 脚本处理数据 -> $persistentStore 持久化 -> BoxJS 查看或手动执行脚本`。
 
 ## 快速开始
 
-### 1. 安装 BoxJS 订阅
+### 1. 添加 BoxJS 订阅
 
-在 BoxJS 中添加以下订阅地址：
-
-```
+```text
 https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 ```
+
+BoxJS 主要用于查看保存的数据、配置青龙参数、调整跳绳阈值，以及手动执行同步/清理脚本。详细说明见 [boxjs/README.md](boxjs/README.md)。
 
 ### 2. 安装 Surge 模块
 
 在 Surge 中添加所需模块，例如：
 
-**京东 WSKEY 获取**：
-```
+```text
 https://raw.githubusercontent.com/byhooi/Surge/main/Module/wskey.sgmodule
-```
-
-**京东 Cookie 获取**：
-```
 https://raw.githubusercontent.com/byhooi/Surge/main/Module/jdcookie.sgmodule
-```
-
-**跳绳统计**：
-```
+https://raw.githubusercontent.com/byhooi/Surge/main/Module/jd_invoice.sgmodule
+https://raw.githubusercontent.com/byhooi/Surge/main/Module/meituan_invoice.sgmodule
 https://raw.githubusercontent.com/byhooi/Surge/main/Module/VideoUrl.sgmodule
 ```
 
+安装后按模块要求开启 MITM，并确认 `[MITM] hostname` 中的域名已生效。
+
 ### 3. 配置青龙面板（可选）
 
-如需自动同步到青龙面板：
+如需同步京东变量到青龙：
 
-1. 登录青龙面板 → **系统设置** → **应用设置**
-2. 创建新应用，选择环境变量权限（查看、新增、更新）
-3. 获取 `Client ID` 和 `Client Secret`
-4. 在 BoxJS 对应应用中填写青龙面板配置
+1. 在青龙面板进入“系统设置 -> 应用设置”。
+2. 创建应用并授予环境变量的查看、新增、更新权限。
+3. 复制 `Client ID` 和 `Client Secret`。
+4. 在 BoxJS 的“京东 Cookie 青龙同步”或“京东 WSKEY 青龙同步”中填写配置。
+5. 获取 Cookie/WSKEY 后，在 BoxJS 点击同步按钮。
 
-详细配置步骤请查看 [BoxJS 使用说明](boxjs/README.md)
-
-## 主要功能
-
-### 京东账号管理
+## 主要模块
 
 | 功能 | 模块 | 脚本 | 说明 |
-|------|------|------|------|
-| WSKEY 获取 | `wskey.sgmodule` | `wskey.js` | 拦截京东 APP 请求获取 WSKEY |
-| WSKEY 同步 | - | `wskey_ql_sync.js` | 同步到青龙面板（环境变量：`JD_WSCK`） |
-| Cookie 获取 | `jdcookie.sgmodule` | `jdcookie.js` | 获取完整京东 Cookie |
-| Cookie 同步 | - | `jdcookie_ql_sync.js` | 同步到青龙面板（环境变量：`JD_COOKIE`） |
+| --- | --- | --- | --- |
+| 京东 WSKEY | `Module/wskey.sgmodule` | `Script/wskey.js` | 捕获 `pt_pin` 和 `wskey` |
+| 京东 Cookie | `Module/jdcookie.sgmodule` | `Script/jdcookie.js` | 捕获 `pt_key` 和 `pt_pin` |
+| 青龙同步 | BoxJS 手动脚本 | `Script/wskey_ql_sync.js`、`Script/jdcookie_ql_sync.js` | 写入 `JD_WSCK`、`JD_COOKIE` |
+| 京东发票 | `Module/jd_invoice.sgmodule` | `Script/jd_invoice*.js` | 捕获 PDF 链接，提供本地读取/清空 API |
+| 美团发票 | `Module/meituan_invoice.sgmodule` | `Script/meituan_invoice*.js` | 捕获 PNG 链接，提供本地读取/清空 API |
+| 跳绳统计 | `Module/VideoUrl.sgmodule` | `Script/VideoUrl.js` | 分析记录、推送结果、写入日志 |
+| 途虎养车 | `Module/tuhu.sgmodule` | `Script/tuhu.js` | Token 捕获和定时签到 |
+| 通用重放 | BoxJS 应用 | `Script/surgeRecordMulti.js` | 多账号请求重放 |
 
-**特点**：
-- ✅ 自动判断新增/更新/跳过，避免重复
-- ✅ 内置 Token 自动刷新机制（有效期 7 天）
-- ✅ 支持多账号管理
-- ✅ 按 `pt_pin` 自动识别用户
+发票快捷指令可读取以下本地接口：
 
-### 跳绳统计分析
-
-**模块**：`VideoUrl.sgmodule`
-**脚本**：`VideoUrl.js`
-
-**功能**：
-- 自动分析运动记录数据
-- 计算总跳绳数、总时间、合格次数
-- 判定考核结果（有优秀成绩可减少 1 次合格要求）
-- 推送通知并记录日志到 BoxJS
-
-**可配置参数**（通过 BoxJS）：
-- 默认合格次数（默认：3）
-- 达标阈值（默认：195）
-- 优秀阈值（默认：200）
-
-### 其他功能模块
-
-- **美团买菜** (`meituan.sgmodule`) - 买菜币相关数据获取
-- **高德地图** (`amap.sgmodule`) - 地图相关数据拦截
-- **GitHub 优化** (`github429.sgmodule`) - 解决 GitHub 429 错误
-- **Google 搜索** (`googlesearch.sgmodule`) - 搜索体验优化
-- **伴生活 Token** (`bsh.sgmodule` + `bsh.js`) - 自动捕获 Token
-- **途虎养车 Token** (`tuhu.sgmodule` + `tuhu.js`) - 自动捕获途虎 Token
-
-查看 [完整模块列表](Module/)
+```text
+http://jd.invoice.local/get
+http://jd.invoice.local/clear
+http://meituan.invoice.local/get
+http://meituan.invoice.local/clear
+```
 
 ## 目录结构
 
-```
+```text
 .
-├── Module/          # Surge 模块文件 (.sgmodule) - 15 个模块
-├── Script/          # JavaScript 脚本 - 8 个核心脚本
-├── boxjs/           # BoxJS 配置文件
-│   ├── byhooi.boxjs.json  # 订阅配置
-│   └── README.md           # 详细使用说明
-├── icon/            # 图标资源
-├── Rule/            # 规则列表文件
-├── Backup/          # 备份文件
-└── CLAUDE.md        # 开发者文档
+├── Module/                 # Surge 模块文件
+├── Script/                 # Surge/BoxJS JavaScript 脚本
+├── boxjs/                  # BoxJS 订阅和使用说明
+├── Rule/                   # Surge/Clash 分流规则
+├── icon/                   # BoxJS 图标资源
+├── AGENTS.md               # 贡献者指南
+└── CLAUDE.md               # 历史开发说明
 ```
 
-## 技术架构
+各目录下的 `Backup/` 是旧版本或备用文件，日常维护优先修改根目录下的当前文件。
 
-### 工作流程
+## 本地开发与验证
 
-```
-Surge 拦截请求 (.sgmodule)
-    ↓
-提取凭证/数据 (*.js)
-    ↓
-存储到 BoxJS ($persistentStore)
-    ↓
-同步到青龙面板 (*_ql_sync.js) [可选]
-```
+本项目没有构建流程。常用检查命令：
 
-### 核心组件
-
-1. **Env 类** - 封装 Surge/Quantumult X API 差异
-2. **QLPanel 类** - 封装青龙面板 OpenAPI 交互
-3. **配置读取机制** - 支持 BoxJS 配置与脚本内 fallback
-
-### 关键特性
-
-- 🔄 **跨平台兼容** - 支持 Surge 和 Quantumult X
-- 🔐 **自动 Token 管理** - 青龙 Token 自动刷新，无需手动操作
-- 💾 **持久化存储** - BoxJS 提供 Web UI 管理界面
-- 📊 **日志记录** - 自动记录运行日志便于排查问题
-- 🔧 **可配置化** - 所有阈值和参数均可通过 BoxJS 配置
-
-## 开发指南
-
-### 环境要求
-
-- Surge iOS/Mac 版本（支持 MITM 和脚本功能）
-- BoxJS（用于配置管理和数据存储）
-- 青龙面板（可选，用于远程同步）
-
-### 本地开发
-
-1. **克隆仓库**
-   ```bash
-   git clone https://github.com/byhooi/Surge.git
-   cd Surge
-   ```
-
-2. **本地调试**
-   - 在 Surge 中使用本地文件路径：`file:///path/to/script.js`
-   - 修改后立即生效，无需等待 CDN
-
-3. **提交到 GitHub**
-   ```bash
-   git add .
-   git commit -m "feat: 功能描述"
-   git push
-   ```
-
-4. **生效流程**
-   - GitHub 更新 → CDN 刷新（约 5 分钟）→ Surge 重新加载模块
-
-### Git 提交规范
-
-- `feat:` - 新功能
-- `fix:` - Bug 修复
-- `refactor:` - 代码重构
-- `docs:` - 文档更新
-- `chore:` - 构建/工具相关
-
-### 脚本开发规范
-
-所有脚本遵循统一结构：
-
-```javascript
-// 1. 常量定义
-const SCRIPT_NAME = '脚本名称';
-const SCRIPT_VERSION = '版本号';
-
-// 2. 工具函数/类定义
-function Env(name, options = {}) { /* ... */ }
-class QLPanel { /* ... */ }
-
-// 3. 脚本初始化
-const $ = new Env(SCRIPT_NAME, { version: SCRIPT_VERSION });
-
-// 4. 主逻辑（IIFE 包裹）
-!(async () => {
-  // 业务逻辑
-})()
-  .catch(e => $.logErr(e))
-  .finally(() => $.done());
+```bash
+git status
+git diff
+rg "SCRIPT_VERSION|CACHE_KEY" Script
+node --check Script/jdcookie.js
 ```
 
-详细开发文档请查看 [CLAUDE.md](CLAUDE.md)
+`node --check` 只能做语法检查。实际功能仍需在 Surge 中通过本地文件路径或 GitHub raw 链接验证，包括拦截规则、MITM 域名、通知、BoxJS 写入和青龙同步结果。
 
-## 常见问题
+## 开发约定
 
-### Q: 同步到青龙失败怎么办？
+- 新增功能通常同时维护 `Module/*.sgmodule` 与 `Script/*.js`。
+- `.sgmodule` 的 `script-path` 使用 `https://raw.githubusercontent.com/byhooi/Surge/main/Script/...`。
+- 需要请求或响应体时显式设置 `requires-body=1` 和合适的 `max-size`。
+- 涉及持久化时使用稳定的 key，例如 `jdCookieList`、`wskeyList`、`meituan_invoices_batch`。
+- 不要在日志、通知或提交中暴露 Cookie、WSKEY、Token、青龙密钥或真实用户数据。
 
-1. 检查青龙面板地址和端口是否正确
-2. 验证 Client ID 和 Client Secret
-3. 确认应用权限包含环境变量的查看、新增、更新
-4. 查看 Surge 日志了解详细错误
+## 提交规范
 
-### Q: WSKEY 会重复添加吗？
+提交信息建议使用：
 
-不会。脚本根据 `pt_pin` 自动判断：
-- 新用户 → 创建新环境变量
-- 已存在且值变化 → 更新变量
-- 值未变化 → 跳过
-
-### Q: 如何强制刷新远程脚本缓存？
-
-在 URL 后添加随机参数：
-```
-?v=20260105
+```bash
+git commit -m "feat: 添加京东发票提取模块"
+git commit -m "fix: 修复 WSKEY 同步判断"
+git commit -m "docs: 更新 BoxJS 使用说明"
 ```
 
-或在 Surge 中手动更新模块。
+常用前缀：`feat:`、`fix:`、`docs:`、`refactor:`、`chore:`。
 
-### Q: 支持哪些平台？
+## 许可与声明
 
-- ✅ Surge iOS
-- ✅ Surge Mac
-- ✅ Quantumult X（部分功能）
-
-## 更新日志
-
-查看 [Commits](https://github.com/byhooi/Surge/commits/main) 了解最新更新。
-
-### 近期更新
-
-- **2024-12** - 移除"获取青龙 Token"按钮，Token 完全自动管理
-- **2024-12** - 优化 WSKEY 和 Cookie 同步逻辑
-- **2024-12** - 新增跳绳统计日志应用
-- **2024-01** - 新增美团买菜定时任务
-
-## 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-1. Fork 本仓库
-2. 创建特性分支：`git checkout -b feature/amazing-feature`
-3. 提交更改：`git commit -m "feat: 添加新功能"`
-4. 推送到分支：`git push origin feature/amazing-feature`
-5. 提交 Pull Request
-
-## 致谢
-
-- 参考了 [@Sliverkiss](https://github.com/Sliverkiss) 的青龙同步配置
-- 感谢 Surge 和 BoxJS 开发团队
-- 感谢京东脚本开发者们的贡献
-
-## 许可证
-
-[MIT License](LICENSE)
-
-## 免责声明
-
-本项目仅供学习交流使用，请勿用于非法用途。使用本项目所产生的一切后果由使用者自行承担。
-
----
-
-**⭐ 如果这个项目对你有帮助，请给一个 Star！**
+本项目采用 MIT License。脚本仅供学习和个人自动化使用，请遵守相关服务条款并自行承担使用风险。

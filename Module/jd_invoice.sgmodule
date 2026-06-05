@@ -1,0 +1,19 @@
+#!name=自动提取京东发票
+#!desc=捕获京东商品发票 PDF 链接并提供本地 API 供快捷指令读取
+#!system=ios
+
+[Script]
+# 从京东发票预览接口响应中提取 PDF
+京东发票接口提取 = type=http-response,pattern=^https:\/\/myivc\.jd\.com\/newIvc\/appFpzz\/appPreviewInvoice\.action,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/jd_invoice.js
+
+# 兼容直接打开京东商品发票 PDF 时的捕获
+京东发票PDF提取 = type=http-request,pattern=^https:\/\/oss\.cn-north-1\.jcloudcs\.com\/pop-einvoice\/.+\.pdf,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/jd_invoice.js
+
+# 获取发票列表供快捷指令读取
+获取京东发票API = type=http-request,pattern=^http:\/\/jd\.invoice\.local\/get$,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/jd_invoice_api.js
+
+# 清空发票列表
+清空京东发票API = type=http-request,pattern=^http:\/\/jd\.invoice\.local\/clear$,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/jd_invoice_api.js
+
+[MITM]
+hostname = %APPEND% myivc.jd.com, oss.cn-north-1.jcloudcs.com

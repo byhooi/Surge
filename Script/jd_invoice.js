@@ -39,6 +39,15 @@ function collectPdfUrls(value, output) {
     }
 }
 
+function collectInvoiceFileUrls(body, output) {
+    if (!body || !body.data || !Array.isArray(body.data.fileUrlList)) return;
+
+    body.data.fileUrlList.forEach(item => {
+        if (!item || typeof item !== "object") return;
+        collectPdfUrls(item.imgUrl || item.pdfUrl || item.fileUrl, output);
+    });
+}
+
 function uniquePdfUrls(urls) {
     const seen = {};
     const result = [];
@@ -59,7 +68,7 @@ function notify(invoices, addedCount, firstUrl) {
     if (now - lastTime <= 500) return;
 
     $persistentStore.write(now.toString(), TIME_KEY);
-    const shortcutName = encodeURIComponent("批量保存发票");
+    const shortcutName = encodeURIComponent("批量保存京东发票");
     const openUrl = `shortcuts://run-shortcut?name=${shortcutName}`;
 
     $notification.post(
@@ -105,7 +114,9 @@ try {
 
     if (typeof $response !== "undefined" && $response && $response.body) {
         try {
-            collectPdfUrls(JSON.parse($response.body), urls);
+            const body = JSON.parse($response.body);
+            collectInvoiceFileUrls(body, urls);
+            if (urls.length === 0) collectPdfUrls(body, urls);
         } catch (e) {
             collectPdfUrls($response.body, urls);
         }

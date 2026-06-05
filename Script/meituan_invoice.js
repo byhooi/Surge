@@ -28,7 +28,7 @@ if (match) {
         let now = Date.now();
         if (now - lastTime > 500) {
             $persistentStore.write(now.toString(), TIME_KEY);
-            const shortcutName = encodeURIComponent("批量保存发票");
+            const shortcutName = encodeURIComponent("批量保存美团发票");
             const openUrl = `shortcuts://run-shortcut?name=${shortcutName}`;
             
             $notification.post(

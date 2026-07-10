@@ -1,0 +1,17 @@
+#!name=自动提取票易通发票
+#!desc=捕获票易通 (XForcePlus) 电子发票 PDF 链接并提供本地 API 供快捷指令读取
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+# 获取票易通发票（打开发票 PDF 时触发）
+票易通发票提取 = type=http-request,pattern=^https:\/\/tw-doc\.xforceplus\.com\/a\/,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/xforceplus_invoice.js,script-update-interval=0
+
+# 获取发票列表供快捷指令读取
+获取票易通发票API = type=http-request,pattern=^http:\/\/xforceplus\.invoice\.local\/get$,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/invoice_api.js,script-update-interval=0,argument=xforceplus_invoices_batch
+
+# 清空发票列表
+清空票易通发票API = type=http-request,pattern=^http:\/\/xforceplus\.invoice\.local\/clear$,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/invoice_api.js,script-update-interval=0,argument=xforceplus_invoices_batch
+
+[MITM]
+hostname = %APPEND% tw-doc.xforceplus.com

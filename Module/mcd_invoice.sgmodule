@@ -1,0 +1,20 @@
+#!name=自动提取麦当劳发票
+#!desc=捕获麦当劳图片型 PDF 发票，通过本地认证代理提供给快捷指令批量读取和保存
+#!category=🎁 Bingo
+#!system=ios
+
+[Script]
+# 捕获麦当劳 App 发票下载请求，保存发票编号和最小认证信息
+麦当劳发票提取 = type=http-request,pattern=^https:\/\/api\.mcd\.cn\/bff\/order\/invoice\/downloadV2(?:\?.*)?$,requires-body=0,max-size=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mcd_invoice.js,script-update-interval=0
+
+# 获取本地代理发票列表供快捷指令读取
+获取麦当劳发票API = type=http-request,pattern=^http:\/\/mcd\.invoice\.local\/get$,requires-body=0,max-size=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mcd_invoice.js,script-update-interval=0
+
+# 使用捕获的 sid 代理下载原始图片型 PDF
+下载麦当劳发票API = type=http-request,pattern=^http:\/\/mcd\.invoice\.local\/download\?i=[^&#]+,requires-body=0,max-size=0,timeout=60,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mcd_invoice.js,script-update-interval=0
+
+# 清空发票列表和本地认证记录
+清空麦当劳发票API = type=http-request,pattern=^http:\/\/mcd\.invoice\.local\/clear$,requires-body=0,max-size=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mcd_invoice.js,script-update-interval=0
+
+[MITM]
+hostname = %APPEND% api.mcd.cn

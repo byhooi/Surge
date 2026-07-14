@@ -90,7 +90,7 @@ function notify(invoices) {
   $notification.post(
     "🧾 麦当劳发票已加入批量列表",
     `当前共 ${invoices.length} 张待保存`,
-    "发票实际为图片型 PDF，保存到相册时请在快捷指令中先转换为图像",
+    "",
     { "url": openUrl }
   );
 }

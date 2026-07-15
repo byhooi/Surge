@@ -1,6 +1,6 @@
 #!name=自动提取麦当劳发票
 #!desc=捕获麦当劳图片型 PDF 发票，通过本地认证代理提供给快捷指令批量读取和保存
-#!category=🎁 Bingo
+#!category=🎈 Bingo
 #!system=ios
 
 [Script]

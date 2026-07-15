@@ -2,7 +2,7 @@
 #!desc=捕获一嗨租车 App 的签到请求并定时重放。首次使用请进入签到页面手动签到一次。
 #!arguments=定时签到:15 8 * * *,禁用抓取:一嗨租车获取签到请求,禁用MITM:hostname
 #!arguments-desc=定时签到：Cron 表达式，默认每日 8:15 执行。\n\n禁用抓取：输入 # 可停用签到请求捕获。\n\n禁用MITM：输入 # 可停用 MITM 主机名。
-#!category=🎁 Bingo
+#!category=🎈 Bingo
 #!system=ios
 
 [Script]

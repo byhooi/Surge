@@ -1,5 +1,5 @@
 const SCRIPT_NAME = "一嗨租车签到";
-const SCRIPT_VERSION = "1.0.0";
+const SCRIPT_VERSION = "1.0.1";
 const REQUEST_KEY = "byhooi_1hai_sign_request";
 
 if (typeof $request !== "undefined") {
@@ -84,8 +84,8 @@ function replayRequest() {
       console.log(`[${SCRIPT_NAME}] 加密响应：${preview(result.Result)}`);
       $notification.post(
         SCRIPT_NAME,
-        "签到请求已完成",
-        "服务器返回了加密结果，请在一嗨租车 App 中核对签到状态。"
+        "签到请求提交成功",
+        "定时签到已执行，可前往一嗨租车 App 查看签到记录。"
       );
     } catch (requestError) {
       const message = String(requestError.message || requestError);

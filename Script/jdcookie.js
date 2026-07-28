@@ -237,31 +237,34 @@ async function processCookie() {
     return;
   }
 
-  $.cookie = createCookie($.jd_cookie_temp.pt_pin, $.jd_cookie_temp.pt_key);
+  const cookie = createCookie($.jd_cookie_temp.pt_pin, $.jd_cookie_temp.pt_key);
 
-  if (!$.cookie) {
+  if (!cookie) {
     $.log('❌ Cookie 创建失败');
     return;
   }
 
-  $.log(`🍪 获取到的完整 Cookie: ${$.cookie}`);
+  $.log(`🍪 获取到的完整 Cookie: ${cookie}`);
 
   const existingUser = $.jdCookieList.find(user => user.userName === $.jd_cookie_temp.pt_pin);
 
   if (existingUser) {
-    if (existingUser.cookie === $.cookie) {
-      $.log('⚠️ 当前 Cookie 与缓存一致, 结束运行。');
-      return $.done();
+    if (existingUser.cookie === cookie) {
+      $.log('⚠️ 当前 Cookie 与缓存一致, 跳过通知。');
+      return;
     }
-    $.log(`♻️ 更新用户 Cookie: ${$.cookie}`);
-    existingUser.cookie = $.cookie;
+    $.log(`♻️ 更新用户 Cookie: ${cookie}`);
+    existingUser.cookie = cookie;
   } else {
-    $.log(`🆕 新增用户 Cookie: ${$.cookie}`);
+    $.log(`🆕 新增用户 Cookie: ${cookie}`);
     $.jdCookieList.push({
       userName: $.jd_cookie_temp.pt_pin,
-      cookie: $.cookie
+      cookie: cookie
     });
   }
+
+  // 仅在新增或 Cookie 变化时设置 $.cookie，用于触发后续通知与持久化
+  $.cookie = cookie;
 }
 
 // 同步到青龙

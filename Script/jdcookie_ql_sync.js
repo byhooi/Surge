@@ -1,6 +1,6 @@
-// 青龙面板 JD Cookie 同步脚本 v1.8.4
+// 青龙面板 JD Cookie 同步脚本 v1.8.5
 const SCRIPT_NAME = '青龙 Cookie 同步';
-const SCRIPT_VERSION = '1.8.4';
+const SCRIPT_VERSION = '1.8.5';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -159,6 +159,10 @@ class QLPanel {
       const response = await this.request(options, 'PUT', false);
 
       if (response?.code === 200) {
+        // 更新成功后，如果变量被禁用，则启用它
+        if (envItem.status === 1) {
+          await this.enableEnv([envId]);
+        }
         return true;
       }
       throw new Error(response?.message || '更新环境变量失败');
@@ -215,6 +219,35 @@ class QLPanel {
       throw new Error(response?.message || '删除环境变量失败');
     } catch (error) {
       this.$.log(`❌ 删除环境变量失败: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // 启用环境变量
+  async enableEnv(envIds) {
+    await this.ensureToken();
+
+    // 确保是数组格式
+    const ids = Array.isArray(envIds) ? envIds : [envIds];
+
+    const options = {
+      url: `${this.baseUrl}${QL_API.ENVS}/enable`,
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+      },
+      body: JSON.stringify(ids)
+    };
+
+    try {
+      const response = await this.request(options, 'PUT', false);
+      if (response?.code === 200) {
+        return true;
+      }
+      throw new Error(response?.message || '启用环境变量失败');
+    } catch (error) {
+      this.$.log(`❌ 启用环境变量失败: ${error.message}`);
       throw error;
     }
   }

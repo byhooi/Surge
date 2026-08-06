@@ -212,34 +212,6 @@
       ]
     },
     {
-      "id": "bsh_token_manager",
-      "name": "伴生活 Token 管理",
-      "keys": [
-        "token"
-      ],
-      "descs_html": [
-        "<h4 align=\"center\">管理 Script/bsh.js 捕获的 Token</h4>",
-        "<p>脚本会自动写入持久化存储，也可以在此手动更新 Token。</p>"
-      ],
-      "settings": [
-        {
-          "id": "token",
-          "name": "当前 Token",
-          "val": "",
-          "type": "textarea",
-          "autoGrow": true,
-          "rows": 4,
-          "desc": "Script/bsh.js 自动捕获的 Token，可在此手动修改"
-        }
-      ],
-      "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge",
-      "icons": [
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/bsh.png",
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/bsh.png"
-      ]
-    },
-    {
       "id": "tuhu_token_manager",
       "name": "途虎养车 Token 管理",
       "keys": [

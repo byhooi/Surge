@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
-const SCRIPT_VERSION = '1.8.8';
+const SCRIPT_VERSION = '1.8.9';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -11,6 +11,7 @@ const PIN_WSKEY_PAIR_MAX_GAP = 10000;
 const LOG_SEPARATOR = "\n";
 const WSKEY_REGEX = /wskey=([^=;]+)/;
 const PT_PIN_REGEX = /(?:pt_pin|pin)=([^=;]+)/;
+const PIN_HASH_REGEX = /pin_hash=([^;]+)/;
 
 // Env 环境类
 function Env(name, options = {}) {
@@ -198,6 +199,7 @@ async function getCookie() {
 
     const wskey = extractFromCookie(headers.cookie, WSKEY_REGEX);
     const ptPin = extractFromCookie(headers.cookie, PT_PIN_REGEX);
+    const pinHash = extractFromCookie(headers.cookie, PIN_HASH_REGEX);
 
     // 等待规则请求
     if (typeof $request.url === 'string' && $request.url.includes('/getRule')) {
@@ -217,6 +219,20 @@ async function getCookie() {
     // 核心安全拼接与缓存更新逻辑（兼容独立分步获取）
     let hasUpdate = false;
     const now = Date.now();
+
+    // 通过 pin_hash 检测用户切换（im-x.jd.com 请求特有字段）
+    if (isValidString(pinHash)) {
+      if ($.jd_temp.pin_hash && $.jd_temp.pin_hash !== pinHash) {
+        $.log(`🔄 检测到 pin_hash 变化: ${$.jd_temp.pin_hash} → ${pinHash}，用户已切换`);
+        // 清除旧 pt_pin，防止串号
+        delete $.jd_temp.pt_pin;
+        delete $.jd_temp.pt_pin_ts;
+        $.log('🧹 已清除旧 pt_pin 缓存，等待新用户 pt_pin');
+      }
+      $.jd_temp.pin_hash = pinHash;
+      $.jd_temp.ts = now;
+      hasUpdate = true;
+    }
 
     // 场景1：处理携带 pin 的情况（可能是新请求，也可能是同一个请求包含两者）
     if (isValidString(ptPin)) {

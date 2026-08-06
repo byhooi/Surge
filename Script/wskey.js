@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 WSKEY';
-const SCRIPT_VERSION = '1.8.9';
+const SCRIPT_VERSION = '1.9.0';
 const JD_TEMP_KEY = 'jd_temp';
 const WSKEY_KEY = 'wskeyList';
 const DEFAULT_TIMEOUT = 15000;
@@ -283,6 +283,12 @@ async function processCookie() {
   const wskeyTs = Number($.jd_temp.wskey_ts || 0);
   if (!pinTs || !wskeyTs) {
     $.log('⚠️ 缺少 PIN/WSKEY 时间戳，等待下一次完整采集');
+    return false;
+  }
+
+  // 安全检查：pt_pin 必须在 wskey 之后采集，否则可能来自上一个用户
+  if (pinTs < wskeyTs) {
+    $.log(`⚠️ pt_pin 采集时间(${pinTs})早于 wskey(${wskeyTs})，等待新 pt_pin 以防止串号`);
     return false;
   }
 

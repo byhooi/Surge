@@ -1,0 +1,14 @@
+#!name=华住会签到
+#!desc=捕获华住会小程序的 userToken 并每日定时签到。首次使用请在微信中打开华住会小程序浏览任意页面。
+#!arguments=定时签到:10 8 * * *,禁用抓取:华住会获取Token,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron 表达式，默认每日 8:10 执行。\n\n禁用抓取：输入 # 可停用 userToken 捕获。\n\n禁用MITM：输入 # 可停用 MITM 主机名。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+华住会签到 = type=cron,cronexp="{{{定时签到}}}",wake-system=1,timeout=60,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/huazhu_sign.js,script-update-interval=0
+
+{{{禁用抓取}}} = type=http-request,pattern=^https:\/\/appgw\.huazhu\.com\/,requires-body=0,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/huazhu_sign.js,script-update-interval=0
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% appgw.huazhu.com

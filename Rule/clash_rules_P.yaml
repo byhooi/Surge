@@ -1,0 +1,25 @@
+# 更新时间: 2026/08/29 15:55:38
+# 规则数量：当前共 22 条规则
+payload:
+  - DOMAIN-SUFFIX,anyrouter.top
+  - DOMAIN-SUFFIX,amplitude.com
+  - DOMAIN-SUFFIX,app-analytics-services.com
+  - DOMAIN-SUFFIX,apple.com
+  - DOMAIN-SUFFIX,appsflyersdk.com
+  - DOMAIN-SUFFIX,doubleclick-cn.net
+  - DOMAIN-SUFFIX,facebook.com
+  - DOMAIN-SUFFIX,futunn.com
+  - DOMAIN-SUFFIX,gmail.com
+  - DOMAIN-SUFFIX,googleapis.com
+  - DOMAIN-SUFFIX,googleusercontent.com
+  - DOMAIN-SUFFIX,googlevideo.com
+  - DOMAIN-SUFFIX,icloud.com
+  - DOMAIN-SUFFIX,instagram.com
+  - DOMAIN-SUFFIX,microsoftonline.com
+  - DOMAIN-SUFFIX,smtcdns.com
+  - DOMAIN-SUFFIX,snssdk.com
+  - DOMAIN-SUFFIX,twimg.com
+  - DOMAIN-SUFFIX,twitter.com
+  - IP-CIDR,163.181.39.0/24
+  - IP-CIDR,43.153.128.0/18
+  - IP-CIDR,91.108.56.0/24

@@ -1,0 +1,21 @@
+# 更新时间: 2026/08/29 15:55:38
+# 规则数量：当前共 18 条规则
+payload:
+  - DOMAIN-SUFFIX,cn
+  - DOMAIN-SUFFIX,meituan.net
+  - DOMAIN-SUFFIX,qq.com
+  - DOMAIN-SUFFIX,cdn-apple.com
+  - DOMAIN-SUFFIX,dahhxxttxs.com
+  - DOMAIN-SUFFIX,gameley.com
+  - DOMAIN-SUFFIX,ninebot.com
+  - DOMAIN-SUFFIX,okii.com
+  - DOMAIN-SUFFIX,qihu.com
+  - DOMAIN-SUFFIX,qlivecdn.com
+  - DOMAIN-SUFFIX,qrstuvwxyzab.com
+  - DOMAIN-SUFFIX,tianwenca.com
+  - DOMAIN-SUFFIX,tlivesource.com
+  - DOMAIN-SUFFIX,ubixioe.com
+  - DOMAIN-SUFFIX,xinqiucc.com
+  - DOMAIN-SUFFIX,ydycdn.com
+  - DOMAIN-SUFFIX,yingt.fun
+  - DOMAIN-SUFFIX,yunxish.com

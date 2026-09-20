@@ -1,25 +1,66 @@
-# 更新时间: 2026/08/29 15:55:38
-# 规则数量：当前共 22 条规则
+# 更新时间: 2026/09/20 12:39:56
+# 规则数量：当前共 63 条规则
 payload:
   - DOMAIN-SUFFIX,anyrouter.top
-  - DOMAIN-SUFFIX,amplitude.com
+  - DOMAIN-SUFFIX,bad.news
+  - DOMAIN-SUFFIX,agentrouter.org
+  - DOMAIN-SUFFIX,app-ads-services.com
   - DOMAIN-SUFFIX,app-analytics-services.com
-  - DOMAIN-SUFFIX,apple.com
   - DOMAIN-SUFFIX,appsflyersdk.com
-  - DOMAIN-SUFFIX,doubleclick-cn.net
+  - DOMAIN-SUFFIX,awswaf.com
+  - DOMAIN-SUFFIX,braze.eu
+  - DOMAIN-SUFFIX,bugsnag.com
+  - DOMAIN-SUFFIX,buzzsprout.com
+  - DOMAIN-SUFFIX,cdninstagram.com
+  - DOMAIN-SUFFIX,chatgpt.com
+  - DOMAIN-SUFFIX,cloudflare.com
+  - DOMAIN-SUFFIX,cloudflareinsights.com
+  - DOMAIN-SUFFIX,eum-appdynamics.com
   - DOMAIN-SUFFIX,facebook.com
+  - DOMAIN-SUFFIX,fbcdn.net
+  - DOMAIN-SUFFIX,firstory.me
   - DOMAIN-SUFFIX,futunn.com
+  - DOMAIN-SUFFIX,githubusercontent.com
   - DOMAIN-SUFFIX,gmail.com
+  - DOMAIN-SUFFIX,google.com
   - DOMAIN-SUFFIX,googleapis.com
   - DOMAIN-SUFFIX,googleusercontent.com
   - DOMAIN-SUFFIX,googlevideo.com
-  - DOMAIN-SUFFIX,icloud.com
+  - DOMAIN-SUFFIX,gstatic.com
+  - DOMAIN-SUFFIX,hk
   - DOMAIN-SUFFIX,instagram.com
-  - DOMAIN-SUFFIX,microsoftonline.com
+  - DOMAIN-SUFFIX,jddebug.com
+  - DOMAIN-SUFFIX,lbctrl.com
+  - DOMAIN-SUFFIX,lbkrs.com
+  - DOMAIN-SUFFIX,ldhy.click
+  - DOMAIN-SUFFIX,locklauncher.com
+  - DOMAIN-SUFFIX,medium.com
+  - DOMAIN-SUFFIX,novaandpalette.art
+  - DOMAIN-SUFFIX,ntp.org
+  - DOMAIN-SUFFIX,openai.com
+  - DOMAIN-SUFFIX,otlsignals.com
+  - DOMAIN-SUFFIX,pvs-studio.com
+  - DOMAIN-SUFFIX,rombox.top
+  - DOMAIN-SUFFIX,sentry.io
+  - DOMAIN-SUFFIX,slatic.net
+  - DOMAIN-SUFFIX,smartnewbuyhub.shop
   - DOMAIN-SUFFIX,smtcdns.com
   - DOMAIN-SUFFIX,snssdk.com
   - DOMAIN-SUFFIX,twimg.com
   - DOMAIN-SUFFIX,twitter.com
-  - IP-CIDR,163.181.39.0/24
-  - IP-CIDR,43.153.128.0/18
+  - DOMAIN-SUFFIX,uc.cmd
+  - DOMAIN-SUFFIX,unity3d.com
+  - DOMAIN-SUFFIX,us
+  - DOMAIN-SUFFIX,we-stats.com
+  - DOMAIN-SUFFIX,wise.com
+  - DOMAIN-SUFFIX,x.com
+  - DOMAIN-SUFFIX,youtube.com
+  - DOMAIN-SUFFIX,ytimg.com
+  - DOMAIN-SUFFIX,za.group
+  - DOMAIN-SUFFIX,zainvest.group
+  - DOMAIN-SUFFIX,zemu.app
+  - IP-CIDR,149.154.165.0/24
+  - IP-CIDR,149.154.167.0/24
+  - IP-CIDR,149.154.172.0/22
+  - IP-CIDR,74.125.250.0/24
   - IP-CIDR,91.108.56.0/24

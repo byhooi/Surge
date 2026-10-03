@@ -357,7 +357,7 @@ test("模块捕获范围、计划任务与 BoxJS 配置一致", () => {
   assert.ok(!pattern.test(BASE + "reader/info/extra"));
   assert.ok(!pattern.test("https://evil.example/userHub/opac/reader/info"));
   assert.match(moduleText, /argument=refresh/);
-  assert.match(moduleText, /定时续期:15 \*\/6 \* \* \*/);
+  assert.match(moduleText, /定时续期:15 \*\/12 \* \* \*/);
   const box = JSON.parse(fs.readFileSync(path.join(__dirname, "../boxjs/byhooi.boxjs.json"), "utf8"));
   const app = box.apps.find((item) => item.id === "byhooi_lggov_sign");
   assert.ok(app.keys.includes(KEY));

@@ -1,10 +1,15 @@
 // 常量配置
 const SCRIPT_NAME = '京东 Cookie';
+const SCRIPT_VERSION = '1.9.0';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
+const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
 const DEFAULT_TIMEOUT = 15000;
 const DEFAULT_RESP_TYPE = 'body';
 const CACHE_EXPIRE_TIME = 15000;
+const PIN_KEY_PAIR_MAX_GAP = 3000;
+const NOTIFY_DEDUP_WINDOW = 5000;
+const CONCURRENCY_SETTLE_TIME = 500;
 const LOG_SEPARATOR = "\n";
 const PT_PIN_REGEX = /pt_pin=([^=;]+?);/;
 const PT_KEY_REGEX = /pt_key=([^=;]+?);/;
@@ -18,7 +23,8 @@ function Env(name, options = {}) {
   this.startTime = Date.now();
 
   Object.assign(this, options);
-  this.log("", `🔔${this.name}, 开始!`);
+  const versionSuffix = this.version ? ` v${this.version}` : '';
+  this.log("", `🔔${this.name}${versionSuffix}, 开始!`);
 }
 
 Env.prototype.log = function (...messages) {
@@ -123,7 +129,8 @@ Env.prototype.time = function (format) {
 Env.prototype.done = function () {
   const endTime = Date.now();
   const duration = ((endTime - this.startTime) / 1000).toFixed(2);
-  this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
+  const versionSuffix = this.version ? ` v${this.version}` : '';
+  this.log("", `🔔${this.name}${versionSuffix}, 结束! 🕛 ${duration} 秒`);
   $done();
 };
 
@@ -148,23 +155,31 @@ function createCookie(ptPin, ptKey) {
 }
 
 // 脚本配置和初始化
-const $ = new Env(SCRIPT_NAME);
+const $ = new Env(SCRIPT_NAME, { version: SCRIPT_VERSION });
 const IS_DEBUG = $.getdata('is_debug') || 'false';
 $.Messages = [];
 $.cookie = '';
+$.pendingPin = '';
 
 // 脚本执行入口
 !(async () => {
   if (typeof $request !== 'undefined') {
     await getCookie();
     if ($.cookie) {
-      $.Messages.push(`🎉 京东 Cookie 获取成功\n${$.cookie}`);
-      $.setjson($.jdCookieList, JD_COOKIE_KEY);
+      // 先落盘，保证同一批并发实例后续读取时能拿到最新值
+      persistCookie($.pendingPin, $.cookie);
 
-      // 自动同步到青龙
-      const autoSync = $.getdata('auto_sync_jdcookie_ql') || 'false';
-      if (autoSync === 'true') {
-        await syncToQingLong();
+      const shouldPush = await shouldNotify($.cookie);
+      if (shouldPush) {
+        $.Messages.push(`🎉 京东 Cookie 获取成功\n${$.cookie}`);
+
+        // 自动同步到青龙
+        const autoSync = $.getdata('auto_sync_jdcookie_ql') || 'false';
+        if (autoSync === 'true') {
+          await syncToQingLong();
+        }
+      } else {
+        $.log('🔁 该 Cookie 已通知过或存在并发实例，跳过重复推送');
       }
     }
   }
@@ -205,15 +220,24 @@ async function getCookie() {
 
     // 更新临时数据
     let hasUpdate = false;
+    const now = Date.now();
+
     if (isValidString(ptPin)) {
+      // 账号切换保护：pt_pin 变化时丢弃上一个账号的 pt_key，避免拼出错误组合
+      if ($.jd_cookie_temp.pt_pin && $.jd_cookie_temp.pt_pin !== ptPin) {
+        $.log(`🔄 检测到用户切换: ${$.jd_cookie_temp.pt_pin} → ${ptPin}，已丢弃旧账号凭证`);
+        $.jd_cookie_temp = {};
+      }
       $.jd_cookie_temp.pt_pin = ptPin;
-      $.jd_cookie_temp.ts = Date.now();
+      $.jd_cookie_temp.pt_pin_ts = now;
+      $.jd_cookie_temp.ts = now;
       hasUpdate = true;
     }
 
     if (isValidString(ptKey)) {
       $.jd_cookie_temp.pt_key = ptKey;
-      $.jd_cookie_temp.ts = Date.now();
+      $.jd_cookie_temp.pt_key_ts = now;
+      $.jd_cookie_temp.ts = now;
       hasUpdate = true;
     }
 
@@ -237,6 +261,30 @@ async function processCookie() {
     return;
   }
 
+  const pinTs = Number($.jd_cookie_temp.pt_pin_ts || 0);
+  const keyTs = Number($.jd_cookie_temp.pt_key_ts || 0);
+
+  if (!pinTs || !keyTs) {
+    $.log('⚠️ 缺少 pt_pin/pt_key 采集时间戳，等待下一次完整采集');
+    return;
+  }
+
+  // 配对保护：两者采集时间相差过大时，可能来自不同账号
+  const pairGap = Math.abs(pinTs - keyTs);
+  if (pairGap > PIN_KEY_PAIR_MAX_GAP) {
+    $.log(`⚠️ pt_pin 与 pt_key 采集间隔过大(${pairGap}ms)，丢弃旧数据防止串号`);
+    if (pinTs > keyTs) {
+      delete $.jd_cookie_temp.pt_key;
+      delete $.jd_cookie_temp.pt_key_ts;
+    } else {
+      delete $.jd_cookie_temp.pt_pin;
+      delete $.jd_cookie_temp.pt_pin_ts;
+    }
+    $.jd_cookie_temp.ts = Date.now();
+    $.setjson($.jd_cookie_temp, JD_COOKIE_TEMP_KEY);
+    return;
+  }
+
   const cookie = createCookie($.jd_cookie_temp.pt_pin, $.jd_cookie_temp.pt_key);
 
   if (!cookie) {
@@ -254,17 +302,53 @@ async function processCookie() {
       return;
     }
     $.log(`♻️ 更新用户 Cookie: ${cookie}`);
-    existingUser.cookie = cookie;
   } else {
     $.log(`🆕 新增用户 Cookie: ${cookie}`);
-    $.jdCookieList.push({
-      userName: $.jd_cookie_temp.pt_pin,
-      cookie: cookie
-    });
   }
 
-  // 仅在新增或 Cookie 变化时设置 $.cookie，用于触发后续通知与持久化
+  // 仅在新增或 Cookie 变化时设置，用于触发后续持久化与通知
   $.cookie = cookie;
+  $.pendingPin = $.jd_cookie_temp.pt_pin;
+}
+
+// 持久化 Cookie：基于存储中的最新列表合并，避免并发实例互相覆盖
+function persistCookie(pin, cookie) {
+  if (!isValidString(pin) || !isValidString(cookie)) return;
+
+  const list = $.getjson(JD_COOKIE_KEY) || [];
+  const existingUser = list.find(user => user.userName === pin);
+
+  if (existingUser) {
+    existingUser.cookie = cookie;
+  } else {
+    list.push({ userName: pin, cookie: cookie });
+  }
+
+  $.setjson(list, JD_COOKIE_KEY);
+}
+
+// 通知去重：同一批并发实例只推送一条
+async function shouldNotify(cookie) {
+  const now = Date.now();
+  const lock = $.getjson(JD_COOKIE_NOTIFY_LOCK_KEY) || {};
+
+  // 同一 Cookie 在窗口期内已通知过，直接跳过
+  if (lock.cookie === cookie && now - Number(lock.ts || 0) < NOTIFY_DEDUP_WINDOW) {
+    return false;
+  }
+
+  const token = `${now}-${Math.random().toString(36).slice(2, 8)}`;
+  $.setjson({ cookie: cookie, ts: now, token: token }, JD_COOKIE_NOTIFY_LOCK_KEY);
+
+  // 等待同一批并发实例完成写入，再二次确认自己是不是最后一个
+  await $.wait(CONCURRENCY_SETTLE_TIME);
+
+  const current = $.getjson(JD_COOKIE_NOTIFY_LOCK_KEY) || {};
+  if (current.token !== token) {
+    $.log('🔁 检测到并发实例，跳过重复通知');
+    return false;
+  }
+  return true;
 }
 
 // 同步到青龙
@@ -292,8 +376,9 @@ async function syncToQingLong() {
       }
     }
 
-    // 同步 Cookie
-    for (const user of $.jdCookieList) {
+    // 同步 Cookie：读取存储中的最新列表，避免使用并发前的旧快照
+    const cookieList = $.getjson(JD_COOKIE_KEY) || [];
+    for (const user of cookieList) {
       await syncCookieToQL(qlUrl, token, user.cookie, user.userName);
     }
 

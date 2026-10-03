@@ -1,6 +1,7 @@
+// 自动生成：请修改 lggov_sign.js 后运行 node scripts/build-lggov-refresh.cjs，不要直接编辑。
 const SCRIPT_NAME = "龙岗图书馆签到";
 const SCRIPT_VERSION = "1.1.0";
-const ENTRY_MODE = "sign";
+const ENTRY_MODE = "refresh-manual";
 const ACCOUNTS_KEY = "byhooi_lggov_accounts";
 const LOCK_KEY = "byhooi_lggov_lock";
 const ORIGIN = "https://tsg.lggov.cn";

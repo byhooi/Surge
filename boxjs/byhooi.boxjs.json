@@ -273,7 +273,13 @@
       "scripts": [
         {
           "name": "手动执行多账号签到",
-          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_sign.js"
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_sign.js",
+          "script_timeout": 120
+        },
+        {
+          "name": "手动续期全部启用账号",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_refresh.js",
+          "script_timeout": 120
         }
       ]
     },

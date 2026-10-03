@@ -12,7 +12,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Module/lggov_sign.sgmodule
 2. 在微信内正常打开龙岗图书馆网站并登录，进入“我的”页面，等待“已添加签到账号”通知。
 3. 依次切换其他已授权的读者证或登录其他账号，每次都进入“我的”页面。每张读者证独立保存，同一证号更新 Token，不重复新增。
 4. 定时任务默认按设备时区每天 8:20 签到、每天 0:15 / 12:15 查询个人信息尝试续期，可在模块参数中修改。已安装旧版模块时，请检查“定时续期”参数是否仍保留旧值，必要时改为 `15 */12 * * *`。
-5. 可在 Surge 手动运行“龙岗图书馆签到”或“龙岗图书馆续期”；BoxJS 订阅更新后也可手动签到和管理账号。
+5. 可在 Surge 手动运行“龙岗图书馆签到”或“龙岗图书馆续期”；BoxJS 订阅更新后也可手动签到、手动续期和管理账号。
 
 无需手动复制 Token，也不从 HAR 导入任何真实凭证。仓库文件未发布前，raw 链接不会包含本地改动；可先将脚本导入 Surge 本地测试并调整模块中的脚本路径。
 
@@ -46,6 +46,12 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Module/lggov_sign.sgmodule
 
 ## BoxJS 管理
 
+点击“手动续期全部启用账号”即可立即执行一次个人信息查询并保存返回的 Token，**不会提交签到，也不会改变每 12 小时的定时安排**。它是一次性操作按钮，不是自动续期的启停开关。
+
+手动续期无论成功或异常都会通知各账号结果；成功时显示新的北京时间到期时间。没有账号、任务正在运行或凭证已过期时也会提示。定时续期仍只在异常时通知。已过期的 Token 不能靠按钮恢复，需要重新登录捕获。
+
+手动签到/续期按钮设置了 120 秒执行超时。建议在 BoxJS 配置好 Surge HTTP-API；若使用 BoxJS 内部执行模式，仍受 BoxJS 所在脚本自身超时限制。更新仓库文件后需刷新 BoxJS 订阅，确保两个入口脚本都已发布。
+
 在订阅中的“龙岗图书馆多账号签到”查看 `byhooi_lggov_accounts`，它是 JSON 数组：
 
 - `cardno`：账号标识，不要手动修改。
@@ -61,9 +67,13 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Module/lggov_sign.sgmodule
 ## 本地验证
 
 ```text
+node scripts/build-lggov-refresh.cjs
 node --check Script/lggov_sign.js
+node --check Script/lggov_refresh.js
 node --test tests/lggov_sign.test.cjs
 ```
+
+`Script/lggov_refresh.js` 是由主脚本生成的独立手动续期入口，不依赖 BoxJS 传入参数，也不动态下载/执行代码。修改业务逻辑时仅编辑 `Script/lggov_sign.js`，再运行生成命令并一起发布两个文件；测试会检查生成文件与主脚本同步。
 
 测试通过 Node 内置虚拟环境模拟 Surge、账号和 HTTP 响应，不访问真实网站，不读取真实 HAR。不能替代手机上的 MITM、后台定时、账号切换与跨日续期验收。
 

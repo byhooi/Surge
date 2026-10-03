@@ -5,6 +5,8 @@ const vm = require("node:vm");
 const { test } = require("node:test");
 
 const source = fs.readFileSync(path.join(__dirname, "../Script/lggov_sign.js"), "utf8");
+const refreshSource = fs.readFileSync(path.join(__dirname, "../Script/lggov_refresh.js"), "utf8");
+const { buildRefreshSource } = require("../scripts/build-lggov-refresh.cjs");
 const KEY = "byhooi_lggov_accounts";
 const LOCK = "byhooi_lggov_lock";
 const NOW = Date.UTC(2030, 0, 2, 0, 20);
@@ -31,7 +33,7 @@ function reply(data, headers = {}, status = 200, code = 0) {
   return { response: { status, headers }, body: JSON.stringify({ code, msg: "", data }) };
 }
 
-async function run({ store = new Map(), request, response, mode, replies = [], failWrite = false, clock = NOW, fastTimeout = false, nativeTimers = false } = {}) {
+async function run({ store = new Map(), request, response, mode, replies = [], failWrite = false, clock = NOW, fastTimeout = false, nativeTimers = false, scriptSource = source } = {}) {
   const notifications = [];
   const logs = [];
   const calls = [];
@@ -77,7 +79,7 @@ async function run({ store = new Map(), request, response, mode, replies = [], f
   if (mode !== undefined) context.$argument = mode;
   const watchdog = setTimeout(() => finish(), 1500);
   try {
-    vm.runInNewContext(source, context, { timeout: 1000 });
+    vm.runInNewContext(scriptSource, context, { timeout: 1000 });
     await completed;
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(doneCount, 1, "$done 必须且只能调用一次");
@@ -253,6 +255,48 @@ test("续期未延长提醒；个人信息串号不保存响应 Token", async ()
   assert.equal(stored(store)[0].expiresAt, NOW + 60000000);
 });
 
+test("手动续期入口无需参数，只查询启用账号且通知成功和到期时间", async () => {
+  for (const mode of [undefined, "sign", "refresh"]) {
+    const store = storeWith([account("TEST-1001"), account("TEST-DISABLED", 60000, { enabled: false }), account("TEST-2002")]);
+    const result = await run({ store, mode, scriptSource: refreshSource, replies: [
+      reply({ cardno: "TEST-1001" }, { Authorization: token("TEST-1001", 80000) }),
+      reply({ cardno: "TEST-2002" }, { Authorization: token("TEST-2002", 80000) }),
+    ] });
+    assert.equal(result.calls.length, 2);
+    assert.ok(result.calls.every((call) => call.method === "get" && call.options.url === BASE + "reader/info"));
+    assert.equal(stored(store)[0].expiresAt, NOW + 80000000);
+    assert.equal(stored(store)[0].lastSignDate, undefined);
+    assert.equal(result.notifications.length, 1);
+    assert.match(result.notifications[0][1], /手动续期：2 个账号/);
+    assert.match(result.notifications[0][2], /已续期，凭证到期：.*北京时间/);
+  }
+});
+
+test("手动续期的未延长和过期状态都反馈，不重复通知也不提交签到", async () => {
+  const store = storeWith([account("TEST-1001"), account("TEST-EXPIRED", -1)]);
+  const result = await run({ store, scriptSource: refreshSource, replies: [reply({})] });
+  assert.equal(result.calls.length, 1);
+  assert.equal(result.calls[0].method, "get");
+  assert.equal(result.notifications.length, 1);
+  assert.match(result.notifications[0][2], /未观察到续期/);
+  assert.match(result.notifications[0][2], /Token 已过期/);
+});
+
+test("手动续期无账号或被锁时也有明确提示", async () => {
+  const empty = await run({ scriptSource: refreshSource });
+  assert.match(empty.notifications[0][1], /没有启用/);
+  const store = storeWith([account("TEST-1001")]);
+  store.set(LOCK, JSON.stringify({ id: "active", until: NOW + 1000 }));
+  const locked = await run({ store, scriptSource: refreshSource });
+  assert.equal(locked.calls.length, 0);
+  assert.match(locked.notifications[0][1], /续期暂未执行/);
+});
+
+test("生成的独立续期入口与主脚本完全同步", () => {
+  assert.equal(refreshSource, buildRefreshSource(source));
+  assert.throws(() => buildRefreshSource(""), /入口标记/);
+});
+
 test("签到成功后积分查询失败仍保留成功状态", async () => {
   const store = storeWith([account("TEST-1001")]);
   const result = await run({ store, replies: [reply(true), { error: "NETWORK_ERROR" }] });
@@ -362,4 +406,9 @@ test("模块捕获范围、计划任务与 BoxJS 配置一致", () => {
   const app = box.apps.find((item) => item.id === "byhooi_lggov_sign");
   assert.ok(app.keys.includes(KEY));
   assert.equal(app.settings.find((setting) => setting.id === KEY).val, "[]");
+  const refreshButton = app.scripts.find((script) => script.name === "手动续期全部启用账号");
+  assert.equal(refreshButton.script, "https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_refresh.js");
+  assert.equal(refreshButton.script_timeout, 120);
+  assert.equal(refreshButton.argument, undefined);
+  assert.equal(app.scripts.find((script) => script.name === "手动执行多账号签到").script_timeout, 120);
 });

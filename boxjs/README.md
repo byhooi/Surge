@@ -18,6 +18,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 | 跳绳日志 | `byhooi_videourl_logs` | `videourl_logs` | 查看最新一次跳绳统计日志 |
 | 伴生活 Token 管理 | `bsh_token_manager` | `token` | 查看或手动修改 `bsh.js` 捕获的 Token |
 | 途虎养车 Token 管理 | `tuhu_token_manager` | `tuhu_token` | 查看或手动修改 `tuhu.js` 捕获的 Token |
+| 龙岗图书馆多账号签到 | `byhooi_lggov_sign` | `byhooi_lggov_accounts`、`byhooi_lggov_lock` | 查看/停用读者证账号、手动签到；见 [使用说明](../docs/lggov_sign.md) |
 | Surge 通用重放模块 | `byhooi_surge` | `byhooi_surge_retry`、`@byhooi.record` | 配置并执行多账号请求重放 |
 
 ## 京东青龙同步

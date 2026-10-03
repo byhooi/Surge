@@ -1,0 +1,14 @@
+#!name=龙岗图书馆多账号签到
+#!desc=自动捕获各读者证 Token，每日签到，并每 6 小时查询个人信息尝试续期。首次使用请逐个切换读者证并进入“我的”页面；失效后需重新登录。
+#!arguments=定时签到:20 8 * * *,定时续期:15 */6 * * *
+#!arguments-desc=定时签到：默认每日 8:20，按设备时区执行。\n\n定时续期：默认每 6 小时的第 15 分钟执行；已观察到 Token 有效窗口约 16 小时 40 分钟，请勿只保留每日签到任务。\n\n需要开启 MITM 并信任证书。多账号管理和手动签到见 BoxJS“龙岗图书馆多账号签到”。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+龙岗图书馆获取Token = type=http-response,pattern=^https:\/\/tsg\.lggov\.cn\/userHub\/opac\/(?:reader\/(?:info|login|cards\/switch)|login\/points)(?:\?.*)?$,requires-body=0,timeout=10,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_sign.js,script-update-interval=0
+龙岗图书馆签到 = type=cron,cronexp="{{{定时签到}}}",argument=sign,wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_sign.js,script-update-interval=0
+龙岗图书馆续期 = type=cron,cronexp="{{{定时续期}}}",argument=refresh,wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_sign.js,script-update-interval=0
+
+[MITM]
+hostname = %APPEND% tsg.lggov.cn

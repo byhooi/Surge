@@ -240,6 +240,44 @@
       ]
     },
     {
+      "id": "byhooi_lggov_sign",
+      "name": "龙岗图书馆多账号签到",
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge",
+      "keys": [
+        "byhooi_lggov_accounts",
+        "byhooi_lggov_lock"
+      ],
+      "descs_html": [
+        "<p>安装 lggov_sign.sgmodule 后，逐个登录或切换读者证并进入“我的”页面。账号按读者证号独立保存，默认每日 8:20 签到、每 6 小时尝试续期。</p>",
+        "<p>Token 已观察到的有效窗口约 16 小时 40 分钟，续期不能保证永久有效。失效时重新登录捕获。账号 JSON 含登录凭证，请勿分享；enabled 改为 false 可停用，删除整个账号对象可移除。</p>"
+      ],
+      "settings": [
+        {
+          "id": "byhooi_lggov_accounts",
+          "name": "账号列表（含敏感凭证）",
+          "val": "[]",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 8,
+          "desc": "自动捕获的 JSON 数组。请勿修改 cardno、token、expiresAt；enabled=false 停用账号；lastResult 为最近结果，lastSignDate 为最近确认成功的北京时间日期。清空为 [] 可移除全部账号。"
+        },
+        {
+          "id": "byhooi_lggov_lock",
+          "name": "任务锁（自动维护）",
+          "val": "",
+          "type": "text",
+          "desc": "通常不要修改；任务结束自动清理，异常中断后 150 秒失效。只有提示锁数据损坏且没有任务运行时才清空此项。"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "手动执行多账号签到",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/lggov_sign.js"
+        }
+      ]
+    },
+    {
       "id": "byhooi_surge",
       "name": "Surge通用重放模块",
       "author": "@byhooi",

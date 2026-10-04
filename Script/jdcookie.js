@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 Cookie';
-const SCRIPT_VERSION = '1.9.1';
+const SCRIPT_VERSION = '1.9.2';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
 const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
@@ -156,7 +156,7 @@ function createCookie(ptPin, ptKey) {
 
 // 脚本配置和初始化
 const $ = new Env(SCRIPT_NAME, { version: SCRIPT_VERSION });
-const IS_DEBUG = $.getdata('is_debug') || 'false';
+const IS_DEBUG = $.getdata('is_debug') || 'true';
 $.Messages = [];
 $.cookie = '';
 $.pendingPin = '';

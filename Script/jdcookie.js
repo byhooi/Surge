@@ -1,6 +1,6 @@
 // 常量配置
 const SCRIPT_NAME = '京东 Cookie';
-const SCRIPT_VERSION = '1.9.0';
+const SCRIPT_VERSION = '1.9.1';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
 const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
@@ -293,6 +293,21 @@ async function processCookie() {
   }
 
   $.log(`🍪 获取到的完整 Cookie: ${cookie}`);
+
+  // 串号保护：账号切换瞬间可能出现「A 的 pt_pin + B 的 pt_key」混搭，
+  // pt_key 已归属其他账号时直接丢弃，避免错误组合覆盖存储，导致切回原账号时误判为 Cookie 变化
+  const keyOwner = $.jdCookieList.find(user =>
+    user.userName !== $.jd_cookie_temp.pt_pin &&
+    extractFromCookie(user.cookie, PT_KEY_REGEX) === $.jd_cookie_temp.pt_key
+  );
+  if (keyOwner) {
+    $.log(`⚠️ pt_key 已属于账号 ${keyOwner.userName}，与当前 pt_pin ${$.jd_cookie_temp.pt_pin} 不匹配，丢弃混搭组合`);
+    delete $.jd_cookie_temp.pt_key;
+    delete $.jd_cookie_temp.pt_key_ts;
+    $.jd_cookie_temp.ts = Date.now();
+    $.setjson($.jd_cookie_temp, JD_COOKIE_TEMP_KEY);
+    return;
+  }
 
   const existingUser = $.jdCookieList.find(user => user.userName === $.jd_cookie_temp.pt_pin);
 

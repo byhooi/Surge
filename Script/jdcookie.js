@@ -8,10 +8,10 @@ const JD_COOKIE_SYNC_LOCK_KEY = 'jd_cookie_sync_lock';
 const AUTO_SYNC_QL_KEY = 'auto_sync_jdcookie_ql';
 const DEFAULT_QL_TOKEN_VALIDITY_MS = 6.5 * 24 * 60 * 60 * 1000;
 const DEFAULT_TIMEOUT = 15000;
-// 同步走 $done() 之后的后台流程，单次请求超时收紧，避免脚本进程被系统回收
-const SYNC_REQUEST_TIMEOUT = 10000;
-// 整个同步流程的总预算（后台任务不宜过久）
-const SYNC_TOTAL_BUDGET = 25000;
+// 同步在 $done() 之前完成，必须赶在模块的 timeout=30 之前收尾。
+// 单次请求 4s、整个流程 12s，为通知留出余量，避免脚本被 Surge 中途杀掉。
+const SYNC_REQUEST_TIMEOUT = 4000;
+const SYNC_TOTAL_BUDGET = 12000;
 const DEFAULT_RESP_TYPE = 'body';
 const CACHE_EXPIRE_TIME = 15000;
 const PIN_KEY_PAIR_MAX_GAP = 3000;
@@ -187,8 +187,8 @@ $.cookieChanged = false;
 $.pendingPin = '';
 
 // 脚本执行入口
-// 请求拦截路径只做「解析 + 落盘」，尽快 $done() 释放京东 App 的请求；
-// 通知去重与自动同步属于慢操作（含网络请求），放到 $done() 之后执行。
+// 通知与自动同步都在 $done() 之前完成，保证脚本上下文有效、一定会执行；
+// 耗时由 SYNC_TOTAL_BUDGET 兜住，远低于模块的 timeout=30，不会被 Surge 中途杀掉。
 !(async () => {
   if (typeof $request !== 'undefined') {
     await getCookie();
@@ -197,23 +197,22 @@ $.pendingPin = '';
       persistCookie($.pendingPin, $.cookie);
     }
   }
+
+  await runPostTasks();
 })()
   .catch(e => {
     $.logErr(e);
     $.Messages.push(`❌ 脚本执行出错: ${e.message || e}`);
   })
-  .finally(() => {
+  .finally(async () => {
+    await sendMsg($.Messages.join('\n').trim());
     $.done();
-    runPostTasks().catch(e => $.logErr(e));
   });
 
-// $done() 之后执行的后台流程：通知 + 自动同步
+// 通知 + 自动同步
 async function runPostTasks() {
-  // 未抓到 Cookie（含异常路径）：只把已有消息发出去
-  if (!$.cookie) {
-    await sendMsg($.Messages.join('\n').trim());
-    return;
-  }
+  // 未抓到 Cookie（含异常路径）：没有后续动作，消息由 finally 统一发出
+  if (!$.cookie) return;
 
   // 通知与同步互相独立：通知被去重不应连带跳过同步（反之亦然）
   // 通知仅在 Cookie 新增或变化时推送，避免重复刷屏
@@ -233,8 +232,6 @@ async function runPostTasks() {
     await withSyncBudget(syncToQingLong($.pendingPin, $.cookie));
     $.Messages.push(...$.SyncMessages);
   }
-
-  await sendMsg($.Messages.join('\n').trim());
 }
 
 // 同步去重：与通知去重相互独立，避免「通知已推送」导致同步被永久跳过。

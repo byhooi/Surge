@@ -1,6 +1,6 @@
-// 常量配置
+﻿// 常量配置
 const SCRIPT_NAME = '京东 Cookie';
-const SCRIPT_VERSION = '1.9.3';
+const SCRIPT_VERSION = '1.9.4';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
 const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
@@ -52,6 +52,17 @@ Env.prototype.post = function (url, callback) {
     throw new Error('Callback is required for HTTP POST request');
   }
   $httpClient.post(url, callback);
+};
+
+Env.prototype.put = function (options, callback) {
+  if (!callback || typeof callback !== 'function') {
+    throw new Error('Callback is required for HTTP PUT request');
+  }
+  if (typeof $httpClient.put === 'function') {
+    $httpClient.put(options, callback);
+  } else {
+    $httpClient.post(Object.assign({}, options, { method: 'PUT' }), callback);
+  }
 };
 
 Env.prototype.getdata = function (key) {
@@ -403,6 +414,7 @@ async function syncToQingLong(targetPin, targetCookie) {
 
     if (!qlUrl || !qlClientId || !qlClientSecret) {
       $.log('⚠️ 青龙面板配置不完整，跳过自动同步');
+      $.Messages.push('⚠️ 青龙配置不完整，未自动同步');
       return;
     }
     qlUrl = qlUrl.trim().replace(/\/$/, '');
@@ -426,15 +438,33 @@ async function syncToQingLong(targetPin, targetCookie) {
       : ($.getjson(JD_COOKIE_KEY) || []);
 
     let syncSuccessCount = 0;
+    let syncFailCount = 0;
     for (const user of syncTasks) {
       if (!user.userName || !user.cookie) continue;
-      const ok = await syncCookieToQL(qlUrl, token, user.cookie, user.userName);
+      let ok = false;
+      try {
+        ok = await syncCookieToQL(qlUrl, token, user.cookie, user.userName);
+      } catch (error) {
+        // 缓存 Token 被青龙作废时，重新获取并重试一次
+        if (error.code === 401) {
+          $.log('🔄 青龙 Token 无效，重新获取后重试...');
+          token = await getQingLongToken(qlUrl, qlClientId, qlClientSecret);
+          if (!token) throw new Error('重新获取青龙 Token 失败');
+          ok = await syncCookieToQL(qlUrl, token, user.cookie, user.userName);
+        } else {
+          throw error;
+        }
+      }
       if (ok) syncSuccessCount++;
+      else syncFailCount++;
     }
 
     if (syncSuccessCount > 0) {
       const pinDesc = targetPin ? ` (${targetPin})` : '';
       $.Messages.push(`✅ 已自动同步 Cookie${pinDesc} 到青龙面板`);
+    }
+    if (syncFailCount > 0) {
+      $.Messages.push(`❌ ${syncFailCount} 个 Cookie 同步到青龙失败，请查看 Surge 脚本日志`);
     }
 
   } catch (error) {
@@ -513,6 +543,18 @@ async function syncCookieToQL(qlUrl, token, cookie, userName) {
       },
       _respType: 'all'
     });
+
+    const searchBody = $.toObj(searchResp?.body);
+    const httpStatus = Number(searchResp?.status || searchResp?.statusCode || 0);
+    const searchCode = Number(searchBody?.code || httpStatus || 0);
+    if (searchCode === 401 || httpStatus === 401) {
+      const err = new Error('青龙 Token 无效 (401)');
+      err.code = 401;
+      throw err;
+    }
+    if (searchCode !== 200 || !Array.isArray(searchBody?.data)) {
+      throw new Error(`查询青龙环境变量失败 (code: ${searchCode || '未知'}, ${searchBody?.message || '无响应内容'})`);
+    }
 
     if (searchResp?.body) {
       const result = $.toObj(searchResp.body);

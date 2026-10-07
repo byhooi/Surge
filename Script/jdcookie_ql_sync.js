@@ -1,6 +1,7 @@
-// 青龙面板 JD Cookie 同步脚本 v1.8.5
+// 青龙面板 JD Cookie 同步脚本 v1.8.6
 const SCRIPT_NAME = '青龙 Cookie 同步';
-const SCRIPT_VERSION = '1.8.5';
+const SCRIPT_VERSION = '1.8.6';
+const DEFAULT_QL_TOKEN_VALIDITY_MS = 6.5 * 24 * 60 * 60 * 1000;
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -48,8 +49,8 @@ class QLPanel {
 
       if (response?.code === 200 && response?.data?.token) {
         this.token = response.data.token;
-        // Token 有效期为 7 天，这里设置为 6.5 天后过期
-        this.tokenExpires = Date.now() + (6.5 * 24 * 60 * 60 * 1000);
+        // 与 jdcookie.js 使用同一套解析逻辑，避免两个脚本互相覆盖 ql_token_expires
+        this.tokenExpires = resolveTokenExpiration(response.data);
 
         this.$.setdata(this.token, 'ql_token');
         this.$.setdata(String(this.tokenExpires), 'ql_token_expires');
@@ -353,6 +354,75 @@ Env.prototype.done = function () {
   $done();
 };
 
+// 判断青龙环境变量是否属于指定账号（与 jdcookie.js 的 isSameEnv 保持一致）。
+// 优先用值中的 pt_pin 精确匹配，备注作为兜底；备注不用 includes，
+// 避免 pt_pin 互为前缀时（如 abc / abcdef）误匹配到别的账号。
+function isValidString(str) {
+  return typeof str === 'string' && str.trim().length > 0;
+}
+
+function hasPin(value, userName) {
+  if (!isValidString(value)) return false;
+  return value.includes(`pt_pin=${userName};`) || value.includes(`pin=${userName};`);
+}
+
+function isSameEnv(env, userName) {
+  if (!env || !isValidString(userName) || env.name !== 'JD_COOKIE') return false;
+
+  const value = env.value || '';
+  if (hasPin(value, userName)) return true;
+
+  try {
+    if (hasPin(decodeURIComponent(value), userName)) return true;
+  } catch {
+    // 值不是合法的编码字符串时忽略
+  }
+
+  const remarks = env.remarks || '';
+  return remarks === userName || remarks.startsWith(`${userName} -`) || remarks.startsWith(`${userName}-`);
+}
+
+// 解析青龙返回的 Token 有效期（与 jdcookie.js 保持一致）
+function resolveTokenExpiration(data = {}) {
+  const now = Date.now();
+  const absoluteKeys = ['expiration', 'expiration_time', 'expirationTime', 'exp'];
+  for (const key of absoluteKeys) {
+    const value = data[key];
+    if (value === undefined || value === null) continue;
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) {
+      if (String(value).trim().length >= 13 || num > 1e12) {
+        return num;
+      }
+      if (num > 1e6) {
+        return now + num;
+      }
+      return now + num * 1000;
+    }
+    if (typeof value === 'string') {
+      const parsed = Date.parse(value);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  const relativeKeys = ['expires_in', 'expiresIn', 'expire_in', 'exp_in', 're_expire_in'];
+  for (const key of relativeKeys) {
+    const value = data[key];
+    if (value === undefined || value === null) continue;
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) {
+      if (num > 1e6) {
+        return now + num;
+      }
+      return now + num * 1000;
+    }
+  }
+
+  return now + DEFAULT_QL_TOKEN_VALIDITY_MS;
+}
+
 // 主函数
 async function main() {
   const $ = new Env(SCRIPT_NAME);
@@ -397,10 +467,8 @@ async function main() {
       const envValue = cookie;
       const envRemarks = `${userName} - 由 Surge 同步`;
 
-      // 查找是否存在相同 pt_pin 的环境变量
-      const existingEnv = existingEnvs.find(env =>
-        env.remarks && env.remarks.includes(userName)
-      );
+      // 查找是否存在相同 pt_pin 的环境变量（与 jdcookie.js 的 isSameEnv 保持一致）
+      const existingEnv = existingEnvs.find(env => isSameEnv(env, userName));
 
       if (existingEnv) {
         // 检查值是否相同

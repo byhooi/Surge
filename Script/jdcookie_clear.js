@@ -50,9 +50,11 @@ try {
   const jdCookieList = $.getjson('jdCookieList') || [];
   const count = jdCookieList.length;
 
-  $.setjson([], 'jdCookieList');
+  // 写入空字符串而非 '[]'，让 BoxJS 的 textarea 清空显示
+  $.setdata('', 'jdCookieList');
   $.setdata('', 'jd_cookie_temp');
   $.setdata('', 'jd_cookie_notify_lock');
+  $.setdata('', 'jd_cookie_sync_lock');
 
   const msg = `✅ 已清空 ${count} 个 Cookie`;
   $.log(msg);

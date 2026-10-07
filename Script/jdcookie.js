@@ -1,24 +1,16 @@
 ﻿// 常量配置
 const SCRIPT_NAME = '京东 Cookie';
-const SCRIPT_VERSION = '1.10.0';
+const SCRIPT_VERSION = '1.9.5';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
 const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
-const JD_COOKIE_SYNC_LOCK_KEY = 'jd_cookie_sync_lock';
 const AUTO_SYNC_QL_KEY = 'auto_sync_jdcookie_ql';
 const DEFAULT_QL_TOKEN_VALIDITY_MS = 6.5 * 24 * 60 * 60 * 1000;
 const DEFAULT_TIMEOUT = 15000;
-// 同步在 $done() 之前完成，必须赶在模块的 timeout=30 之前收尾。
-// 单次请求 4s、整个流程 12s，为通知留出余量，避免脚本被 Surge 中途杀掉。
-const SYNC_REQUEST_TIMEOUT = 4000;
-const SYNC_TOTAL_BUDGET = 12000;
 const DEFAULT_RESP_TYPE = 'body';
 const CACHE_EXPIRE_TIME = 15000;
 const PIN_KEY_PAIR_MAX_GAP = 3000;
 const NOTIFY_DEDUP_WINDOW = 5000;
-// 同步成功后较长时间内不重复同步；失败后短暂退避再重试
-const SYNC_SUCCESS_DEDUP_WINDOW = 60000;
-const SYNC_FAILURE_BACKOFF = 10000;
 const CONCURRENCY_SETTLE_TIME = 500;
 const LOG_SEPARATOR = "\n";
 const PT_PIN_REGEX = /pt_pin=([^=;]+?);/;
@@ -95,8 +87,7 @@ Env.prototype.wait = function (time) {
 };
 
 Env.prototype.toObj = function (jsonString, defaultValue = null) {
-  // 空字符串是「已清空」的合法状态，不算解析失败
-  if (typeof jsonString !== 'string' || jsonString.trim() === '') {
+  if (typeof jsonString !== 'string') {
     return defaultValue;
   }
   try {
@@ -181,94 +172,38 @@ function createCookie(ptPin, ptKey) {
 const $ = new Env(SCRIPT_NAME, { version: SCRIPT_VERSION });
 const IS_DEBUG = $.getdata('is_debug') || 'false';
 $.Messages = [];
-$.SyncMessages = [];
 $.cookie = '';
-$.cookieChanged = false;
 $.pendingPin = '';
 
 // 脚本执行入口
-// 通知与自动同步都在 $done() 之前完成，保证脚本上下文有效、一定会执行；
-// 耗时由 SYNC_TOTAL_BUDGET 兜住，远低于模块的 timeout=30，不会被 Surge 中途杀掉。
 !(async () => {
   if (typeof $request !== 'undefined') {
     await getCookie();
-    if ($.cookie && $.cookieChanged) {
+    if ($.cookie) {
       // 先落盘，保证同一批并发实例后续读取时能拿到最新值
       persistCookie($.pendingPin, $.cookie);
+
+      const shouldPush = await shouldNotify($.cookie);
+      if (shouldPush) {
+        $.Messages.push(`🎉 京东 Cookie 获取成功\n${$.cookie}`);
+
+        // 自动同步到青龙
+        const autoSync = $.getdata(AUTO_SYNC_QL_KEY);
+        const isAutoSync = autoSync === null || autoSync === undefined || autoSync === true || autoSync === 'true';
+        if (isAutoSync) {
+          await syncToQingLong($.pendingPin, $.cookie);
+        }
+      } else {
+        $.log('🔁 该 Cookie 已通知过或存在并发实例，跳过重复推送');
+      }
     }
   }
-
-  await runPostTasks();
 })()
-  .catch(e => {
-    $.logErr(e);
-    $.Messages.push(`❌ 脚本执行出错: ${e.message || e}`);
-  })
+  .catch(e => $.Messages.push(e.message || e) && $.logErr(e))
   .finally(async () => {
     await sendMsg($.Messages.join('\n').trim());
     $.done();
   });
-
-// 通知 + 自动同步
-async function runPostTasks() {
-  // 未抓到 Cookie（含异常路径）：没有后续动作，消息由 finally 统一发出
-  if (!$.cookie) return;
-
-  // 通知与同步互相独立：通知被去重不应连带跳过同步（反之亦然）
-  // 通知仅在 Cookie 新增或变化时推送，避免重复刷屏
-  if ($.cookieChanged) {
-    const shouldPush = await shouldNotify($.cookie);
-    if (shouldPush) {
-      $.Messages.push(`🎉 京东 Cookie 获取成功\n${maskCookie($.cookie)}`);
-    } else {
-      $.log('🔁 该 Cookie 已通知过或存在并发实例，跳过重复推送');
-    }
-  }
-
-  const autoSync = $.getdata(AUTO_SYNC_QL_KEY);
-  const isAutoSync = autoSync === null || autoSync === undefined || autoSync === true || autoSync === 'true';
-  // 同步每次都尝试：Cookie 未变化时若上次同步失败，这里正好补上重试
-  if (isAutoSync && shouldSync($.cookie)) {
-    await withSyncBudget(syncToQingLong($.pendingPin, $.cookie));
-    $.Messages.push(...$.SyncMessages);
-  }
-}
-
-// 同步去重：与通知去重相互独立，避免「通知已推送」导致同步被永久跳过。
-// 成功与失败分别退避：成功后长时间不重复同步，失败后短暂退避再重试，
-// 避免 mars.jd.com 请求密集时反复打青龙面板。
-function shouldSync(cookie) {
-  const now = Date.now();
-  const lock = $.getjson(JD_COOKIE_SYNC_LOCK_KEY) || {};
-
-  if (lock.cookie === cookie) {
-    const elapsed = now - Number(lock.ts || 0);
-    const window = lock.ok === true ? SYNC_SUCCESS_DEDUP_WINDOW : SYNC_FAILURE_BACKOFF;
-    if (elapsed < window) {
-      $.log(`🔁 该 Cookie 近期${lock.ok === true ? '已同步成功' : '同步失败'}，跳过（${Math.round((window - elapsed) / 1000)}s 后重试）`);
-      return false;
-    }
-  }
-  return true;
-}
-
-// 给整个同步流程加总预算，避免后台任务长时间占用脚本进程
-async function withSyncBudget(task, budget = SYNC_TOTAL_BUDGET) {
-  let timer;
-  try {
-    await Promise.race([
-      task,
-      new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error(`同步总耗时超过 ${budget}ms`)), budget);
-      })
-    ]);
-  } catch (error) {
-    $.logErr(error);
-    $.SyncMessages.push(`❌ 自动同步未完成: ${error.message}`);
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 // 获取用户数据
 async function getCookie() {
@@ -372,23 +307,22 @@ async function processCookie() {
     return;
   }
 
-  // 不打印 pt_key 明文，仅保留可定位账号的 pt_pin
-  $.log(`🍪 获取到完整 Cookie: pt_pin=${$.jd_cookie_temp.pt_pin} (pt_key 已隐藏)`);
+  $.log(`🍪 获取到的完整 Cookie: ${cookie}`);
 
   const existingUser = $.jdCookieList.find(user => user.userName === $.jd_cookie_temp.pt_pin);
-  const isChanged = !existingUser || existingUser.cookie !== cookie;
 
-  if (!isChanged) {
-    $.log('⚠️ 当前 Cookie 与缓存一致, 跳过通知。');
-  } else if (existingUser) {
-    $.log(`♻️ 更新用户 Cookie: pt_pin=${$.jd_cookie_temp.pt_pin}`);
+  if (existingUser) {
+    if (existingUser.cookie === cookie) {
+      $.log('⚠️ 当前 Cookie 与缓存一致, 跳过通知。');
+      return;
+    }
+    $.log(`♻️ 更新用户 Cookie: ${cookie}`);
   } else {
-    $.log(`🆕 新增用户 Cookie: pt_pin=${$.jd_cookie_temp.pt_pin}`);
+    $.log(`🆕 新增用户 Cookie: ${cookie}`);
   }
 
-  // 无论是否变化都带上 Cookie：同步失败时下次抓到同一 Cookie 仍可重试
+  // 仅在新增或 Cookie 变化时设置，用于触发后续持久化与通知
   $.cookie = cookie;
-  $.cookieChanged = isChanged;
   $.pendingPin = $.jd_cookie_temp.pt_pin;
 }
 
@@ -472,7 +406,7 @@ function resolveTokenExpiration(data = {}) {
   return now + DEFAULT_QL_TOKEN_VALIDITY_MS;
 }
 
-// 同步到青龙，返回是否全部成功
+// 同步到青龙
 async function syncToQingLong(targetPin, targetCookie) {
   try {
     let qlUrl = $.getdata('ql_url');
@@ -481,9 +415,8 @@ async function syncToQingLong(targetPin, targetCookie) {
 
     if (!qlUrl || !qlClientId || !qlClientSecret) {
       $.log('⚠️ 青龙面板配置不完整，跳过自动同步');
-      $.SyncMessages.push('⚠️ 青龙配置不完整，未自动同步');
-      recordSyncLock(targetCookie, false);
-      return false;
+      $.Messages.push('⚠️ 青龙配置不完整，未自动同步');
+      return;
     }
     qlUrl = qlUrl.trim().replace(/\/$/, '');
 
@@ -495,9 +428,8 @@ async function syncToQingLong(targetPin, targetCookie) {
       $.log('🔄 青龙 Token 已过期或不存在，重新获取...');
       token = await getQingLongToken(qlUrl, qlClientId, qlClientSecret);
       if (!token) {
-        $.SyncMessages.push('❌ 获取青龙 Token 失败');
-        recordSyncLock(targetCookie, false);
-        return false;
+        $.Messages.push('❌ 获取青龙 Token 失败');
+        return;
       }
     }
 
@@ -530,27 +462,16 @@ async function syncToQingLong(targetPin, targetCookie) {
 
     if (syncSuccessCount > 0) {
       const pinDesc = targetPin ? ` (${targetPin})` : '';
-      $.SyncMessages.push(`✅ 已自动同步 Cookie${pinDesc} 到青龙面板`);
+      $.Messages.push(`✅ 已自动同步 Cookie${pinDesc} 到青龙面板`);
     }
     if (syncFailCount > 0) {
-      $.SyncMessages.push(`❌ ${syncFailCount} 个 Cookie 同步到青龙失败，请查看 Surge 脚本日志`);
+      $.Messages.push(`❌ ${syncFailCount} 个 Cookie 同步到青龙失败，请查看 Surge 脚本日志`);
     }
-
-    const allOk = syncFailCount === 0 && syncSuccessCount > 0;
-    recordSyncLock(targetCookie, allOk);
-    return allOk;
 
   } catch (error) {
     $.logErr(error);
-    $.SyncMessages.push(`❌ 同步到青龙失败: ${error.message}`);
-    recordSyncLock(targetCookie, false);
-    return false;
+    $.Messages.push(`❌ 同步到青龙失败: ${error.message}`);
   }
-}
-
-// 记录同步结果锁：成功→长时间去重，失败→短暂退避后允许重试
-function recordSyncLock(cookie, ok) {
-  $.setjson({ cookie: cookie || '', ts: Date.now(), ok: ok === true }, JD_COOKIE_SYNC_LOCK_KEY);
 }
 
 // 获取青龙 Token
@@ -559,7 +480,6 @@ async function getQingLongToken(qlUrl, clientId, clientSecret) {
     const url = `${qlUrl}/open/auth/token?client_id=${clientId}&client_secret=${clientSecret}`;
     const response = await request({
       url: url,
-      _timeout: SYNC_REQUEST_TIMEOUT,
       _respType: 'all'
     });
 
@@ -595,7 +515,6 @@ async function enableQLEnv(qlUrl, token, envId) {
       },
       body: JSON.stringify([envId]),
       _method: 'put',
-      _timeout: SYNC_REQUEST_TIMEOUT,
       _respType: 'all'
     });
 
@@ -612,40 +531,6 @@ async function enableQLEnv(qlUrl, token, envId) {
   return false;
 }
 
-// 判断青龙环境变量是否属于指定账号。
-// 优先用值中的 pt_pin 精确匹配（最可靠），备注作为兜底；
-// 备注不再用 includes，避免 pt_pin 互为前缀时（如 abc / abcdef）误匹配到别的账号。
-function isSameEnv(env, userName) {
-  if (!env || !isValidString(userName) || env.name !== 'JD_COOKIE') return false;
-
-  const value = env.value || '';
-  if (hasPin(value, userName)) return true;
-
-  // pt_pin 在 Cookie 中可能被 URL 编码，解码后再比对一次
-  try {
-    if (hasPin(decodeURIComponent(value), userName)) return true;
-  } catch {
-    // 值不是合法的编码字符串时忽略
-  }
-
-  const remarks = env.remarks || '';
-  return remarks === userName || remarks.startsWith(`${userName} -`) || remarks.startsWith(`${userName}-`);
-}
-
-function hasPin(value, userName) {
-  if (!isValidString(value)) return false;
-  return value.includes(`pt_pin=${userName};`) || value.includes(`pin=${userName};`);
-}
-
-// 通知/日志中隐藏 pt_key，避免凭证出现在可被他人看到的界面
-function maskCookie(cookie) {
-  if (!isValidString(cookie)) return '';
-  return cookie.replace(/(pt_key=)([^;]*)/, (_, prefix, key) => {
-    if (key.length <= 8) return `${prefix}****`;
-    return `${prefix}${key.slice(0, 4)}****${key.slice(-4)}`;
-  });
-}
-
 // 同步单个 Cookie 到青龙
 async function syncCookieToQL(qlUrl, token, cookie, userName) {
   try {
@@ -657,7 +542,6 @@ async function syncCookieToQL(qlUrl, token, cookie, userName) {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      _timeout: SYNC_REQUEST_TIMEOUT,
       _respType: 'all'
     });
 
@@ -676,7 +560,12 @@ async function syncCookieToQL(qlUrl, token, cookie, userName) {
     if (searchResp?.body) {
       const result = $.toObj(searchResp.body);
       if (result?.code === 200 && Array.isArray(result?.data)) {
-        const existingEnv = result.data.find(env => isSameEnv(env, userName));
+        // 兼容多格式匹配：备注匹配 或 值中包含 pt_pin/pin
+        const existingEnv = result.data.find(env =>
+          env.name === 'JD_COOKIE' &&
+          ((env.remarks && (env.remarks === userName || env.remarks.includes(userName))) ||
+           (env.value && (env.value.includes(`pt_pin=${userName};`) || env.value.includes(`pin=${userName};`))))
+        );
 
         if (existingEnv) {
           const envId = existingEnv.id || existingEnv._id;
@@ -728,7 +617,6 @@ async function addQLEnv(qlUrl, token, cookie, userName) {
       },
       body: body,
       _method: 'post',
-      _timeout: SYNC_REQUEST_TIMEOUT,
       _respType: 'all'
     });
 
@@ -766,7 +654,6 @@ async function updateQLEnv(qlUrl, token, envId, cookie, remarks, userName) {
       },
       body: body,
       _method: 'put',
-      _timeout: SYNC_REQUEST_TIMEOUT,
       _respType: 'all'
     });
 

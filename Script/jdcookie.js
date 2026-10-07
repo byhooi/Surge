@@ -1,9 +1,11 @@
 // 常量配置
 const SCRIPT_NAME = '京东 Cookie';
-const SCRIPT_VERSION = '1.9.0';
+const SCRIPT_VERSION = '1.9.3';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
 const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
+const AUTO_SYNC_QL_KEY = 'auto_sync_jdcookie_ql';
+const DEFAULT_QL_TOKEN_VALIDITY_MS = 6.5 * 24 * 60 * 60 * 1000;
 const DEFAULT_TIMEOUT = 15000;
 const DEFAULT_RESP_TYPE = 'body';
 const CACHE_EXPIRE_TIME = 15000;
@@ -174,9 +176,10 @@ $.pendingPin = '';
         $.Messages.push(`🎉 京东 Cookie 获取成功\n${$.cookie}`);
 
         // 自动同步到青龙
-        const autoSync = $.getdata('auto_sync_jdcookie_ql') || 'false';
-        if (autoSync === 'true') {
-          await syncToQingLong();
+        const autoSync = $.getdata(AUTO_SYNC_QL_KEY);
+        const isAutoSync = autoSync === null || autoSync === undefined || autoSync === true || autoSync === 'true';
+        if (isAutoSync) {
+          await syncToQingLong($.pendingPin, $.cookie);
         }
       } else {
         $.log('🔁 该 Cookie 已通知过或存在并发实例，跳过重复推送');
@@ -351,24 +354,65 @@ async function shouldNotify(cookie) {
   return true;
 }
 
+function resolveTokenExpiration(data = {}) {
+  const now = Date.now();
+  const absoluteKeys = ['expiration', 'expiration_time', 'expirationTime', 'exp'];
+  for (const key of absoluteKeys) {
+    const value = data[key];
+    if (value === undefined || value === null) continue;
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) {
+      if (String(value).trim().length >= 13 || num > 1e12) {
+        return num;
+      }
+      if (num > 1e6) {
+        return now + num;
+      }
+      return now + num * 1000;
+    }
+    if (typeof value === 'string') {
+      const parsed = Date.parse(value);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  const relativeKeys = ['expires_in', 'expiresIn', 'expire_in', 'exp_in', 're_expire_in'];
+  for (const key of relativeKeys) {
+    const value = data[key];
+    if (value === undefined || value === null) continue;
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) {
+      if (num > 1e6) {
+        return now + num;
+      }
+      return now + num * 1000;
+    }
+  }
+
+  return now + DEFAULT_QL_TOKEN_VALIDITY_MS;
+}
+
 // 同步到青龙
-async function syncToQingLong() {
+async function syncToQingLong(targetPin, targetCookie) {
   try {
-    const qlUrl = $.getdata('ql_url');
+    let qlUrl = $.getdata('ql_url');
     const qlClientId = $.getdata('ql_client_id');
     const qlClientSecret = $.getdata('ql_client_secret');
 
     if (!qlUrl || !qlClientId || !qlClientSecret) {
-      $.log('⚠️ 青龙面板配置不完整，跳过同步');
+      $.log('⚠️ 青龙面板配置不完整，跳过自动同步');
       return;
     }
+    qlUrl = qlUrl.trim().replace(/\/$/, '');
 
     // 获取 Token
     let token = $.getdata('ql_token');
     const tokenExpires = $.getdata('ql_token_expires');
 
     if (!token || !tokenExpires || Date.now() >= parseInt(tokenExpires)) {
-      $.log('🔄 Token 已过期，重新获取...');
+      $.log('🔄 青龙 Token 已过期或不存在，重新获取...');
       token = await getQingLongToken(qlUrl, qlClientId, qlClientSecret);
       if (!token) {
         $.Messages.push('❌ 获取青龙 Token 失败');
@@ -376,13 +420,22 @@ async function syncToQingLong() {
       }
     }
 
-    // 同步 Cookie：读取存储中的最新列表，避免使用并发前的旧快照
-    const cookieList = $.getjson(JD_COOKIE_KEY) || [];
-    for (const user of cookieList) {
-      await syncCookieToQL(qlUrl, token, user.cookie, user.userName);
+    // 优先同步本次抓取并更新的账号，避免全量请求造成超时
+    const syncTasks = (targetPin && targetCookie)
+      ? [{ userName: targetPin, cookie: targetCookie }]
+      : ($.getjson(JD_COOKIE_KEY) || []);
+
+    let syncSuccessCount = 0;
+    for (const user of syncTasks) {
+      if (!user.userName || !user.cookie) continue;
+      const ok = await syncCookieToQL(qlUrl, token, user.cookie, user.userName);
+      if (ok) syncSuccessCount++;
     }
 
-    $.Messages.push('✅ Cookie 已同步到青龙面板');
+    if (syncSuccessCount > 0) {
+      const pinDesc = targetPin ? ` (${targetPin})` : '';
+      $.Messages.push(`✅ 已自动同步 Cookie${pinDesc} 到青龙面板`);
+    }
 
   } catch (error) {
     $.logErr(error);
@@ -403,8 +456,7 @@ async function getQingLongToken(qlUrl, clientId, clientSecret) {
       const result = $.toObj(response.body);
       if (result?.code === 200 && result?.data?.token) {
         const token = result.data.token;
-        const expiration = result.data.expiration || 86400000; // 默认 24 小时
-        const expiresAt = Date.now() + expiration;
+        const expiresAt = resolveTokenExpiration(result.data);
 
         $.setdata(token, 'ql_token');
         $.setdata(String(expiresAt), 'ql_token_expires');
@@ -420,10 +472,38 @@ async function getQingLongToken(qlUrl, clientId, clientSecret) {
   }
 }
 
+// 启用青龙环境变量
+async function enableQLEnv(qlUrl, token, envId) {
+  try {
+    const url = `${qlUrl}/open/envs/enable`;
+    const response = await request({
+      url: url,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify([envId]),
+      _method: 'put',
+      _respType: 'all'
+    });
+
+    if (response?.body) {
+      const result = $.toObj(response.body);
+      if (result?.code === 200) {
+        $.log(`✅ 已重新启用环境变量: ID ${envId}`);
+        return true;
+      }
+    }
+  } catch (error) {
+    $.log(`⚠️ 启用环境变量失败: ${error.message}`);
+  }
+  return false;
+}
+
 // 同步单个 Cookie 到青龙
 async function syncCookieToQL(qlUrl, token, cookie, userName) {
   try {
-    // 查询现有环境变量
+    // 查询现有环境变量，搜索用户名
     const searchUrl = `${qlUrl}/open/envs?searchValue=${encodeURIComponent(userName)}`;
     const searchResp = await request({
       url: searchUrl,
@@ -436,20 +516,40 @@ async function syncCookieToQL(qlUrl, token, cookie, userName) {
 
     if (searchResp?.body) {
       const result = $.toObj(searchResp.body);
-      if (result?.code === 200 && result?.data) {
+      if (result?.code === 200 && Array.isArray(result?.data)) {
+        // 兼容多格式匹配：备注匹配 或 值中包含 pt_pin/pin
         const existingEnv = result.data.find(env =>
-          env.name === 'JD_COOKIE' && env.remarks === userName
+          env.name === 'JD_COOKIE' &&
+          ((env.remarks && (env.remarks === userName || env.remarks.includes(userName))) ||
+           (env.value && (env.value.includes(`pt_pin=${userName};`) || env.value.includes(`pin=${userName};`))))
         );
 
         if (existingEnv) {
+          const envId = existingEnv.id || existingEnv._id;
+          const envRemarks = existingEnv.remarks || `${userName} - 由 Surge 同步`;
+
+          // 如果值一致且未被禁用，跳过更新
+          if (existingEnv.value === cookie) {
+            $.log(`⏭️ 青龙环境变量值未变化: ${userName}`);
+            if (existingEnv.status === 1) {
+              await enableQLEnv(qlUrl, token, envId);
+            }
+            return true;
+          }
+
           // 更新环境变量
-          await updateQLEnv(qlUrl, token, existingEnv.id, cookie, userName);
+          const ok = await updateQLEnv(qlUrl, token, envId, cookie, envRemarks, userName);
+          if (ok && existingEnv.status === 1) {
+            await enableQLEnv(qlUrl, token, envId);
+          }
+          return ok;
         } else {
           // 新增环境变量
-          await addQLEnv(qlUrl, token, cookie, userName);
+          return await addQLEnv(qlUrl, token, cookie, userName);
         }
       }
     }
+    return false;
   } catch (error) {
     $.logErr(error);
     throw error;
@@ -463,7 +563,7 @@ async function addQLEnv(qlUrl, token, cookie, userName) {
     const body = JSON.stringify([{
       name: 'JD_COOKIE',
       value: cookie,
-      remarks: userName
+      remarks: `${userName} - 由 Surge 同步`
     }]);
 
     const response = await request({
@@ -480,7 +580,7 @@ async function addQLEnv(qlUrl, token, cookie, userName) {
     if (response?.body) {
       const result = $.toObj(response.body);
       if (result?.code === 200) {
-        $.log(`✅ 新增环境变量成功: ${userName}`);
+        $.log(`✅ 新增青龙环境变量成功: ${userName}`);
         return true;
       }
     }
@@ -493,14 +593,14 @@ async function addQLEnv(qlUrl, token, cookie, userName) {
 }
 
 // 更新青龙环境变量
-async function updateQLEnv(qlUrl, token, envId, cookie, userName) {
+async function updateQLEnv(qlUrl, token, envId, cookie, remarks, userName) {
   try {
     const url = `${qlUrl}/open/envs`;
     const body = JSON.stringify({
       id: envId,
       name: 'JD_COOKIE',
       value: cookie,
-      remarks: userName
+      remarks: remarks || `${userName} - 由 Surge 同步`
     });
 
     const response = await request({
@@ -517,7 +617,7 @@ async function updateQLEnv(qlUrl, token, envId, cookie, userName) {
     if (response?.body) {
       const result = $.toObj(response.body);
       if (result?.code === 200) {
-        $.log(`✅ 更新环境变量成功: ${userName}`);
+        $.log(`✅ 更新青龙环境变量成功: ${userName}`);
         return true;
       }
     }

@@ -12,7 +12,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 
 | 应用 | ID | 主要 key | 说明 |
 | --- | --- | --- | --- |
-| 京东 Cookie 青龙同步 | `byhooi_jdcookie_ql` | `jdCookieList`、`ql_url`、`ql_client_id`、`ql_client_secret` | 手动同步 Cookie 到青龙 `JD_COOKIE` |
+| 京东 Cookie 青龙同步 | `byhooi_jdcookie_ql` | `auto_sync_jdcookie_ql`、`jdCookieList`、`ql_url`、`ql_client_id`、`ql_client_secret` | 自动/手动同步 Cookie 到青龙 `JD_COOKIE` |
 | 京东 WSKEY 青龙同步 | `byhooi_wskey_ql` | `wskeyList`、`ql_url`、`ql_client_id`、`ql_client_secret` | 手动同步 WSKEY 到青龙 `JD_WSCK` |
 | 跳绳参数 | `byhooi_videourl_config` | `DEFAULT_REQUIRED_QUALIFIED_COUNT`、`QUALIFIED_THRESHOLD`、`EXCELLENT_THRESHOLD` | 配置 `VideoUrl.js` 判定阈值 |
 | 跳绳日志 | `byhooi_videourl_logs` | `videourl_logs` | 查看最新一次跳绳统计日志 |
@@ -35,12 +35,13 @@ https://raw.githubusercontent.com/byhooi/Surge/main/boxjs/byhooi.boxjs.json
 
 | 配置项 | 示例 | 说明 |
 | --- | --- | --- |
+| 自动同步到青龙 | 开启 | 开启后抓取到新 Cookie 自动同步到青龙（默认开启） |
 | 青龙面板地址 | `http://192.168.1.100:5700` | 不要遗漏协议和端口 |
 | 青龙 Client ID | `xxxx` | 从青龙应用设置复制 |
 | 青龙 Client Secret | `xxxx` | 从青龙应用设置复制 |
 | Cookie/WSKEY 列表 | 自动写入 | 通常不要手动改 JSON 结构 |
 
-填写后点击“同步 Cookie 到青龙”或“同步 WSKEY 到青龙”。脚本会自动获取并缓存青龙 Token，过期后重新登录。
+填写青龙信息后，获取到新 Cookie 时将自动触发同步（亦可点击下方按钮手动执行同步）。脚本会自动获取并缓存青龙 Token，过期后重新获取。
 
 ### 青龙变量格式
 

@@ -1,6 +1,6 @@
-// 青龙面板 JD Cookie 同步脚本 v1.8.5
+// 青龙面板 JD Cookie 同步脚本 v1.8.7
 const SCRIPT_NAME = '青龙 Cookie 同步';
-const SCRIPT_VERSION = '1.8.5';
+const SCRIPT_VERSION = '1.8.7';
 const QL_API = {
   LOGIN: '/open/auth/token',
   ENVS: '/open/envs',
@@ -311,8 +311,9 @@ function Env(name) {
 
 Env.prototype.log = function (...messages) {
   if (messages.length === 0) return;
-  this.logs.push(...messages);
-  console.log(messages.join('\n'));
+  const safeMessages = messages.map(message => redactSecrets(String(message)));
+  this.logs.push(...safeMessages);
+  console.log(safeMessages.join('\n'));
 };
 
 Env.prototype.logErr = function (err) {
@@ -352,6 +353,38 @@ Env.prototype.done = function () {
   this.log("", `🔔${this.name}, 结束! 🕛 ${duration} 秒`);
   $done();
 };
+
+function redactSecrets(text) {
+  for (const key of ['ql_client_secret', 'ql_token']) {
+    const secret = $persistentStore.read(key);
+    if (typeof secret === 'string' && secret) text = text.split(secret).join('[REDACTED]');
+  }
+  return text
+    .replace(/((?:pt_key|wskey|client_secret)=)[^;&\s"\\]+/gi, '$1[REDACTED]')
+    .replace(/(Bearer\s+)[^\s"\\]+/gi, '$1[REDACTED]')
+    .replace(/("(?:cookie|set-cookie|authorization|token|client_secret)"\s*:\s*")([^"\\]|\\.)*"/gi, '$1[REDACTED]"');
+}
+
+// 两个独立入口共用此匹配规则；值中的账号优先，备注不能覆盖冲突账号。
+function normalizePin(pin) {
+  try { return decodeURIComponent(pin); } catch { return pin; }
+}
+
+function cookiePin(value) {
+  if (typeof value !== 'string') return null;
+  const match = value.match(/(?:^|;)\s*pt_pin=([^;]*)/) || value.match(/(?:^|;)\s*pin=([^;]*)/);
+  return match ? normalizePin(match[1]) : null;
+}
+
+function findQLEnv(envs, userName) {
+  const pin = normalizePin(userName);
+  const candidates = envs.filter(env => env && env.name === 'JD_COOKIE');
+  return candidates.find(env => cookiePin(env.value) === pin) || candidates.find(env => {
+    if (cookiePin(env.value) !== null || typeof env.remarks !== 'string') return false;
+    const remarks = normalizePin(env.remarks);
+    return remarks === pin || remarks.startsWith(`${pin} - `);
+  });
+}
 
 // 主函数
 async function main() {
@@ -398,13 +431,12 @@ async function main() {
       const envRemarks = `${userName} - 由 Surge 同步`;
 
       // 查找是否存在相同 pt_pin 的环境变量
-      const existingEnv = existingEnvs.find(env =>
-        env.remarks && env.remarks.includes(userName)
-      );
+      const existingEnv = findQLEnv(existingEnvs, userName);
 
       if (existingEnv) {
         // 检查值是否相同
         if (existingEnv.value === envValue) {
+          if (existingEnv.status === 1) await ql.enableEnv([existingEnv.id || existingEnv._id]);
           $.log(`⏭️ 跳过 ${userName}: 值未变化`);
           skipCount++;
         } else {
@@ -438,7 +470,7 @@ async function main() {
     if (messages.length > 0) {
       const msg = messages.join('\n');
       $.log(msg);
-      $notification.post(SCRIPT_NAME, '', msg);
+      $notification.post(SCRIPT_NAME, '', redactSecrets(msg));
     }
     $.done();
   }
@@ -446,6 +478,6 @@ async function main() {
 
 // 执行脚本
 main().catch(err => {
-  console.log(`❌ 脚本执行出错: ${err.message || err}`);
+  console.log(redactSecrets(`❌ 脚本执行出错: ${err.message || err}`));
   $done();
 });

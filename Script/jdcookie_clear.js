@@ -53,6 +53,8 @@ try {
   $.setjson([], 'jdCookieList');
   $.setdata('', 'jd_cookie_temp');
   $.setdata('', 'jd_cookie_notify_lock');
+  $.setdata('', 'jd_cookie_sync_state');
+  $.setdata('', 'jd_cookie_sync_lock');
 
   const msg = `✅ 已清空 ${count} 个 Cookie`;
   $.log(msg);

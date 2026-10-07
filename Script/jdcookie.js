@@ -1,12 +1,17 @@
 ﻿// 常量配置
 const SCRIPT_NAME = '京东 Cookie';
-const SCRIPT_VERSION = '1.9.5';
+const SCRIPT_VERSION = '1.10.1';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
 const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
+const JD_COOKIE_SYNC_STATE_KEY = 'jd_cookie_sync_state';
 const AUTO_SYNC_QL_KEY = 'auto_sync_jdcookie_ql';
 const DEFAULT_QL_TOKEN_VALIDITY_MS = 6.5 * 24 * 60 * 60 * 1000;
-const DEFAULT_TIMEOUT = 15000;
+const DEFAULT_TIMEOUT = 4000;
+const SYNC_TOTAL_BUDGET = 12000;
+const SYNC_LEASE_TIME = 20000;
+const SYNC_RETRY_BASE = 60000;
+const SYNC_RETRY_MAX = 15 * 60000;
 const DEFAULT_RESP_TYPE = 'body';
 const CACHE_EXPIRE_TIME = 15000;
 const PIN_KEY_PAIR_MAX_GAP = 3000;
@@ -31,8 +36,9 @@ function Env(name, options = {}) {
 
 Env.prototype.log = function (...messages) {
   if (messages.length === 0) return;
-  this.logs.push(...messages);
-  console.log(messages.join(this.logSeparator));
+  const safeMessages = messages.map(message => redactSecrets(String(message)));
+  this.logs.push(...safeMessages);
+  console.log(safeMessages.join(this.logSeparator));
 };
 
 Env.prototype.logErr = function (err) {
@@ -87,7 +93,7 @@ Env.prototype.wait = function (time) {
 };
 
 Env.prototype.toObj = function (jsonString, defaultValue = null) {
-  if (typeof jsonString !== 'string') {
+  if (typeof jsonString !== 'string' || jsonString.trim() === '') {
     return defaultValue;
   }
   try {
@@ -168,33 +174,64 @@ function createCookie(ptPin, ptKey) {
   return `pt_pin=${ptPin};pt_key=${ptKey};`;
 }
 
+function redactSecrets(text) {
+  for (const key of ['ql_client_secret', 'ql_token']) {
+    const secret = $persistentStore.read(key);
+    if (typeof secret === 'string' && secret) text = text.split(secret).join('[REDACTED]');
+  }
+  return text
+    .replace(/((?:pt_key|wskey|client_secret)=)[^;&\s"\\]+/gi, '$1[REDACTED]')
+    .replace(/(Bearer\s+)[^\s"\\]+/gi, '$1[REDACTED]')
+    .replace(/("(?:cookie|set-cookie|authorization|token|client_secret)"\s*:\s*")([^"\\]|\\.)*"/gi, '$1[REDACTED]"');
+}
+
+// 两个独立入口共用此匹配规则；值中的账号优先，备注不能覆盖冲突账号。
+function normalizePin(pin) {
+  try { return decodeURIComponent(pin); } catch { return pin; }
+}
+
+function cookiePin(value) {
+  if (typeof value !== 'string') return null;
+  const match = value.match(/(?:^|;)\s*pt_pin=([^;]*)/) || value.match(/(?:^|;)\s*pin=([^;]*)/);
+  return match ? normalizePin(match[1]) : null;
+}
+
+function findQLEnv(envs, userName) {
+  const pin = normalizePin(userName);
+  const candidates = envs.filter(env => env && env.name === 'JD_COOKIE');
+  return candidates.find(env => cookiePin(env.value) === pin) || candidates.find(env => {
+    if (cookiePin(env.value) !== null || typeof env.remarks !== 'string') return false;
+    const remarks = normalizePin(env.remarks);
+    return remarks === pin || remarks.startsWith(`${pin} - `);
+  });
+}
+
 // 脚本配置和初始化
 const $ = new Env(SCRIPT_NAME, { version: SCRIPT_VERSION });
 const IS_DEBUG = $.getdata('is_debug') || 'false';
 $.Messages = [];
+$.SyncMessages = [];
 $.cookie = '';
+$.cookieChanged = false;
 $.pendingPin = '';
+$.syncContext = null;
 
 // 脚本执行入口
 !(async () => {
   if (typeof $request !== 'undefined') {
     await getCookie();
     if ($.cookie) {
-      // 先落盘，保证同一批并发实例后续读取时能拿到最新值
-      persistCookie($.pendingPin, $.cookie);
-
-      const shouldPush = await shouldNotify($.cookie);
-      if (shouldPush) {
-        $.Messages.push(`🎉 京东 Cookie 获取成功\n${$.cookie}`);
-
-        // 自动同步到青龙
-        const autoSync = $.getdata(AUTO_SYNC_QL_KEY);
-        const isAutoSync = autoSync === null || autoSync === undefined || autoSync === true || autoSync === 'true';
-        if (isAutoSync) {
-          await syncToQingLong($.pendingPin, $.cookie);
+      if ($.cookieChanged) {
+        persistCookie($.pendingPin, $.cookie);
+        if (await shouldNotify($.cookie)) {
+          $.Messages.push(`🎉 京东 Cookie 获取成功\n${redactSecrets($.cookie)}`);
         }
-      } else {
-        $.log('🔁 该 Cookie 已通知过或存在并发实例，跳过重复推送');
+      }
+
+      // 采集通知与同步状态分离，未变化但同步失败的 Cookie 仍可重试。
+      const autoSync = $.getdata(AUTO_SYNC_QL_KEY);
+      if (autoSync === null || autoSync === undefined || autoSync === true || autoSync === 'true') {
+        await runAutoSync($.pendingPin, $.cookie);
       }
     }
   }
@@ -307,21 +344,11 @@ async function processCookie() {
     return;
   }
 
-  $.log(`🍪 获取到的完整 Cookie: ${cookie}`);
+  $.log(`🍪 获取到的完整 Cookie: ${redactSecrets(cookie)}`);
 
   const existingUser = $.jdCookieList.find(user => user.userName === $.jd_cookie_temp.pt_pin);
 
-  if (existingUser) {
-    if (existingUser.cookie === cookie) {
-      $.log('⚠️ 当前 Cookie 与缓存一致, 跳过通知。');
-      return;
-    }
-    $.log(`♻️ 更新用户 Cookie: ${cookie}`);
-  } else {
-    $.log(`🆕 新增用户 Cookie: ${cookie}`);
-  }
-
-  // 仅在新增或 Cookie 变化时设置，用于触发后续持久化与通知
+  $.cookieChanged = !existingUser || existingUser.cookie !== cookie;
   $.cookie = cookie;
   $.pendingPin = $.jd_cookie_temp.pt_pin;
 }
@@ -364,6 +391,64 @@ async function shouldNotify(cookie) {
     return false;
   }
   return true;
+}
+
+function readSyncStates() {
+  const states = $.getjson(JD_COOKIE_SYNC_STATE_KEY);
+  return states && typeof states === 'object' && !Array.isArray(states) ? states : {};
+}
+
+function isCurrentCookie(pin, cookie) {
+  return ($.getjson(JD_COOKIE_KEY) || []).some(user => user.userName === pin && user.cookie === cookie);
+}
+
+async function runAutoSync(pin, cookie) {
+  const key = `pin:${encodeURIComponent(pin)}`;
+  const target = JSON.stringify([($.getdata('ql_url') || '').trim().replace(/\/$/, ''), $.getdata('ql_client_id') || '']);
+  const states = readSyncStates();
+  const previous = states[key];
+  const now = Date.now();
+  // 租约按账号隔离；即使 Cookie 更新，也等待旧任务收尾，减少交叉写入。
+  if (previous?.status === 'running' && now - previous.ts < SYNC_LEASE_TIME) return;
+  const same = previous?.cookie === cookie && previous?.target === target;
+  if (same && (previous.status === 'success' || now < previous.nextRetryAt)) return;
+  if (!isCurrentCookie(pin, cookie)) return;
+
+  const claim = {
+    cookie, target, status: 'running', ts: now,
+    token: `${now}-${Math.random().toString(36).slice(2)}`,
+    failures: same ? Number(previous.failures || 0) : 0,
+    failureNotified: same && previous.failureNotified === true
+  };
+  states[key] = claim;
+  if (!$.setjson(states, JD_COOKIE_SYNC_STATE_KEY)) {
+    $.log('⚠️ 无法保存同步租约，跳过自动同步');
+    return;
+  }
+  await $.wait(CONCURRENCY_SETTLE_TIME);
+  if (readSyncStates()[key]?.token !== claim.token) return;
+
+  $.syncContext = { key, token: claim.token, pin, cookie, deadline: Date.now() + SYNC_TOTAL_BUDGET };
+  let ok;
+  try {
+    ok = await syncToQingLong(pin, cookie);
+  } finally {
+    $.syncContext = null;
+  }
+  const latest = readSyncStates();
+  if (latest[key]?.token !== claim.token) return;
+  const failures = ok ? 0 : claim.failures + 1;
+  latest[key] = {
+    cookie, target, status: ok ? 'success' : 'failed', ts: Date.now(), failures,
+    nextRetryAt: ok ? 0 : Date.now() + Math.min(SYNC_RETRY_MAX, SYNC_RETRY_BASE * Math.pow(2, Math.min(failures - 1, 4))),
+    failureNotified: !ok
+  };
+  if (!$.setjson(latest, JD_COOKIE_SYNC_STATE_KEY)) {
+    $.log('⚠️ 无法保存同步结果');
+    return;
+  }
+  // 相同 Cookie 的连续失败只通知一次，恢复成功再通知一次。
+  if (ok || !claim.failureNotified) $.Messages.push(...$.SyncMessages);
 }
 
 function resolveTokenExpiration(data = {}) {
@@ -415,8 +500,8 @@ async function syncToQingLong(targetPin, targetCookie) {
 
     if (!qlUrl || !qlClientId || !qlClientSecret) {
       $.log('⚠️ 青龙面板配置不完整，跳过自动同步');
-      $.Messages.push('⚠️ 青龙配置不完整，未自动同步');
-      return;
+      $.SyncMessages.push('⚠️ 青龙配置不完整，未自动同步');
+      return false;
     }
     qlUrl = qlUrl.trim().replace(/\/$/, '');
 
@@ -428,8 +513,8 @@ async function syncToQingLong(targetPin, targetCookie) {
       $.log('🔄 青龙 Token 已过期或不存在，重新获取...');
       token = await getQingLongToken(qlUrl, qlClientId, qlClientSecret);
       if (!token) {
-        $.Messages.push('❌ 获取青龙 Token 失败');
-        return;
+        $.SyncMessages.push('❌ 获取青龙 Token 失败');
+        return false;
       }
     }
 
@@ -462,15 +547,16 @@ async function syncToQingLong(targetPin, targetCookie) {
 
     if (syncSuccessCount > 0) {
       const pinDesc = targetPin ? ` (${targetPin})` : '';
-      $.Messages.push(`✅ 已自动同步 Cookie${pinDesc} 到青龙面板`);
+      $.SyncMessages.push(`✅ 已自动同步 Cookie${pinDesc} 到青龙面板`);
     }
     if (syncFailCount > 0) {
-      $.Messages.push(`❌ ${syncFailCount} 个 Cookie 同步到青龙失败，请查看 Surge 脚本日志`);
+      $.SyncMessages.push(`❌ ${syncFailCount} 个 Cookie 同步到青龙失败，请查看 Surge 脚本日志`);
     }
-
+    return syncSuccessCount > 0 && syncFailCount === 0;
   } catch (error) {
     $.logErr(error);
-    $.Messages.push(`❌ 同步到青龙失败: ${error.message}`);
+    $.SyncMessages.push(`❌ 同步到青龙失败: ${error.message}`);
+    return false;
   }
 }
 
@@ -534,8 +620,8 @@ async function enableQLEnv(qlUrl, token, envId) {
 // 同步单个 Cookie 到青龙
 async function syncCookieToQL(qlUrl, token, cookie, userName) {
   try {
-    // 查询现有环境变量，搜索用户名
-    const searchUrl = `${qlUrl}/open/envs?searchValue=${encodeURIComponent(userName)}`;
+    // 查询 JD_COOKIE 全集，避免服务器搜索漏掉编码形式不同的 pt_pin。
+    const searchUrl = `${qlUrl}/open/envs?searchValue=JD_COOKIE`;
     const searchResp = await request({
       url: searchUrl,
       headers: {
@@ -560,12 +646,7 @@ async function syncCookieToQL(qlUrl, token, cookie, userName) {
     if (searchResp?.body) {
       const result = $.toObj(searchResp.body);
       if (result?.code === 200 && Array.isArray(result?.data)) {
-        // 兼容多格式匹配：备注匹配 或 值中包含 pt_pin/pin
-        const existingEnv = result.data.find(env =>
-          env.name === 'JD_COOKIE' &&
-          ((env.remarks && (env.remarks === userName || env.remarks.includes(userName))) ||
-           (env.value && (env.value.includes(`pt_pin=${userName};`) || env.value.includes(`pin=${userName};`))))
-        );
+        const existingEnv = findQLEnv(result.data, userName);
 
         if (existingEnv) {
           const envId = existingEnv.id || existingEnv._id;
@@ -575,7 +656,7 @@ async function syncCookieToQL(qlUrl, token, cookie, userName) {
           if (existingEnv.value === cookie) {
             $.log(`⏭️ 青龙环境变量值未变化: ${userName}`);
             if (existingEnv.status === 1) {
-              await enableQLEnv(qlUrl, token, envId);
+              return await enableQLEnv(qlUrl, token, envId);
             }
             return true;
           }
@@ -583,7 +664,7 @@ async function syncCookieToQL(qlUrl, token, cookie, userName) {
           // 更新环境变量
           const ok = await updateQLEnv(qlUrl, token, envId, cookie, envRemarks, userName);
           if (ok && existingEnv.status === 1) {
-            await enableQLEnv(qlUrl, token, envId);
+            return await enableQLEnv(qlUrl, token, envId);
           }
           return ok;
         } else {
@@ -686,6 +767,8 @@ function objectKeys2LowerCase(obj) {
 
 // HTTP 请求函数
 async function request(options) {
+  let timer;
+  let settled = false;
   try {
     if (!options) {
       throw new Error('请求参数不能为空');
@@ -699,16 +782,27 @@ async function request(options) {
 
     const method = options._method || (options.body ? 'post' : 'get');
     const respType = options._respType || DEFAULT_RESP_TYPE;
-    const timeout = options._timeout || DEFAULT_TIMEOUT;
+    const sync = $.syncContext;
+    if (sync && (readSyncStates()[sync.key]?.token !== sync.token || !isCurrentCookie(sync.pin, sync.cookie))) {
+      throw new Error('同步任务已被替换或 Cookie 已清空/更新');
+    }
+    const remaining = sync ? sync.deadline - Date.now() : DEFAULT_TIMEOUT;
+    if (remaining <= 0) throw new Error('自动同步已达到总时间预算');
+    const timeout = Math.min(options._timeout || DEFAULT_TIMEOUT, remaining);
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`请求超时: ${options.url}`)), timeout)
-    );
+    const timeoutPromise = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        settled = true;
+        reject(new Error('青龙请求超时或同步时间预算耗尽'));
+      }, timeout);
+    });
 
     const requestPromise = new Promise((resolve, reject) => {
       debug(options, '[Request]');
 
       const callback = (error, response, data) => {
+        if (settled) return;
+        settled = true;
         debug(response, '[Response]');
 
         if (error) {
@@ -737,6 +831,9 @@ async function request(options) {
   } catch (error) {
     $.logErr(error);
     throw error;
+  } finally {
+    settled = true;
+    clearTimeout(timer);
   }
 }
 
@@ -748,7 +845,7 @@ async function sendMsg(message) {
   }
 
   try {
-    $notification.post($.name, '', message);
+    $notification.post($.name, '', redactSecrets(message));
     $.log('📮 通知发送成功');
   } catch (error) {
     $.log(`通知发送失败，使用日志输出: ${error.message}`);

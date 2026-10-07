@@ -1,6 +1,6 @@
 ﻿// 常量配置
 const SCRIPT_NAME = '京东 Cookie';
-const SCRIPT_VERSION = '1.9.4';
+const SCRIPT_VERSION = '1.9.5';
 const JD_COOKIE_TEMP_KEY = 'jd_cookie_temp';
 const JD_COOKIE_KEY = 'jdCookieList';
 const JD_COOKIE_NOTIFY_LOCK_KEY = 'jd_cookie_notify_lock';
@@ -36,8 +36,9 @@ Env.prototype.log = function (...messages) {
 };
 
 Env.prototype.logErr = function (err) {
-  const errorMessage = err?.stack || err?.message || String(err);
-  this.log("", `❗️${this.name}, 错误!`, errorMessage);
+  const message = err?.message || String(err);
+  const stack = err?.stack && !String(err.stack).includes(message) ? `\n${err.stack}` : '';
+  this.log("", `❗️${this.name}, 错误!`, `${message}${stack}`);
 };
 
 Env.prototype.get = function (url, callback) {
@@ -715,10 +716,15 @@ async function request(options) {
           return reject(error);
         }
 
+        // Surge 的响应正文位于回调第三个参数 data，response 对象本身不含 body
+        const fullResponse = Object.assign({}, response, {
+          body: (response && response.body !== undefined && response.body !== null) ? response.body : data
+        });
+
         if (respType === 'all') {
-          resolve(response);
+          resolve(fullResponse);
         } else {
-          const result = response?.[respType];
+          const result = fullResponse?.[respType];
           resolve($.toObj(result, result));
         }
       };

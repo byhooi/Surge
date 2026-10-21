@@ -9,7 +9,7 @@ const source = fs.readFileSync(path.join(__dirname, "../Script/naixue_sign.js"),
 const STATE_KEY = "byhooi_naixue_state";
 const OPEN_ID = "QL6ZOftGzbziPlZwfiXM";
 const NOW = Date.UTC(2030, 0, 1, 1, 0, 0); // 北京时间 2030-01-01 09:00
-const TODAY = "2030-01-01";
+const TODAY = "2030-1-1"; // 与小程序一致：月日不补零
 
 const PARAMS = {
   businessType: 1,
@@ -27,30 +27,35 @@ const PARAMS = {
 
 const COMMON = { platform: "wxapp", version: "6.0.86", lang: "zh_CN", currency: "CNY", osn: "iPhone 17<iPhone18,3>", sv: "iOS 27.0.1" };
 
-// 与 HAR 抓包一致的固定随机数，用于校验签名算法是否完全复现。
+// HAR 抓包中的固定随机数与签名，用于校验签名算法是否完全复现。
 const HAR_NONCE = 542658;
 const HAR_TIMESTAMP = 1792568358;
 const HAR_SIGNATURE = "J3RMo4c0LUuZ7VXKfoNIC+lqmQA=";
 
+const CONDITION = "/user/sign/condition";
+const SAVE = "/user/sign/save";
+
 function state(overrides = {}) {
-  return {
-    token: "TEST-TOKEN-1234567890",
-    capturedAt: "2030-01-01T00:00:00.000Z",
-    version: "1.0.0",
-    common: COMMON,
-    params: Object.assign({}, PARAMS),
-    headers: { "User-Agent": "TEST-UA", Referer: "https://tm-web.pin-dao.cn/naixue/sign-in" },
-    ...overrides,
-  };
+  return Object.assign(
+    {
+      token: "TEST-TOKEN-1234567890",
+      capturedAt: "2030-01-01T00:00:00.000Z",
+      version: "1.1.0",
+      common: COMMON,
+      params: Object.assign({}, PARAMS),
+      headers: { "User-Agent": "TEST-UA", Referer: "https://tm-web.pin-dao.cn/naixue/sign-in" },
+    },
+    overrides
+  );
 }
 
-function storeWith(value) {
-  const store = new Map();
+function storeWith(value, extra = {}) {
+  const store = new Map(Object.entries(extra));
   if (value !== undefined) store.set(STATE_KEY, typeof value === "string" ? value : JSON.stringify(value));
   return store;
 }
 
-async function run({ store = new Map(), request, replies = [], clock = NOW, keys = {} } = {}) {
+async function run({ store = new Map(), request, response, replies = [], clock = NOW, keys = {} } = {}) {
   const notifications = [];
   const logs = [];
   const calls = [];
@@ -81,23 +86,21 @@ async function run({ store = new Map(), request, replies = [], clock = NOW, keys
       post: (options, callback) => {
         calls.push(options);
         const next = replies[calls.length - 1];
-        if (!next) throw new Error("测试未配置此请求");
+        if (!next) throw new Error(`测试未配置第 ${calls.length} 个请求`);
+        if (next.throw) throw new Error(next.throw);
         callback(next.error || null, next.response, next.body);
       },
       get: () => { throw new Error("奈雪签到不应使用 GET"); },
     },
   };
   if (request) context.$request = request;
+  if (response) context.$response = response;
 
   vm.runInNewContext(source, context, { timeout: 1000 });
   await completed;
+  // 多步流程里 $done 只应被调用一次。
   assert.equal(doneCount, 1, "$done 必须且只能调用一次");
-  return { store, notifications, logs, calls, doneValue };
-}
-
-function signature(key, nonce, timestamp) {
-  const message = encodeURI(`nonce=${nonce}&openId=${OPEN_ID}&timestamp=${timestamp}`);
-  return crypto.createHmac("sha1", key).update(message).digest("base64");
+  return { store, notifications, logs, calls, doneValue, saved: () => JSON.parse(store.get(STATE_KEY)) };
 }
 
 function signKey(name) {
@@ -105,57 +108,240 @@ function signKey(name) {
   return line.split('"')[1];
 }
 
-function captureBody(overrides = {}) {
+function signature(key, nonce, timestamp) {
+  const message = encodeURI(`nonce=${nonce}&openId=${OPEN_ID}&timestamp=${timestamp}`);
+  return crypto.createHmac("sha1", key).update(message).digest("base64");
+}
+
+function conditionBody({ status, signCount = 3, infos = [] } = {}) {
+  const data = { signCoins: [{ date: 1, coin: 1 }] };
+  if (status !== undefined) data.status = status;
+  if (signCount !== undefined) data.signCount = signCount;
+  if (infos.length) data.infos = infos.map((info) => ({ info }));
+  return JSON.stringify({ code: 0, success: true, data });
+}
+
+function saveBody(extra = {}) {
   return JSON.stringify({
-    common: Object.assign({}, COMMON, { nonce: 1, openId: OPEN_ID, timestamp: HAR_TIMESTAMP, signature: "x" }),
-    params: Object.assign({}, PARAMS, overrides),
+    code: 0,
+    success: true,
+    data: { flag: true, infos: [{ info: "每天签到可获得 1 奈雪币" }] },
+    ...extra,
   });
 }
 
-test("签名算法与抓包签名完全一致，且不依赖 atob/Buffer/crypto", async () => {
+function reply(body, status = 200) {
+  return { response: { status }, body };
+}
+
+/* ------------------------------ 签名 ------------------------------ */
+
+test("签名算法与抓包签名完全一致，且不依赖 Buffer/atob/crypto", async () => {
   const result = await run({
-    store: storeWith(state({ params: Object.assign({}, PARAMS, { signDate: "2020-01-01" }) })),
+    store: storeWith(state()),
     clock: HAR_TIMESTAMP * 1000,
-    replies: [{ response: { status: 200 }, body: JSON.stringify({ code: 0, data: { flag: true, infos: [] } }) }],
+    replies: [reply(conditionBody({ status: true }))],
   });
-  assert.equal(result.calls.length, 1);
   const body = JSON.parse(result.calls[0].body);
   assert.equal(body.common.openId, OPEN_ID);
   assert.equal(body.common.signature, HAR_SIGNATURE);
   assert.ok(!/\b(Buffer|atob|btoa|require)\b/.test(source), "脚本需保持纯 JS 实现");
 });
 
-test("不同品牌/版本选择不同签名密钥，可被 BoxJS 覆盖", async () => {
-  const har = await run({
-    store: storeWith(state({
-      common: Object.assign({}, COMMON, { version: "6.0.86" }),
-      params: Object.assign({}, PARAMS, { brand: 26000252 }),
-    })),
+test("品牌与版本决定签名密钥，可被 BoxJS 覆盖", async () => {
+  const nai = await run({
+    store: storeWith(state()),
     clock: HAR_TIMESTAMP * 1000,
-    replies: [{ response: { status: 200 }, body: '{"code":0,"data":{"flag":true}}' }],
+    replies: [reply(conditionBody({ status: true }))],
   });
-  const harBody = JSON.parse(har.calls[0].body);
-  assert.equal(harBody.common.signature, signature(signKey("SIGN_KEY_NAIXUE"), harBody.common.nonce, HAR_TIMESTAMP));
+  const naiBody = JSON.parse(nai.calls[0].body);
+  assert.equal(naiBody.common.signature, signature(signKey("SIGN_KEY_NAIXUE"), HAR_NONCE, HAR_TIMESTAMP));
 
   const other = await run({
     store: storeWith(state({ params: Object.assign({}, PARAMS, { brand: 26000141 }) })),
     clock: HAR_TIMESTAMP * 1000,
-    replies: [{ response: { status: 200 }, body: '{"code":0,"data":{"flag":true}}' }],
+    replies: [reply(conditionBody({ status: true }))],
   });
   const otherBody = JSON.parse(other.calls[0].body);
-  assert.equal(otherBody.common.signature, signature(signKey("SIGN_KEY_DEFAULT"), otherBody.common.nonce, HAR_TIMESTAMP));
+  assert.equal(otherBody.common.signature, signature(signKey("SIGN_KEY_DEFAULT"), HAR_NONCE, HAR_TIMESTAMP));
 
   const custom = await run({
     store: storeWith(state()),
     clock: HAR_TIMESTAMP * 1000,
     keys: { byhooi_naixue_sign_key: "MY-CUSTOM-KEY" },
-    replies: [{ response: { status: 200 }, body: '{"code":0,"data":{"flag":true}}' }],
+    replies: [reply(conditionBody({ status: true }))],
   });
   const customBody = JSON.parse(custom.calls[0].body);
-  assert.equal(customBody.common.signature, signature("MY-CUSTOM-KEY", customBody.common.nonce, HAR_TIMESTAMP));
+  assert.equal(customBody.common.signature, signature("MY-CUSTOM-KEY", HAR_NONCE, HAR_TIMESTAMP));
 });
 
-test("抓取凭证：保存 Authorization、门店参数与请求头，未变化时不重复通知", async () => {
+/* ------------------------------ 先查后签 ------------------------------ */
+
+test("查到今日已签到则不再提交签到请求", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    replies: [reply(conditionBody({ status: true, signCount: 7 }))],
+  });
+  assert.equal(result.calls.length, 1, "已签到不应再调用 save");
+  assert.match(result.calls[0].url, /\/user\/sign\/condition$/);
+  assert.equal(result.notifications.length, 1);
+  assert.equal(result.notifications[0][1], "今日已签到");
+  assert.match(result.notifications[0][2], /连签 7 天/);
+  assert.equal(result.saved().lastSignDate, TODAY);
+  assert.equal(result.saved().checkedBeforeSign, true);
+});
+
+test("status 为 false 时提交签到，复查确认后报告成功", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    replies: [
+      reply(conditionBody({ status: false, signCount: 2 })),
+      reply(saveBody()),
+      reply(conditionBody({ status: true, signCount: 3, infos: ["每天签到可获得 1 奈雪币"] })),
+    ],
+  });
+  assert.equal(result.calls.length, 3, "应为 查询 → 签到 → 复查");
+  assert.match(result.calls[0].url, /\/user\/sign\/condition$/);
+  assert.match(result.calls[1].url, /\/user\/sign\/save$/);
+  assert.match(result.calls[2].url, /\/user\/sign\/condition$/);
+
+  const saved = result.calls.map((call) => JSON.parse(call.body));
+  saved.forEach((body) => {
+    assert.equal(body.params.signDate, TODAY, "三次请求都必须带当天日期");
+    assert.equal(body.params.storeId, PARAMS.storeId, "门店参数必须保留");
+  });
+
+  assert.equal(result.notifications[0][1], "签到成功 ✅");
+  assert.match(result.notifications[0][2], /连签 3 天/);
+  assert.match(result.notifications[0][2], /奈雪币/);
+  assert.equal(result.saved().lastSignDate, TODAY);
+});
+
+test("签到后复查仍为未签到时不谎报成功", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    replies: [reply(conditionBody({ status: false })), reply(saveBody()), reply(conditionBody({ status: false, signCount: 2 }))],
+  });
+  assert.equal(result.notifications[0][1], "签到未确认");
+  assert.match(result.notifications[0][2], /仍为未签到/);
+  assert.ok(!/成功/.test(result.notifications[0][2]));
+});
+
+test("状态字段无法识别时按未知处理，仍照常提交签到", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    replies: [
+      reply(JSON.stringify({ code: 0, data: { signCoins: [] } })), // 没有 status
+      reply(saveBody()),
+      reply(conditionBody({ status: true })),
+    ],
+  });
+  assert.equal(result.calls.length, 3, "无法判断时必须继续提交，不能漏签");
+  assert.equal(result.notifications[0][1], "签到成功 ✅");
+});
+
+test("status 兼容字符串与数字形式", async () => {
+  for (const value of ["true", "1", 1]) {
+    const result = await run({
+      store: storeWith(state()),
+      replies: [reply(conditionBody({ status: value }))],
+    });
+    assert.equal(result.calls.length, 1, `status=${JSON.stringify(value)} 应视为已签到`);
+    assert.equal(result.notifications[0][1], "今日已签到");
+  }
+  for (const value of ["false", "0", 0]) {
+    const result = await run({
+      store: storeWith(state()),
+      replies: [reply(conditionBody({ status: value })), reply(saveBody()), reply(conditionBody({ status: true }))],
+    });
+    assert.equal(result.calls.length, 3, `status=${JSON.stringify(value)} 应视为未签到并提交`);
+  }
+});
+
+test("查询接口异常时降级为直接签到", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    replies: [reply('{"code":-1,"message":"服务器内部异常"}'), reply(saveBody()), reply(conditionBody({ status: true }))],
+  });
+  assert.equal(result.calls.length, 3);
+  assert.equal(result.notifications[0][1], "签到成功 ✅");
+});
+
+test("查询请求网络失败时仍尝试签到", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    replies: [{ error: "The request timed out." }, reply(saveBody()), reply(conditionBody({ status: true }))],
+  });
+  assert.equal(result.calls.length, 3);
+  assert.equal(result.notifications[0][1], "签到成功 ✅");
+});
+
+/* ------------------------------ 失败分支 ------------------------------ */
+
+test("签到接口返回已签到也视为完成，且不谎报本次新签", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    replies: [
+      reply(conditionBody({ status: false })),
+      reply(JSON.stringify({ code: 1000001, message: "今日已签到" })),
+    ],
+  });
+  assert.equal(result.calls.length, 2, "识别为已签到后不再复查");
+  assert.equal(result.notifications[0][1], "今日已签到");
+  assert.ok(!/成功/.test(result.notifications[0][2]));
+  assert.equal(result.saved().lastSignDate, TODAY);
+});
+
+test("凭证失效与签名被拒分别给出不同指引", async () => {
+  const expired = await run({
+    store: storeWith(state()),
+    replies: [
+      reply(conditionBody({ status: false })),
+      reply(JSON.stringify({ code: 1500000, message: "用户未登录，请登录！" })),
+    ],
+  });
+  assert.equal(expired.notifications[0][1], "签到失败");
+  assert.match(expired.notifications[0][2], /失效/);
+  assert.match(expired.saved().lastResult, /^失败：/);
+
+  const unauthorized = await run({
+    store: storeWith(state()),
+    replies: [reply(conditionBody({ status: false })), reply("unauthorized", 401)],
+  });
+  assert.equal(unauthorized.notifications[0][1], "签到失败");
+  assert.match(unauthorized.notifications[0][2], /失效/);
+
+  const rejected = await run({
+    store: storeWith(state()),
+    replies: [reply(conditionBody({ status: false })), reply('{"message":"request sign is not valid"}', 400)],
+  });
+  assert.equal(rejected.notifications[0][1], "签到失败");
+  assert.match(rejected.notifications[0][2], /拒绝/);
+
+  const serverError = await run({
+    store: storeWith(state()),
+    replies: [reply(conditionBody({ status: false })), reply("<html>500</html>", 500)],
+  });
+  assert.equal(serverError.notifications[0][1], "签到失败");
+  assert.match(serverError.notifications[0][2], /HTTP 500/);
+});
+
+test("缺少凭证或门店参数时不发请求", async () => {
+  const empty = await run({ replies: [] });
+  assert.equal(empty.calls.length, 0);
+  assert.equal(empty.notifications[0][1], "缺少 accessToken");
+
+  const broken = await run({ store: storeWith("{not-json}"), replies: [] });
+  assert.equal(broken.calls.length, 0);
+
+  const noBrand = await run({ store: storeWith(state({ params: { storeId: 26073958 } })), replies: [] });
+  assert.equal(noBrand.calls.length, 0);
+  assert.equal(noBrand.notifications[0][1], "缺少门店参数");
+});
+
+/* ------------------------------ 抓取 ------------------------------ */
+
+test("抓取凭证：保存 token、门店参数与请求头，不保存 Cookie", async () => {
   const store = new Map();
   const first = await run({
     store,
@@ -167,7 +353,10 @@ test("抓取凭证：保存 Authorization、门店参数与请求头，未变化
         Referer: "https://tm-web.pin-dao.cn/naixue/sign-in?sf=&accessToken=TOKEN-AAA-1111",
         Cookie: "sensorsdata=SECRET_SHOULD_NOT_BE_STORED",
       },
-      body: captureBody(),
+      body: JSON.stringify({
+        common: COMMON,
+        params: Object.assign({}, PARAMS, { signDate: "2019-05-05" }),
+      }),
     },
   });
   assert.equal(first.notifications.length, 1);
@@ -176,8 +365,8 @@ test("抓取凭证：保存 Authorization、门店参数与请求头，未变化
   const saved = JSON.parse(store.get(STATE_KEY));
   assert.equal(saved.token, "TOKEN-AAA-1111");
   assert.equal(saved.params.storeId, PARAMS.storeId);
+  assert.equal(saved.params.signDate, undefined, "signDate 不应写入 state");
   assert.equal(saved.headers.Referer, "https://tm-web.pin-dao.cn/naixue/sign-in");
-  assert.equal(saved.common.platform, "wxapp");
   assert.ok(!store.get(STATE_KEY).includes("SECRET_SHOULD_NOT_BE_STORED"), "不应保存 Cookie");
 
   const again = await run({
@@ -185,119 +374,64 @@ test("抓取凭证：保存 Authorization、门店参数与请求头，未变化
     request: {
       url: "https://tm-web.pin-dao.cn/user/sign/condition",
       headers: { Authorization: "Bearer TOKEN-AAA-1111", "User-Agent": "UA-1", Referer: "https://tm-web.pin-dao.cn/naixue/sign-in" },
-      body: captureBody(),
+      body: JSON.stringify({ common: COMMON, params: PARAMS }),
     },
   });
-  assert.equal(again.notifications.length, 0, "凭证与参数未变化时不应通知");
+  assert.equal(again.notifications.length, 0, "无变化时不应通知");
 
   const changed = await run({
     store,
     request: {
       url: "https://tm-web.pin-dao.cn/user/sign/save",
       headers: { Authorization: "Bearer TOKEN-BBB-2222", "User-Agent": "UA-2" },
-      body: captureBody({ storeId: 26010435, cityId: 110100 }),
+      body: JSON.stringify({ common: COMMON, params: Object.assign({}, PARAMS, { storeId: 26010435, cityId: 110100 }) }),
     },
   });
   assert.equal(changed.notifications.length, 1);
   const updated = JSON.parse(store.get(STATE_KEY));
   assert.equal(updated.token, "TOKEN-BBB-2222");
   assert.equal(updated.params.storeId, 26010435);
-  assert.equal(updated.headers["User-Agent"], "UA-2");
 });
 
-test("无 Authorization 的请求不写入数据，也不报错", async () => {
-  const result = await run({
-    request: { url: "https://tm-web.pin-dao.cn/user/sign/condition", headers: {}, body: "" },
-  });
+test("无 Authorization 的请求不写入数据", async () => {
+  const result = await run({ request: { url: "https://tm-web.pin-dao.cn/user/sign/condition", headers: {}, body: "" } });
   assert.equal(result.store.has(STATE_KEY), false);
   assert.equal(result.notifications.length, 0);
 });
 
-test("定时签到使用当天日期并重算签名，成功后写入结果", async () => {
+test("http-response 记录签到状态原始响应且不改写响应", async () => {
+  const store = storeWith(state());
+  const raw = conditionBody({ status: true, signCount: 9 });
   const result = await run({
-    store: storeWith(state({ params: Object.assign({}, PARAMS, { signDate: "2019-05-05" }) })),
-    replies: [{
-      response: { status: 200 },
-      body: JSON.stringify({ code: 0, success: true, data: { flag: true, infos: [{ info: "每天签到可获得 1 奈雪币" }] } }),
-    }],
+    store,
+    request: { url: "https://tm-web.pin-dao.cn/user/sign/condition", headers: {} },
+    response: { status: 200, body: raw },
   });
-  assert.equal(result.calls.length, 1);
-  const options = result.calls[0];
-  assert.equal(options.url, "https://tm-web.pin-dao.cn/user/sign/save");
-  assert.equal(options.headers.Authorization, "Bearer TEST-TOKEN-1234567890");
-  const body = JSON.parse(options.body);
-  assert.equal(body.params.signDate, TODAY, "signDate 必须按当天重算");
-  assert.equal(body.params.brand, PARAMS.brand);
-  assert.equal(body.common.openId, OPEN_ID);
-  assert.ok(body.common.nonce >= 0 && body.common.nonce < 1e6, "nonce 应为 6 位以内整数");
-  assert.equal(body.common.timestamp, NOW / 1000);
-  assert.equal(body.common.signature, signature(signKey("SIGN_KEY_NAIXUE"), body.common.nonce, body.common.timestamp));
-
-  assert.equal(result.notifications.length, 1);
-  assert.equal(result.notifications[0][1], "签到成功 ✅");
-  const saved = JSON.parse(result.store.get(STATE_KEY));
-  assert.equal(saved.lastSignDate, TODAY);
-  assert.match(saved.lastResult, /奈雪币/);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.doneValue)), {}, "不应改写响应体");
+  const saved = JSON.parse(store.get(STATE_KEY));
+  assert.equal(saved.lastConditionRaw, raw);
+  assert.ok(saved.lastConditionAt);
+  assert.equal(saved.token, "TEST-TOKEN-1234567890", "记录响应不能影响已有凭证");
+  assert.equal(result.calls.length, 0, "抓取响应不应发请求");
 });
 
-test("已签到与凭证失效分别给出不同结论", async () => {
-  const signed = await run({
-    store: storeWith(state()),
-    replies: [{ response: { status: 200 }, body: JSON.stringify({ code: 1000001, message: "今日已签到" }) }],
+test("http-response 对非 JSON 与超长内容安全处理", async () => {
+  const store = storeWith(state());
+  const long = JSON.stringify({ code: 0, data: { status: true, pad: "x".repeat(2000) } });
+  const result = await run({
+    store,
+    request: { url: "https://tm-web.pin-dao.cn/user/sign/records", headers: {} },
+    response: { status: 200, body: long },
   });
-  assert.equal(signed.notifications[0][1], "今日已签到");
+  const saved = JSON.parse(store.get(STATE_KEY));
+  assert.ok(saved.lastRecordsRaw.length <= 803, "原始响应需截断");
+  assert.ok(saved.lastRecordsRaw.endsWith("..."));
+  assert.equal(result.notifications.length, 0);
 
-  const expired = await run({
-    store: storeWith(state()),
-    replies: [{ response: { status: 200 }, body: JSON.stringify({ code: 1500000, message: "用户未登录，请登录！" }) }],
-  });
-  assert.equal(expired.notifications[0][1], "签到失败");
-  assert.match(expired.notifications[0][2], /失效/);
-  assert.match(JSON.parse(expired.store.get(STATE_KEY)).lastResult, /^失败：/);
-
-  const status401 = await run({
-    store: storeWith(state()),
-    replies: [{ response: { status: 401 }, body: "unauthorized" }],
-  });
-  assert.equal(status401.notifications[0][1], "签到失败");
-
-  const rejected = await run({
-    store: storeWith(state()),
-    replies: [{ response: { status: 400 }, body: '{"message":"request sign is not valid"}' }],
-  });
-  assert.equal(rejected.notifications[0][1], "签到失败");
-  assert.match(rejected.notifications[0][2], /签名|拒绝/);
-});
-
-test("缺少凭证或门店参数时给出操作指引且不发请求", async () => {
-  const empty = await run({ replies: [] });
-  assert.equal(empty.calls.length, 0);
-  assert.equal(empty.notifications[0][1], "缺少 accessToken");
-
-  const broken = await run({ store: storeWith("{not-json}"), replies: [] });
-  assert.equal(broken.calls.length, 0);
-  assert.equal(broken.notifications[0][1], "缺少 accessToken");
-
-  const noBrand = await run({
-    store: storeWith(state({ params: { storeId: 26073958 } })),
-    replies: [],
-  });
-  assert.equal(noBrand.calls.length, 0);
-  assert.equal(noBrand.notifications[0][1], "缺少门店参数");
-});
-
-test("非 JSON 响应与网络错误不会抛出未捕获异常", async () => {
   const html = await run({
     store: storeWith(state()),
-    replies: [{ response: { status: 500 }, body: "<html>500 Internal Server Error</html>" }],
+    request: { url: "https://tm-web.pin-dao.cn/user/sign/condition", headers: {} },
+    response: { status: 200, body: "<html>nope</html>" },
   });
-  assert.equal(html.notifications[0][1], "签到失败");
-  assert.match(html.notifications[0][2], /HTTP 500/);
-
-  const network = await run({
-    store: storeWith(state()),
-    replies: [{ error: "The request timed out." }],
-  });
-  assert.equal(network.notifications[0][1], "签到失败");
-  assert.match(network.notifications[0][2], /timed out/);
+  assert.equal(JSON.parse(html.store.get(STATE_KEY)).lastConditionRaw, undefined);
 });

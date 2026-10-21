@@ -1,19 +1,27 @@
 const SCRIPT_NAME = "奈雪点单签到";
-const SCRIPT_VERSION = "1.0.0";
+const SCRIPT_VERSION = "1.1.0";
 const STATE_KEY = "byhooi_naixue_state";
 const SIGN_KEY_OVERRIDE = "byhooi_naixue_sign_key";
 
 const ORIGIN = "https://tm-web.pin-dao.cn";
-const SIGN_PATH = "/user/sign/save";
+const PATH_SAVE = "/user/sign/save";
+const PATH_CONDITION = "/user/sign/condition";
+const PATH_RECORDS = "/user/sign/records";
 
-// 命中即保存凭证：签到页、签到状态/记录、账号信息与下单页都会带上 Authorization。
-// 模块中的抓取 pattern 使用前缀匹配：^https:\/\/tm-web\.pin-dao\.cn\/(?:user|naixue|chayuan|coupon)\/
+// 抓取 pattern 与模块保持一致：
+//   http-request  ^https:\/\/tm-web\.pin-dao\.cn\/(?:user|naixue|chayuan|coupon)\/
+//   http-response ^https:\/\/tm-web\.pin-dao\.cn\/user\/sign\/(?:condition|records)$
 
 // 小程序前端固定 openId 与签名密钥，属于公开前端常量，不是账号凭证。
 const OPEN_ID = "QL6ZOftGzbziPlZwfiXM";
 const SIGN_KEY_NAIXUE = "sArMTldQ9tqU19XIRDMWz7BO5WaeBnrezA";
 const SIGN_KEY_DEFAULT = "iYkcDMF8Eti255hti5M629RQTQ4Z2XihG";
 const NAIXUE_BRANDS = [26000252, 26000254];
+
+const CHECK_TIMEOUT = 12;
+const SAVE_TIMEOUT = 18;
+const TOTAL_BUDGET_MS = 45000;
+const RAW_SAMPLE_LIMIT = 800;
 
 const DEFAULT_COMMON = {
   platform: "wxapp",
@@ -39,15 +47,18 @@ const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012
 const ALREADY_SIGNED_PATTERN = /已签到|已经签到|重复签到|今日已签|already\s*sign/i;
 const TOKEN_INVALID_PATTERN = /未登录|请登录|登录已|token|sign is not valid|expired|授权/i;
 
-if (typeof $request !== "undefined") {
-  captureState();
+// Surge 的 http-response 脚本里 $request 同样存在，必须先判断 $response，否则会把响应抓取当成请求抓取。
+if (typeof $response !== "undefined") {
+  captureResponse();
+} else if (typeof $request !== "undefined") {
+  captureRequest();
 } else {
-  signIn();
+  runSignIn();
 }
 
 /* ------------------------------ 抓取凭证 ------------------------------ */
 
-function captureState() {
+function captureRequest() {
   const headers = $request.headers || {};
   const token = extractToken(headers, $request.url);
   if (!token) {
@@ -59,14 +70,14 @@ function captureState() {
   try {
     const body = safeParse($request.body);
     const previous = readState();
-    const next = {
+    const next = Object.assign({}, previous || {}, {
       token,
       capturedAt: new Date().toISOString(),
       version: SCRIPT_VERSION,
       common: pickCommon(Object.assign({}, (previous && previous.common) || {}, (body && body.common) || {})),
       params: mergeParams(previous && previous.params, body && body.params),
       headers: pickRequestHeaders(headers, previous && previous.headers),
-    };
+    });
 
     if (!writeState(next)) throw new Error("写入持久化数据失败");
 
@@ -85,6 +96,33 @@ function captureState() {
     const message = String((error && error.message) || error);
     log(`捕获失败：${message}`);
     $notification.post(SCRIPT_NAME, "获取凭证失败", message);
+  } finally {
+    $done({});
+  }
+}
+
+// 保存签到状态接口的原始响应，用于核对字段名。只记录，不改写响应。
+function captureResponse() {
+  try {
+    const text = typeof $response.body === "string" ? $response.body : "";
+    const json = safeParse(text);
+    if (!json || typeof json !== "object") {
+      log(`跳过非 JSON 响应：${preview(text)}`);
+      return;
+    }
+
+    const url = String($request && $request.url ? $request.url : "");
+    const isRecords = url.indexOf(PATH_RECORDS) >= 0;
+    const patch = {
+      capturedAt: new Date().toISOString(),
+      lastCheckAt: Date.now(),
+    };
+    patch[isRecords ? "lastRecordsRaw" : "lastConditionRaw"] = truncate(text, RAW_SAMPLE_LIMIT);
+    patch[isRecords ? "lastRecordsAt" : "lastConditionAt"] = new Date().toISOString();
+    patchState(patch);
+    log(`${isRecords ? "records" : "condition"} 响应已记录：${preview(text)}`);
+  } catch (error) {
+    log(`记录响应失败：${error && error.message ? error.message : error}`);
   } finally {
     $done({});
   }
@@ -115,6 +153,7 @@ function mergeParams(previous, current) {
   const merged = Object.assign({}, base, next);
   // signDate 每次都按当天重算，不沿用历史值。
   delete merged.signDate;
+  delete merged.startDate;
   return merged;
 }
 
@@ -137,9 +176,9 @@ function describeParams(params) {
   return parts.join(" ");
 }
 
-/* ------------------------------ 定时签到 ------------------------------ */
+/* ------------------------------ 签到主流程 ------------------------------ */
 
-function signIn() {
+function runSignIn() {
   const state = readState();
   if (!state || !state.token) {
     log("缺少 accessToken");
@@ -160,84 +199,172 @@ function signIn() {
     return;
   }
 
-  const common = Object.assign({}, DEFAULT_COMMON, state.common || {});
   const signDate = todayInChina();
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  log(`v${SCRIPT_VERSION} 开始，signDate=${signDate}，${describeParams(params)}`);
+
+  // 第一步：先查今日状态。已签到就不再提交，避免重复请求。
+  sendJson(state, PATH_CONDITION, params, { signDate }, CHECK_TIMEOUT, (check) => {
+    const already = readSigned(check);
+    if (already === true) {
+      const summary = buildSummary("今日已签到", readSignCount(check), readSignInfos(check));
+      finish(state, summary, { lastCheck: true, lastSignDate: signDate, checkedBeforeSign: true }, "今日已签到", summary);
+      return;
+    }
+
+    log(`签到前状态：${already === false ? "未签到" : "无法确认"}，继续提交`);
+
+    // 第二步：提交签到。
+    sendJson(state, PATH_SAVE, params, { signDate }, SAVE_TIMEOUT, (save) => {
+      const outcome = classifySave(save);
+      if (!outcome.ok) {
+        finish(state, `失败：${outcome.message}`, { lastCheck: already }, "签到失败", outcome.message);
+        return;
+      }
+      log(`签到请求已接受：${preview(save.text)}`);
+
+      // 服务端直接回“已签到”时无需复查，也不谎报为本次新签成功。
+      if (outcome.alreadySigned) {
+        const summary = buildSummary("今日已签到", 0, readSignInfos(save));
+        finish(state, summary, { lastCheck: already, lastSignDate: signDate }, "今日已签到", summary);
+        return;
+      }
+
+      // 第三步：复查状态，避免把“请求被接受”说成“签到成功”。
+      if (Date.now() > deadline) {
+        const message = "签到请求已提交，但超出时间预算未复查，请在小程序确认。";
+        finish(state, message, { lastCheck: null, lastSignDate: signDate }, "签到已提交", message);
+        return;
+      }
+      sendJson(state, PATH_CONDITION, params, { signDate }, CHECK_TIMEOUT, (verify) => {
+        const verified = readSigned(verify);
+        const signCount = readSignCount(verify);
+        const infos = readSignInfos(verify);
+
+        if (verified === true) {
+          const summary = buildSummary("签到成功", signCount, infos);
+          finish(state, summary, { lastCheck: true, lastSignDate: signDate }, "签到成功 ✅", summary);
+          return;
+        }
+        if (verified === false) {
+          const message = `签到请求已提交，但状态复查仍为未签到${signCount ? `（连签 ${signCount} 天）` : ""}，请稍后在小程序确认。`;
+          finish(state, message, { lastCheck: false }, "签到未确认", message);
+          return;
+        }
+        const message = `签到请求已提交，状态复查失败（${verify.error || preview(verify.text) || "无响应"}），请在小程序确认。`;
+        finish(state, message, { lastCheck: null }, "签到未确认", message);
+      });
+    });
+  });
+}
+
+function finish(state, logMessage, patch, title, body) {
+  log(logMessage.replace(/\n/g, " / "));
+  patchState(Object.assign({ lastResult: logMessage, lastRunAt: Date.now() }, patch));
+  $notification.post(SCRIPT_NAME, title, body);
+  $done();
+}
+
+function buildSummary(headline, signCount, infos) {
+  const lines = [];
+  if (signCount) lines.push(`${headline}，已连签 ${signCount} 天`);
+  else lines.push(headline);
+  infos.slice(0, 3).forEach((info) => lines.push(info));
+  return lines.join("\n");
+}
+
+// status 语义来自小程序签到弹窗：`i && !i.status ? "立即签到" : "已签到"`。
+// 真实响应结构尚未实机核对，因此无法判定时返回 null，调用方按“未知”处理而不是当成已签。
+function readSigned(result) {
+  if (!result || !result.json || !result.json.data) return null;
+  const data = result.json.data;
+  if (typeof data !== "object") return null;
+  const value = data.status;
+  if (value === true || value === 1) return true;
+  if (value === false || value === 0) return false;
+  if (typeof value === "string") {
+    const text = value.trim().toLowerCase();
+    if (text === "true" || text === "1") return true;
+    if (text === "false" || text === "0" || text === "") return false;
+  }
+  return null;
+}
+
+function readSignCount(result) {
+  const data = result && result.json && result.json.data;
+  if (!data || typeof data !== "object") return 0;
+  const value = Number(data.signCount != null ? data.signCount : data.continueSignCount);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function readSignInfos(result) {
+  const data = result && result.json && result.json.data;
+  if (!data || typeof data !== "object") return [];
+  const infos = Array.isArray(data.infos) ? data.infos : [];
+  return infos
+    .map((item) => (item && typeof item.info === "string" ? item.info.trim() : ""))
+    .filter(Boolean);
+}
+
+function classifySave(save) {
+  if (save.error) return { ok: false, message: `网络请求失败：${save.error}` };
+  if (save.status === 401 || save.status === 403) {
+    return { ok: false, message: "accessToken 已失效，请重新打开小程序抓取" };
+  }
+  if (save.status === 400) return { ok: false, message: `请求被拒绝：${preview(save.text)}` };
+  if (!save.json) return { ok: false, message: `HTTP ${save.status || "未知"}：${preview(save.text)}` };
+
+  if (save.json.code === 0) return { ok: true };
+
+  const message = String(save.json.message || "").trim() || preview(save.text);
+  if (ALREADY_SIGNED_PATTERN.test(message)) return { ok: true, alreadySigned: true };
+  if (save.json.code === 1500000 || TOKEN_INVALID_PATTERN.test(message)) {
+    return { ok: false, message: `accessToken 已失效（${message}），请重新打开小程序抓取` };
+  }
+  return { ok: false, message: `code ${save.json.code}：${message}` };
+}
+
+/* ------------------------------ 请求与签名 ------------------------------ */
+
+function sendJson(state, path, storeParams, extraParams, timeoutSeconds, callback) {
+  const common = Object.assign({}, DEFAULT_COMMON, state.common || {});
   const timestamp = Math.floor(Date.now() / 1000);
   const nonce = Math.floor(Math.random() * 1e6);
+  const params = Object.assign({}, storeParams, extraParams);
   const signature = signRequest({ nonce, timestamp, common, params });
   const body = {
     common: Object.assign({}, common, { openId: OPEN_ID, timestamp, nonce, signature }),
-    params: Object.assign({}, params, { signDate }),
+    params,
   };
 
   const options = {
-    url: ORIGIN + SIGN_PATH,
-    headers: {
-      Accept: "application/json, text/plain, */*",
-      "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-      "Content-Type": "application/json",
-      Origin: ORIGIN,
-      Referer: (state.headers && state.headers.Referer) || `${ORIGIN}/naixue/sign-in`,
-      "User-Agent": (state.headers && state.headers["User-Agent"]) || DEFAULT_USER_AGENT,
-      Authorization: `Bearer ${state.token}`,
-    },
+    url: ORIGIN + path,
+    headers: Object.assign(
+      {
+        Accept: "application/json, text/plain, */*",
+        "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+        "Content-Type": "application/json",
+        Origin: ORIGIN,
+        Referer: (state.headers && state.headers.Referer) || `${ORIGIN}/naixue/sign-in`,
+        "User-Agent": (state.headers && state.headers["User-Agent"]) || DEFAULT_USER_AGENT,
+      },
+      { Authorization: `Bearer ${state.token}` }
+    ),
     body: JSON.stringify(body),
-    timeout: 30,
+    timeout: timeoutSeconds,
   };
 
-  log(`v${SCRIPT_VERSION} 开始签到，signDate=${signDate}，${describeParams(params)}`);
+  log(`→ POST ${path} ${describeParams(params)}`);
   $httpClient.post(options, (error, response, data) => {
-    try {
-      if (error) throw new Error(String(error));
-      const status = Number((response && (response.status || response.statusCode)) || 0);
-      const text = typeof data === "string" ? data : String(data == null ? "" : data);
-      const result = safeParse(text);
-
-      if (status === 401 || status === 403) throw new Error("accessToken 已失效，请重新打开小程序抓取");
-      if (status === 400) throw new Error(`请求被拒绝：${preview(text)}`);
-      if (!result) throw new Error(`HTTP ${status || "未知"}：${preview(text)}`);
-
-      if (result.code === 0) {
-        const summary = summarizeSign(result.data);
-        log(`签到成功：${summary.replace(/\n/g, " / ")}`);
-        patchState({ lastResult: summary, lastSignDate: signDate, lastRunAt: Date.now() });
-        $notification.post(SCRIPT_NAME, "签到成功 ✅", summary);
-        return;
-      }
-
-      const message = String(result.message || "").trim() || preview(text);
-      if (ALREADY_SIGNED_PATTERN.test(message)) {
-        log(`今日已签到：${message}`);
-        patchState({ lastResult: `今日已签到：${message}`, lastSignDate: signDate, lastRunAt: Date.now() });
-        $notification.post(SCRIPT_NAME, "今日已签到", message);
-        return;
-      }
-      if (result.code === 1500000 || TOKEN_INVALID_PATTERN.test(message)) {
-        throw new Error(`accessToken 已失效（${message}），请重新打开小程序抓取`);
-      }
-      throw new Error(`code ${result.code}：${message}`);
-    } catch (requestError) {
-      const message = String((requestError && requestError.message) || requestError);
-      log(`签到失败：${message}`);
-      patchState({ lastResult: `失败：${message}`, lastRunAt: Date.now() });
-      $notification.post(SCRIPT_NAME, "签到失败", message);
-    } finally {
-      $done();
+    if (error) {
+      callback({ error: String(error), status: 0, text: "", json: null });
+      return;
     }
+    const status = Number((response && (response.status || response.statusCode)) || 0);
+    const text = typeof data === "string" ? data : String(data == null ? "" : data);
+    callback({ error: "", status, text, json: safeParse(text) });
   });
 }
-
-function summarizeSign(data) {
-  const details = [];
-  if (data && data.flag === true) details.push("签到成功，获得奈雪币");
-  const infos = data && Array.isArray(data.infos) ? data.infos : [];
-  infos.slice(0, 3).forEach((item) => {
-    if (item && typeof item.info === "string" && item.info.trim()) details.push(item.info.trim());
-  });
-  return details.length ? details.join("\n") : "签到请求已提交";
-}
-
-/* ------------------------------ 签名 ------------------------------ */
 
 function signRequest({ nonce, timestamp, common, params }) {
   const message = `nonce=${nonce}&openId=${OPEN_ID}&timestamp=${timestamp}`;
@@ -297,9 +424,9 @@ function sha1(bytes) {
   for (let i = 0; i < length; i += 1) buffer[i] = bytes[i];
   buffer[length] = 0x80;
 
-  const byteLength = length * 8;
-  const high = Math.floor(byteLength / 0x100000000);
-  const low = byteLength >>> 0;
+  const bitLength = length * 8;
+  const high = Math.floor(bitLength / 0x100000000);
+  const low = bitLength >>> 0;
   buffer[total - 8] = (high >>> 24) & 0xff;
   buffer[total - 7] = (high >>> 16) & 0xff;
   buffer[total - 6] = (high >>> 8) & 0xff;
@@ -419,11 +546,10 @@ function getHeader(headers, name) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+// 与小程序前端一致：`${year}-${month}-${day}`，月日不补零（例如 2026-1-5）。
 function todayInChina() {
   const now = new Date(Date.now() + 8 * 3600 * 1000);
-  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(now.getUTCDate()).padStart(2, "0");
-  return `${now.getUTCFullYear()}-${month}-${day}`;
+  return `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
 }
 
 function readState() {
@@ -451,6 +577,11 @@ function safeParse(value) {
   } catch (error) {
     return null;
   }
+}
+
+function truncate(value, limit) {
+  const text = String(value == null ? "" : value);
+  return text.length > limit ? `${text.slice(0, limit)}...` : text;
 }
 
 function maskToken(token) {

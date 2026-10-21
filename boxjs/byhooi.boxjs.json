@@ -268,7 +268,7 @@
           "type": "textarea",
           "autoGrow": true,
           "rows": 8,
-          "desc": "自动维护的 JSON。token 为 accessToken，params 含 brand/storeId 等门店信息，lastResult/lastSignDate 为最近结果。清空为 {} 可移除账号，之后重新打开小程序抓取。"
+          "desc": "自动维护的 JSON。token 为 accessToken，params 含 brand/storeId 等门店信息，lastResult/lastSignDate 为最近结果，lastConditionRaw/lastRecordsRaw 为签到状态接口的原始响应样本。清空为 {} 可移除账号，之后重新打开小程序抓取。"
         },
         {
           "id": "byhooi_naixue_sign_key",

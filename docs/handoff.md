@@ -32,27 +32,56 @@
    - 新时间戳 + 错误签名 → HTTP 400 `request sign ... is not valid`；
    - 两者对比证明签名算法已完全还原，剩余未知只有真实 token 的响应体。
 
-### 设计要点
+### v1.0.0 为什么错（重要教训）
 
-- **抓取与签分离**：`http-request` 只负责保存 `Authorization` 里的 token、`common`、`params`（品牌/门店/城市）、`User-Agent`/`Referer`；定时任务用当天日期重算 `signDate`、随机 `nonce`、当前 `timestamp` 和签名后直接调用签到接口。
+v1.0.0 用 `POST /user/sign/save` 的返回作为签到结论：`code === 0 && data.flag === true` 就通知"签到成功 ✅"。
+
+用户反馈：该 HAR 正是**今天已签过到**之后手动再签一次抓的。重跑脚本，明明当天早签过了，仍报"签到成功"。结论是 `/user/sign/save` **幂等**，重复提交照样返回 `code 0, flag true`，与是否新签到无关。
+
+佐证在同一份前端代码里：签到弹窗（chunk `40`）根据 `/user/sign/condition` 返回的 `data.status` 决定渲染「立即签到」还是「已签到」，而不是看 `save` 的返回；`save` 回调只检查 `code === 0` 就立即重查状态。
+
+教训：**把写接口的成功响应当成业务结果，是一个系统性陷阱**。尤其当接口幂等时，"请求被接受"与"发生了状态变更"完全不同。以后做签到/领取类模块，必须先找到读接口确认状态，再定义成功语义。
+
+### v1.1.0 设计要点（当前未提交版本）
+
+- **三步流程**：`condition` 查状态 → `status` 为真则通知"今日已签到"且不提交 → 否则 `save` 提交 → 再查 `condition` 复查，`status` 为真才说"签到成功 ✅"。
+- **宁多签不漏签**：第一步凡无法确认（接口异常、网络失败、字段缺失、`status` 无法识别）一律继续提交；第三步无法确认时通知"签到未确认"，绝不谎报成功。
+- **`status` 宽松识别**：`true`/`1`/`"true"`/`"1"` 为已签，`false`/`0`/`"false"`/`"0"`/`""` 为未签，其余为未知。
+- **`signDate` 改为不补零**：与前端 `` `${y}-${m}-${d}` `` 一致（如 `2026-1-5`）。v1.0.0 写成补零 `2026-01-05`，每月 1–9 号会发错日期；10-21 的抓包恰好掩盖了这个 bug。
+- **`http-response` 记录真实响应**：把 `condition`/`records` 的原始响应截断 800 字符存入 `lastConditionRaw`/`lastRecordsRaw`，用于核对字段名；只记录不改写响应。
+- **分派顺序陷阱**：Surge 的 `http-response` 脚本里 `$request` 也存在，`typeof $request !== "undefined"` 会先命中。v1.1.0 改为**先判断 `$response`**（测试捕获过这个 bug）。
+- **超时预算**：查状态 12s / 提交 18s，整轮 45s 预算，模块 `timeout=60`。超出预算时只报"已提交，请确认"，不再发复查请求。
+
+### 通用设计要点（v1.0.0 起沿用）
+
+- **抓取与签分离**：`http-request` 只负责保存 `Authorization` 里的 token、`common`、`params`（品牌/门店/城市）、`User-Agent`/`Referer`；定时任务用当天日期重算 `signDate`、随机 `nonce`、当前 `timestamp` 和签名后调用接口。
 - **只存必要字段**：Cookie、`sensorsdata` 埋点等一律不落盘；日志中 token 只显示首尾各 4 位（`maskToken`）。
-- **`signDate` 每次重算**，按北京时间（`Date.now() + 8h` 后取 UTC 日期），不沿用抓包历史值；抓取时会从 `params` 中删除 `signDate`。
-- **纯 JS 密码学**：脚本内自带 SHA-1 / HMAC-SHA1 / Base64 实现，不依赖 `crypto`、`Buffer`、`atob`，保证 Surge 与 Node 测试环境行为一致（测试里有一条断言防止回退到 `require`/`Buffer`）。
-- **结果判定**：`code === 0` → 成功（附 `data.infos` 说明）；`message` 命中 `已签到` → 今日已签到；`code === 1500000` / 401 / 403 / 提示未登录 → 提示重新抓取；HTTP 400 → 提示签名不匹配；无 token / 无 `brand` → 不发请求直接给操作指引。
+- **纯 JS 密码学**：脚本内自带 SHA-1 / HMAC-SHA1 / Base64 实现，不依赖 `crypto`、`Buffer`、`atob`，保证 Surge 与 Node 测试环境行为一致（测试有断言防止回退到 `require`/`Buffer`）。
 - **key 可覆盖**：`byhooi_naixue_sign_key` 非空时优先使用，用于服务端更换 key 时应急，无需改脚本。
 - **抓取 pattern**：`^https:\/\/tm-web\.pin-dao\.cn\/(?:user|naixue|chayuan|coupon)\/`（前缀匹配，`requires-body=1`）。已验证不会误命中 `evil.com`、`tm-web.pin-dao.cn.evil.com`。
-- **状态结构**（`byhooi_naixue_state`）：`token`、`common`、`params`、`headers`、`capturedAt`、`version`、`lastResult`、`lastSignDate`、`lastRunAt`。
+- **状态结构**（`byhooi_naixue_state`）：`token`、`common`、`params`、`headers`、`capturedAt`、`version`、`lastResult`、`lastSignDate`、`lastRunAt`、`lastConditionRaw`、`lastRecordsRaw`。
 
-### 本次改动文件
+### 仍然未验证的关键点
+
+`data.status` 的**真实取值类型**只来自前端代码推断，没有真实响应样本。用假 token 打过三个接口：
+
+```text
+/user/account/user-account → {"code":1500000,"message":"用户未登录，请登录！"}
+/user/sign/condition        → {"code":-1,"message":"服务器内部异常"}
+/user/sign/records          → {"code":-1,"message":"服务器内部异常"}
+```
+
+`user-account` 正常回"未登录"说明签名与路径都对；`condition`/`records` 报内部异常是服务端取不到用户时自己抛的，**不是参数错误**。所以真实响应结构无法离线获得——这正是要加 `http-response` 记录的原因。实机跑一次后，看 `lastConditionRaw` 就能确定 `status` 的真实类型并修正 `readSigned()`。
+
+### 本次改动文件（v1.1.0，未提交）
 
 | 文件 | 状态 | 说明 |
 | --- | --- | --- |
-| `Script/naixue_sign.js` | 新增 | v1.0.0，抓取 + 定时签到 + 签名实现 |
-| `Module/naixue_sign.sgmodule` | 新增 | 默认每日 9:15 签到，参数化“定时签到 / 禁用抓取 / 禁用MITM” |
-| `tests/naixue_sign.test.cjs` | 新增 | 8 项测试，vm 沙箱模拟 Surge 存储/HTTP/通知，含 HAR 签名回归断言 |
-| `docs/naixue_sign.md` | 新增 | 算法说明、安装步骤、结果判定表、BoxJS key、已知限制 |
-| `boxjs/byhooi.boxjs.json` | 修改 | 新增应用 `byhooi_naixue_sign`（凭证 textarea + key 覆盖 + 手动签到脚本） |
-| `README.md` | 修改 | 模块表新增“奈雪点单”一行 |
+| `Script/naixue_sign.js` | 修改 | v1.1.0：三步流程、`signDate` 不补零、`http-response` 记录、修 `$done` 重复调用 |
+| `Module/naixue_sign.sgmodule` | 修改 | 新增 `http-response` 规则（`condition`/`records`） |
+| `tests/naixue_sign.test.cjs` | 修改 | 16 项测试，覆盖三步流程、降级路径、响应记录 |
+| `docs/naixue_sign.md` | 修改 | 增「为什么不能只看 save 的返回」、三步流程表、响应记录说明 |
+| `boxjs/byhooi.boxjs.json` | 修改 | state 描述补充 `lastConditionRaw`/`lastRecordsRaw` |
 
 ## 待办事项
 
@@ -68,9 +97,13 @@
 
 1. 安装模块、开 MITM、信任证书，确认 `tm-web.pin-dao.cn` 被解密。
 2. 微信打开奈雪点单小程序进入“我的 - 签到”，确认收到“已获取 accessToken”；再进一次确认**不重复通知**。
-3. Surge 手动运行“奈雪点单签到”，确认返回 `code 0` 或“已签到”，且通知里 token 只显示部分字符。
-4. 次日检查定时任务是否成功；换一个门店/城市后重抓，确认收到“已更新签到参数”而非 token 通知。
-5. 若提示 `request sign ... is not valid`：说明前端换了 key，用 BoxJS 的 `byhooi_naixue_sign_key` 覆盖，并把新 key 写回 `SIGN_KEY_NAIXUE` / `SIGN_KEY_DEFAULT`（注意前端还有“默认 key”分支，非奈雪品牌走那条）。
+3. **先核对 `status` 语义（最重要）**：进一次签到页后，在 BoxJS 打开 `byhooi_naixue_state`，看 `lastConditionRaw` 里 `data.status` 的真实类型与含义，确认与 `readSigned()` 的假设一致。若字段名或语义不符，改 `readSigned()` 并补测试。
+4. Surge 手动运行“奈雪点单签到”，按通知标题判断行为是否正确：
+   - 当天**已签**过 → 应为「今日已签到」，且 Surge 日志里只有 1 次 `condition` 请求、**没有** `save`；
+   - 当天**未签** → 应为「签到成功 ✅」，日志顺序为 `condition → save → condition`，通知里带连签天数。
+5. 次日检查定时任务是否成功；换门店/城市后重抓，确认收到“已更新签到参数”而非 token 通知。
+6. 若提示 `request sign ... is not valid`：说明前端换了 key，用 BoxJS 的 `byhooi_naixue_sign_key` 覆盖，并把新 key 写回 `SIGN_KEY_NAIXUE` / `SIGN_KEY_DEFAULT`（注意前端还有“默认 key”分支，非奈雪品牌走那条）。
+7. 若通知「签到未确认」，先看 `lastConditionRaw` 判断是接口没生效还是解析没对上，不要直接改成"看到 code 0 就说成功"。
 
 ### P1：jdcookie v1.10.1 实机验收（延续上次交接，仍未执行）
 
@@ -81,7 +114,7 @@
 ```bash
 # 奈雪
 node --check Script/naixue_sign.js
-node --test tests/naixue_sign.test.cjs        # 期望 8 passed / 0 failed
+node --test tests/naixue_sign.test.cjs        # 期望 16 passed / 0 failed
 
 # 签名回归（同 nonce/timestamp 应等于 HAR 签名）
 node -e "
@@ -98,13 +131,13 @@ node --test tests/lggov_sign.test.cjs
 node --test tests/jdcookie.test.cjs
 ```
 
-2026-10-21 复跑：奈雪 8 项通过；另在 Node 里用真实接口跑过一遍脚本（假 token），签名被服务端接受，仅返回“用户未登录”，与预期一致。
+2026-10-21 复跑：奈雪 16 项通过。另用真实接口端到端跑过 v1.1.0（假 token）：请求顺序为 `condition → save`，`condition` 因无法确认状态而降级提交，`save` 返回 token 失效后停止并通知——降级链路与预期一致。
 
 ## 关键文件索引
 
 | 文件 | 作用 |
 | --- | --- |
-| `Script/naixue_sign.js` | 奈雪抓取 + 签到 + 签名实现（v1.0.0） |
+| `Script/naixue_sign.js` | 奈雪抓取 + 查询/签到/复查 + 签名实现（v1.1.0） |
 | `Module/naixue_sign.sgmodule` | 抓取 pattern 与每日 9:15 定时任务 |
 | `tests/naixue_sign.test.cjs` | 8 项自动化测试 |
 | `docs/naixue_sign.md` | 奈雪专项文档 |

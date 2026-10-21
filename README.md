@@ -64,6 +64,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Module/VideoUrl.sgmodule
 | 跳绳统计 | `Module/VideoUrl.sgmodule` | `Script/VideoUrl.js` | 分析记录、推送结果、写入日志 |
 | 途虎养车 | `Module/tuhu.sgmodule` | `Script/tuhu.js` | Token 捕获和定时签到 |
 | 龙岗图书馆 | `Module/lggov_sign.sgmodule` | `Script/lggov_sign.js` | 多读者证签到、Token 捕获与定时续期；见 [使用说明](docs/lggov_sign.md) |
+| 奈雪点单 | `Module/naixue_sign.sgmodule` | `Script/naixue_sign.js` | 捕获 accessToken 与门店参数，本地重算签名后自动签到；见 [使用说明](docs/naixue_sign.md) |
 | 通用重放 | BoxJS 应用 | `Script/surgeRecordMulti.js` | 多账号请求重放 |
 
 发票快捷指令可读取以下本地接口：

@@ -248,6 +248,46 @@
       ]
     },
     {
+      "id": "byhooi_naixue_sign",
+      "name": "奈雪点单签到",
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge",
+      "keys": [
+        "byhooi_naixue_state",
+        "byhooi_naixue_sign_key"
+      ],
+      "descs_html": [
+        "<p>安装 naixue_sign.sgmodule 后，在微信中打开奈雪点单小程序“我的 - 签到”页面即可捕获 accessToken 与门店参数，默认每日 9:15 自动签到。</p>",
+        "<p>签到签名在本地按小程序前端算法重新计算，不需要重放抓包请求。store 中含凭证，请勿分享；清空为 {} 可移除，重新打开小程序即可再次抓取。</p>"
+      ],
+      "settings": [
+        {
+          "id": "byhooi_naixue_state",
+          "name": "凭证与门店参数（含敏感凭证）",
+          "val": "{}",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 8,
+          "desc": "自动维护的 JSON。token 为 accessToken，params 含 brand/storeId 等门店信息，lastResult/lastSignDate 为最近结果。清空为 {} 可移除账号，之后重新打开小程序抓取。"
+        },
+        {
+          "id": "byhooi_naixue_sign_key",
+          "name": "签名 Key 覆盖（可选）",
+          "val": "",
+          "type": "text",
+          "placeholder": "留空表示按品牌与版本自动选择",
+          "desc": "仅在服务端更换签名 Key、签到提示 request sign is not valid 时填写。填写后优先使用该值。"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "手动执行奈雪签到",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/naixue_sign.js",
+          "script_timeout": 60
+        }
+      ]
+    },
+    {
       "id": "byhooi_lggov_sign",
       "name": "龙岗图书馆多账号签到",
       "author": "@byhooi",

@@ -1,100 +1,126 @@
 # 交接文档（Handoff）
 
-> 更新于 2026-10-17。面向接手本仓库的下一位维护者（人或 AI 会话），说明当前状态、最近工作脉络与待办。
+> 更新于 2026-10-21。面向接手本仓库的下一位维护者（人或 AI 会话），说明当前状态、最近工作脉络与待办。
 >
-> 延伸阅读：[CLAUDE.md](../CLAUDE.md)（项目总览与开发规范）、[AGENTS.md](../AGENTS.md)（仓库指南）、[boxjs/README.md](../boxjs/README.md)（用户文档）、[docs/lggov_sign.md](lggov_sign.md)（龙岗图书馆专项，改动前必读）。
+> 延伸阅读：[CLAUDE.md](../CLAUDE.md)（项目总览与开发规范）、[AGENTS.md](../AGENTS.md)（仓库指南）、[boxjs/README.md](../boxjs/README.md)（用户文档）、[docs/naixue_sign.md](naixue_sign.md)（奈雪签到专项，改动前必读）、[docs/lggov_sign.md](lggov_sign.md)（龙岗图书馆专项，改动前必读）。
 
 ## 一句话现状
 
-`main` 分支干净且已推送到 `origin/main`，无未提交改动、无其他分支。最近的开发集中在京东 Cookie 脚本（`jdcookie`）的自动同步重构：v1.10.0 曾在真机翻车被回滚，随后以 v1.10.1 重新实现并补齐 38 项自动化测试（当前全部通过）。**实机验收尚未执行，是第一优先待办**。
+`main` 分支最近一次提交是规则更新（`01cf86b`）。当前**有未提交改动**：新增奈雪点单自动签到模块（模块 + 脚本 + 测试 + 专项文档 + BoxJS 应用 + README 一行），自动化测试 8 项全部通过，**但尚未 commit、未 push、未实机验收**。第一优先待办是提交并实机验证奈雪签到；其次仍是 jdcookie v1.10.1 的实机验收。
 
-## 最近工作脉络：jdcookie 自动同步
+## 最近工作脉络：奈雪点单自动签到（本次新增，未提交）
 
-时间线集中在 2026-10-07 一天内：
+起点是仓库根目录的 `1.har`（已被 `.gitignore` 忽略，`*.har` 不入库），其中只有一条抓包：奈雪点单小程序的 `POST https://tm-web.pin-dao.cn/user/sign/save`。
 
-| 提交 | 内容 |
-| --- | --- |
-| `c6ad5e4` | v1.9.3 引入"抓取后自动同步到青龙" |
-| `52312fb` | v1.9.4 支持 PUT、自动同步失败通知 |
-| `d6a5926` | v1.9.5 错误日志与响应结构优化 |
-| `b9343b5` / `fff41ec` | v1.10.0：每次请求尝试同步 + 时间窗口去重 |
-| `8226569` | **回滚至 v1.9.5**，撤销 v1.10.0 与 fff41ec |
-| `7d3bc73` | 重新实现为 **v1.10.1**（提交信息仅 "fix"），带完整测试与文档 |
+### 逆向过程与结论
 
-### v1.10.0 为什么失败（重要教训）
+1. HAR 请求体结构：`{"common":{...,"nonce","timestamp","signature"},"params":{...,"signDate","brand","storeId",...}}`，`Authorization: Bearer <accessToken>` 在请求头。
+2. 直接重放整包 → 服务端返回 `time is 1792568358 is is expired`，说明**不能重放抓包**（时间戳很快过期）。
+3. 从 `https://tm-web.pin-dao.cn/naixue/sign-in` 的 HTML 里取出 webpack chunk 映射，逐个下载 516 个分包，在 `static/js/1.<hash>.chunk.js` 的模块 `548` 中找到签名实现：
 
-`mars.jd.com/log/sdk/v2` 是京东的高频日志上报接口，拦截规则会对**每一次**请求运行脚本。v1.10.0 的"每次请求都尝试同步 + 时间窗口去重"在该频率下失效：同步通知每 60 秒重复弹出，同步失败时每 10 秒一次。教训是：在这个高频入口上，任何"每请求都做某事"的逻辑都必须有持久化的、按账号隔离的状态机兜底，不能依赖内存或短时间窗口。
+   ```text
+   message   = encodeURI("nonce=<nonce>&openId=<openId>&timestamp=<timestamp>")
+   signature = Base64(HMAC-SHA1(message, key))
+   key       = brand ∈ {26000252, 26000254} && version >= 4.2 && platform === "wxapp"
+                 ? 奈雪 key : 默认 key
+   ```
 
-### v1.10.1 设计要点（当前线上版本）
+   `openId` 与两个 key 都是小程序前端硬编码常量（明文出现在分包里），不是账号凭证。
+4. 用 HAR 的 `nonce=542658` / `timestamp=1792568358` 复现签名，得到与 HAR 完全相同的 `J3RMo4c0LUuZ7VXKfoNIC+lqmQA=`。
+5. 真实接口联调（假 token）：
+   - 新时间戳 + 正确签名 → `{"code":1500000,"message":"用户未登录，请登录！"}`，即**签名通过、仅 token 失效**；
+   - 新时间戳 + 错误签名 → HTTP 400 `request sign ... is not valid`；
+   - 两者对比证明签名算法已完全还原，剩余未知只有真实 token 的响应体。
 
-- **采集与同步状态分离**：`$.cookieChanged` 决定是否写盘和发采集通知；同步独立走 `runAutoSync()`，Cookie 未变化但同步失败时仍可重试。
-- **同步状态机**：持久化在 `jd_cookie_sync_state`，按 `pin:<URL编码账号>` 隔离。字段含 `cookie`、`target`（青龙地址 + Client ID）、`status`、`token`、`failures`、`nextRetryAt`、`failureNotified`。
-- **并发防护**：进行中的任务写 20 秒租约（`SYNC_LEASE_TIME`），换租约用随机 token 校验，迟到的回调不能再写入。
-- **退避重试**：失败后 1、2、4、8 分钟，之后封顶每 15 分钟一次（`SYNC_RETRY_BASE` / `SYNC_RETRY_MAX`），由后续京东请求触发，不是后台定时任务。
-- **失败通知去重**：相同 Cookie 连续失败只提醒一次，恢复成功后重新武装。
-- **时间预算**：单次请求最长 4 秒（`DEFAULT_TIMEOUT`），整轮网络流程共用 12 秒预算（`SYNC_TOTAL_BUDGET`），早于模块的 30 秒超时；超时后忽略迟到回调，不再发起后续写入。
-- **凭证脱敏**：`redactSecrets()` 处理所有日志和通知（实际 secret 值、`pt_key=`/`wskey=`/`client_secret=`、`Bearer`、JSON 凭证字段）；BoxJS 存储和实际 HTTP 请求仍用原值。
-- **精确账号匹配**：`findQLEnv()` 优先精确比较变量值中的 `pt_pin`（兼容 `pin` 与 URL 编码），仅当值缺少账号字段时才接受完整备注或 `账号 - 说明` 备注。修复了"互为前缀的账号"与"备注包含用户名即匹配"的误匹配；备注不能覆盖值中不同的账号。
-- **查询方式**：改为 `searchValue=JD_COOKIE` 拉取全集后本地过滤，避免服务器搜索漏掉编码形式不同的 `pt_pin`。
+### 设计要点
 
-### 配套改动（同一提交）
+- **抓取与签分离**：`http-request` 只负责保存 `Authorization` 里的 token、`common`、`params`（品牌/门店/城市）、`User-Agent`/`Referer`；定时任务用当天日期重算 `signDate`、随机 `nonce`、当前 `timestamp` 和签名后直接调用签到接口。
+- **只存必要字段**：Cookie、`sensorsdata` 埋点等一律不落盘；日志中 token 只显示首尾各 4 位（`maskToken`）。
+- **`signDate` 每次重算**，按北京时间（`Date.now() + 8h` 后取 UTC 日期），不沿用抓包历史值；抓取时会从 `params` 中删除 `signDate`。
+- **纯 JS 密码学**：脚本内自带 SHA-1 / HMAC-SHA1 / Base64 实现，不依赖 `crypto`、`Buffer`、`atob`，保证 Surge 与 Node 测试环境行为一致（测试里有一条断言防止回退到 `require`/`Buffer`）。
+- **结果判定**：`code === 0` → 成功（附 `data.infos` 说明）；`message` 命中 `已签到` → 今日已签到；`code === 1500000` / 401 / 403 / 提示未登录 → 提示重新抓取；HTTP 400 → 提示签名不匹配；无 token / 无 `brand` → 不发请求直接给操作指引。
+- **key 可覆盖**：`byhooi_naixue_sign_key` 非空时优先使用，用于服务端更换 key 时应急，无需改脚本。
+- **抓取 pattern**：`^https:\/\/tm-web\.pin-dao\.cn\/(?:user|naixue|chayuan|coupon)\/`（前缀匹配，`requires-body=1`）。已验证不会误命中 `evil.com`、`tm-web.pin-dao.cn.evil.com`。
+- **状态结构**（`byhooi_naixue_state`）：`token`、`common`、`params`、`headers`、`capturedAt`、`version`、`lastResult`、`lastSignDate`、`lastRunAt`。
 
-- `Script/jdcookie_ql_sync.js` → v1.8.7：同步账号匹配与脱敏逻辑；值未变化但被禁用的变量会重新启用。
-- `Script/jdcookie_clear.js`：清空时同时清除 `jd_cookie_sync_state` 与旧的 `jd_cookie_sync_lock`；不删除青龙变量。
-- `tests/jdcookie.test.cjs`（新增）：38 项测试，模拟 Surge 存储/HTTP 与虚拟时钟，覆盖账号匹配、新增/更新/跳过、失败退避、并发去重、超时预算、清空、脱敏等，不连接真实账号或面板。
-- `boxjs/README.md`：新增"Cookie 自动同步与通知"与"Cookie 本地验证与实机验收"章节。
+### 本次改动文件
+
+| 文件 | 状态 | 说明 |
+| --- | --- | --- |
+| `Script/naixue_sign.js` | 新增 | v1.0.0，抓取 + 定时签到 + 签名实现 |
+| `Module/naixue_sign.sgmodule` | 新增 | 默认每日 9:15 签到，参数化“定时签到 / 禁用抓取 / 禁用MITM” |
+| `tests/naixue_sign.test.cjs` | 新增 | 8 项测试，vm 沙箱模拟 Surge 存储/HTTP/通知，含 HAR 签名回归断言 |
+| `docs/naixue_sign.md` | 新增 | 算法说明、安装步骤、结果判定表、BoxJS key、已知限制 |
+| `boxjs/byhooi.boxjs.json` | 修改 | 新增应用 `byhooi_naixue_sign`（凭证 textarea + key 覆盖 + 手动签到脚本） |
+| `README.md` | 修改 | 模块表新增“奈雪点单”一行 |
 
 ## 待办事项
 
-### P0：实机验收（尚未执行）
+### P0：提交与发布
 
-自动化测试不能替代真机验证，`boxjs/README.md` 已列出验收步骤，按顺序执行：
+1. 检查 `git status`，确认只提交上述 6 个文件，**不要提交 `1.har`**（`.gitignore` 已含 `*.har`，但注意它仍在工作区）。
+2. 建议提交信息：`feat: 添加奈雪点单自动签到模块`。
+3. push 后再实机安装模块；未 push 前 `raw.githubusercontent.com` 上的 `script-path` 仍是 404，模块会静默不工作。
 
-1. 用测试账号确认新 Cookie 只同步一次；持续使用京东超过一分钟无重复同步通知；另一个账号不受影响。
-2. 临时断开测试面板：Cookie 更新后确认首次失败通知；保持失败触发后续请求，确认不重复通知；恢复连接、等退避到期后再触发请求，确认同步成功。
-3. 用互为前缀的账号、无备注变量验证只更新正确 ID；值相同但禁用的变量通过手动同步重新启用。不要拿真实账号做覆盖测试。
-4. 确认慢请求在模块超时前收尾；普通/调试日志与系统通知均不出现完整凭证；清空后重新采集可再次同步，已有青龙变量不被清空操作删除。
+### P0：奈雪实机验收（尚未执行）
 
-### 若验收发现问题
+自动化测试只能覆盖本地逻辑，`code 0` 与“已签到”两种真实响应无法构造，必须真机确认：
 
-优先检查 `jd_cookie_sync_state` 的租约与 `nextRetryAt` 逻辑；不要退回"时间窗口去重"方案（v1.10.0 已证明在 `mars.jd.com` 高频请求下不可行）。修复后同步更新测试与 `boxjs/README.md`。
+1. 安装模块、开 MITM、信任证书，确认 `tm-web.pin-dao.cn` 被解密。
+2. 微信打开奈雪点单小程序进入“我的 - 签到”，确认收到“已获取 accessToken”；再进一次确认**不重复通知**。
+3. Surge 手动运行“奈雪点单签到”，确认返回 `code 0` 或“已签到”，且通知里 token 只显示部分字符。
+4. 次日检查定时任务是否成功；换一个门店/城市后重抓，确认收到“已更新签到参数”而非 token 通知。
+5. 若提示 `request sign ... is not valid`：说明前端换了 key，用 BoxJS 的 `byhooi_naixue_sign_key` 覆盖，并把新 key 写回 `SIGN_KEY_NAIXUE` / `SIGN_KEY_DEFAULT`（注意前端还有“默认 key”分支，非奈雪品牌走那条）。
 
-### 升级注意事项
+### P1：jdcookie v1.10.1 实机验收（延续上次交接，仍未执行）
 
-- 升级到 v1.10.1 后旧数据没有新同步状态，首次再次抓取时会补同步一次，属预期行为。
-- 仅轮换 Client Secret 不会触发重同步；需要强制核对时用 BoxJS 的"同步 Cookie 到青龙"按钮。
+按 [boxjs/README.md](../boxjs/README.md) 的“Cookie 自动同步与通知”“Cookie 本地验证与实机验收”执行，重点：新 Cookie 只同步一次、失败退避不重复通知、互为前缀账号只更新正确 ID、通知与日志不出现完整凭证。**不要退回 v1.10.0 的“时间窗口去重”方案**（在 `mars.jd.com` 高频入口已证明不可行），优先检查 `jd_cookie_sync_state` 的租约与 `nextRetryAt`。
 
 ## 验证命令
 
 ```bash
-node --check Script/jdcookie.js
-node --check Script/jdcookie_ql_sync.js
-node --check Script/jdcookie_clear.js
+# 奈雪
+node --check Script/naixue_sign.js
+node --test tests/naixue_sign.test.cjs        # 期望 8 passed / 0 failed
+
+# 签名回归（同 nonce/timestamp 应等于 HAR 签名）
+node -e "
+const fs=require('fs'),crypto=require('crypto');
+const src=fs.readFileSync('Script/naixue_sign.js','utf8');
+const key=src.split('\n').find(l=>l.startsWith('const SIGN_KEY_NAIXUE =')).split('\"')[1];
+const msg=encodeURI('nonce=542658&openId=QL6ZOftGzbziPlZwfiXM&timestamp=1792568358');
+console.log(crypto.createHmac('sha1',key).update(msg).digest('base64'));
+// 期望输出 J3RMo4c0LUuZ7VXKfoNIC+lqmQA=
+"
+
+# 其他模块
+node --test tests/lggov_sign.test.cjs
 node --test tests/jdcookie.test.cjs
 ```
 
-测试于 2026-10-17 复跑：38 项全部通过（`pass 38 / fail 0`）。
+2026-10-21 复跑：奈雪 8 项通过；另在 Node 里用真实接口跑过一遍脚本（假 token），签名被服务端接受，仅返回“用户未登录”，与预期一致。
 
 ## 关键文件索引
 
 | 文件 | 作用 |
 | --- | --- |
-| `Script/jdcookie.js` | 采集 + 自动同步主逻辑（v1.10.1） |
-| `Script/jdcookie_ql_sync.js` | BoxJS 手动同步入口（v1.8.7） |
-| `Script/jdcookie_clear.js` | 清空本地 Cookie 与同步状态 |
-| `tests/jdcookie.test.cjs` | 自动化测试（38 项） |
-| `Module/jdcookie.sgmodule` | 拦截 `mars.jd.com/log/sdk/v2`，timeout=30 |
-| `boxjs/byhooi.boxjs.json` | BoxJS 订阅定义（应用 `byhooi_jdcookie_ql`） |
-| `boxjs/README.md` | 用户文档 + 实机验收步骤 |
+| `Script/naixue_sign.js` | 奈雪抓取 + 签到 + 签名实现（v1.0.0） |
+| `Module/naixue_sign.sgmodule` | 抓取 pattern 与每日 9:15 定时任务 |
+| `tests/naixue_sign.test.cjs` | 8 项自动化测试 |
+| `docs/naixue_sign.md` | 奈雪专项文档 |
+| `Script/jdcookie.js` | 京东 Cookie 采集 + 自动同步（v1.10.1） |
+| `Script/lggov_sign.js` | 龙岗图书馆多账号签到（`lggov_refresh.js` 由其生成） |
+| `boxjs/byhooi.boxjs.json` | BoxJS 订阅定义（新增 `byhooi_naixue_sign`） |
 
 ## 通用注意事项
 
 - **发布流程**：所有脚本经 GitHub raw 引用，修改必须 push 后才生效；Surge 有 CDN 缓存，约 5 分钟刷新，可手动更新模块强制刷新。
-- **不要提交凭证**：Cookie、WSKEY、青龙 Client ID/Secret、Token 一律不入库、不进日志；`jd_cookie_sync_state` 含用于比较的 Cookie，不要公开导出。
+- **不要提交凭证**：Cookie、WSKEY、青龙 Client ID/Secret、accessToken 一律不入库、不进日志。`byhooi_naixue_state` 与 `jd_cookie_sync_state` 含凭证，不要公开导出。奈雪脚本里的 `openId` 与两个签名 key 是小程序前端公开常量，不属于凭证，可以留在源码里。
 - **不要编辑生成文件**：`Script/lggov_refresh.js` 由 `node scripts/build-lggov-refresh.cjs` 生成，业务逻辑只改 `Script/lggov_sign.js`，改动前先读 `docs/lggov_sign.md`。
-- **Backup/ 目录**仅作历史备份，不是维护目标。
+- **`Backup/` 目录**仅作历史备份，不是维护目标。`Module/Backup/naixue.sgmodule` 是旧的第三方脚本（gist 混淆版），本次新模块已取代它，不要再改旧的。
+- **HAR 文件**：`*.har` 被忽略，分析完可删除；如需保留样例，请先脱敏 token。
 - 提交信息用中文，格式 `feat:` / `fix:` / `docs:` / `refactor:` / `chore:`。
 
 ## 仓库其他部分状态
 
-除 jdcookie 外，其余模块（wskey、发票、跳绳、龙岗图书馆、途虎、通用重放等）在本次交接窗口内无未完成工作，功能与文档保持上次提交时的状态。龙岗图书馆模块有独立的测试（`node --test tests/lggov_sign.test.cjs`）与专项文档。
+wskey、发票、跳绳、龙岗图书馆、途虎、通用重放等模块在本次窗口内无改动。龙岗图书馆与 jdcookie 各有独立测试与专项文档，改动前先读对应文档。

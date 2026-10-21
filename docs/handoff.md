@@ -40,7 +40,7 @@ v1.0.0 用 `POST /user/sign/save` 的返回作为签到结论：`code === 0 && d
 
 佐证在同一份前端代码里：签到弹窗（chunk `40`）根据 `/user/sign/condition` 返回的 `data.status` 决定渲染「立即签到」还是「已签到」，而不是看 `save` 的返回；`save` 回调只检查 `code === 0` 就立即重查状态。
 
-教训：**把写接口的成功响应当成业务结果，是一个系统性陷阱**。尤其当接口幂等时，"请求被接受"与"发生了状态变更"完全不同。以后做签到/领取类模块，必须先找到读接口确认状态，再定义成功语义。
+教训一：**把写接口的成功响应当成业务结果，是一个系统性陷阱**。尤其当接口幂等时，"请求被接受"与"发生了状态变更"完全不同。以后做签到/领取类模块，必须先找到读接口确认状态，再定义成功语义。
 
 ### v1.1.0 设计要点（当前未提交版本）
 
@@ -76,6 +76,10 @@ v1.1.0 用 `/user/sign/condition` 作为签到前查询的主接口。用户实�
 
 附带发现第二个参数错误：**`records` 的 `startDate` 是月份 `YYYY-M`，不是日期**。前端是 `w + "-01"` 补成当月 1 号再查。v1.1.0 若真按日期传，可能一直查不到正确数据。
 
+教训二：**不要凭页面路径猜接口归属**。v1.1.0 假设签到页会调 `condition`，实际那是奈雪币商店页的接口，导致实机时 `lastConditionRaw` 为空。确认方式是翻分包里各页面的 service 调用（`postSignRecords` / `postSignCondition` / `postSignSave` 分别出现在哪些 chunk），而不是看接口名字像什么。
+
+教训三：**团队/用户的实机反馈要立刻转成测试固件**。`REAL_RECORDS` 比任何编造的数据都有价值——它一次确认了字段类型、日期格式、缺失字段三件事。
+
 ### v1.2.0 设计要点（当前未提交版本）
 
 - **`records` 为主**：`startDate` 传当月（`signDate.split("-").slice(0,2).join("-")`）。
@@ -83,17 +87,26 @@ v1.1.0 用 `/user/sign/condition` 作为签到前查询的主接口。用户实�
 - **`records[]` 明细兜底**：顶层 `data.status` 缺失时，用当日明细 `{date, status}` 匹配。`normalizeDate()` 兼容 `2026-1-5` / `2026-01-05` / `20260105` 三种写法。
 - **`readSigned()` 集中在 `data.status`**：两个接口结构相同，共用一套解析，`normalizeFlag()` 处理布尔/数字/字符串。
 
-### 仍然未验证的关键点
+### 真实响应（2026-10-21 已确认）
 
-`data.status` 的**真实取值类型**只来自前端代码推断，没有真实响应样本。用假 token 打过三个接口：
+用户实机进签到页后，BoxJS 的 `lastRecordsRaw` 给出了真实结构：
 
-```text
-/user/account/user-account → {"code":1500000,"message":"用户未登录，请登录！"}
-/user/sign/condition        → {"code":-1,"message":"服务器内部异常"}
-/user/sign/records          → {"code":-1,"message":"服务器内部异常"}
+```json
+{"code":0,"message":"","data":{
+  "status":true, "signCount":1, "signCoins":null,
+  "records":[{"date":"2026-10-01","status":false}, ..., {"date":"2026-10-21","status":true}]}}
 ```
 
-`user-account` 正常回"未登录"说明签名与路径都对；`condition`/`records` 报内部异常是服务端取不到用户时自己抛的，**不是参数错误**。所以真实响应结构无法离线获得——这正是要加 `http-response` 记录的原因。实机跑一次后，看 `lastConditionRaw` 就能确定 `status` 的真实类型并修正 `readSigned()`。
+**逐条确认了 v1.1.0/v1.2.0 的假设**：
+
+- `data.status` 是**布尔**（此前只是从前端代码推断），`true` = 今日已签。
+- `data.signCount` 是数字，直接可读。
+- `data.records[].date` **补零**（`2026-10-01`），而请求参数 `startDate` 是 `2026-10`——两者格式不同，v1.1.0 若按日期传 `startDate` 会查不对。
+- `records` 里**没有** `infos` 字段（那是 `save` 的字段），所以成功通知只报连签天数。
+
+用这份真实响应离线跑 v1.2.0：**只发 1 次 `records`、判定「今日已签到，已连签 1 天」、未发 `save`**，行为正确。该响应已作为固件写进 `tests/naixue_sign.test.cjs`（`REAL_RECORDS`），并覆盖已签/未签两条路径。
+
+**唯一剩余未验证项**：次日定时任务能否正常触发并发通知。手动运行路径已实测通过。
 
 ### 本次改动文件（v1.1.0，未提交）
 
@@ -101,7 +114,7 @@ v1.1.0 用 `/user/sign/condition` 作为签到前查询的主接口。用户实�
 | --- | --- | --- |
 | `Script/naixue_sign.js` | 修改 | v1.2.0：`records` 主接口 + `condition` 降级、月度 `startDate`、明细兜底 |
 | `Module/naixue_sign.sgmodule` | 修改 | 新增 `http-response` 规则（`condition`/`records`） |
-| `tests/naixue_sign.test.cjs` | 修改 | 18 项测试，新增 records 明细判定与日期格式兼容 |
+| `tests/naixue_sign.test.cjs` | 修改 | 20 项测试，新增真实响应固件（`REAL_RECORDS`）与两条端到端路径 |
 | `docs/naixue_sign.md` | 修改 | 增「为什么不能只看 save 的返回」、三步流程表、响应记录说明 |
 | `boxjs/byhooi.boxjs.json` | 修改 | state 描述补充 `lastConditionRaw`/`lastRecordsRaw` |
 
@@ -113,19 +126,18 @@ v1.1.0 用 `/user/sign/condition` 作为签到前查询的主接口。用户实�
 2. 建议提交信息：`feat: 添加奈雪点单自动签到模块`。
 3. push 后再实机安装模块；未 push 前 `raw.githubusercontent.com` 上的 `script-path` 仍是 404，模块会静默不工作。
 
-### P0：奈雪实机验收（尚未执行）
+### P0：奈雪实机验收（基本完成，剩 1 项）
 
-自动化测试只能覆盖本地逻辑，`code 0` 与“已签到”两种真实响应无法构造，必须真机确认：
+已完成：抓取凭证、`records` 真实响应核对、手动运行「今日已签到」路径（只发 1 次 `records`，未发 `save`）。
 
-1. 安装模块、开 MITM、信任证书，确认 `tm-web.pin-dao.cn` 被解密。
-2. 微信打开奈雪点单小程序进入“我的 - 签到”，确认收到“已获取 accessToken”；再进一次确认**不重复通知**。
-3. **先核对 `status` 语义（最重要）**：进一次**签到页**后，在 BoxJS 打开 `byhooi_naixue_state`，看 `lastRecordsRaw` 里 `data.status` 的真实类型与含义（`lastConditionRaw` 为空是正常的，那要进奈雪币商店页才有）。确认与 `readSigned()` 的假设一致；不符就改 `readSigned()` 并补测试。
-4. Surge 手动运行“奈雪点单签到”（`script-update-interval=0`，改了脚本必须重新安装模块才会拉新版），按通知标题判断行为是否正确：
-   - 当天**已签**过 → 应为「今日已签到」，且 Surge 日志里只有 1 次 `records` 请求、**没有** `save`；
-   - 当天**未签** → 应为「签到成功 ✅」，日志顺序为 `records → save → records`，通知里带连签天数。
-5. 次日检查定时任务是否成功；换门店/城市后重抓，确认收到“已更新签到参数”而非 token 通知。
-6. 若提示 `request sign ... is not valid`：说明前端换了 key，用 BoxJS 的 `byhooi_naixue_sign_key` 覆盖，并把新 key 写回 `SIGN_KEY_NAIXUE` / `SIGN_KEY_DEFAULT`（注意前端还有“默认 key”分支，非奈雪品牌走那条）。
-7. 若通知「签到未确认」，先看 `lastRecordsRaw` 判断是接口没生效还是解析没对上，不要直接改成"看到 code 0 就说成功"。
+剩余：
+
+1. **次日定时任务**：确认 9:15 的 cron 能触发并发通知。若当天在定时前已手动签到，通知应为「今日已签到」。
+2. 换门店/城市后重抓，确认收到「已更新签到参数」而非 token 通知。
+3. 若提示 `request sign ... is not valid`：前端换了 key，用 BoxJS 的 `byhooi_naixue_sign_key` 覆盖，并把新 key 写回 `SIGN_KEY_NAIXUE` / `SIGN_KEY_DEFAULT`（注意非奈雪品牌走「默认 key」分支）。
+4. 不要退回「看到 code 0 就说成功」的老逻辑；也不要只信 `save` 的返回。
+
+**改脚本后需手动更新脚本资源**：`script-update-interval=0` 只是关闭自动轮询，在 Surge「外部资源」里点更新脚本即可生效，不需要重装模块。
 
 ### P1：jdcookie v1.10.1 实机验收（延续上次交接，仍未执行）
 
@@ -136,7 +148,7 @@ v1.1.0 用 `/user/sign/condition` 作为签到前查询的主接口。用户实�
 ```bash
 # 奈雪
 node --check Script/naixue_sign.js
-node --test tests/naixue_sign.test.cjs        # 期望 18 passed / 0 failed
+node --test tests/naixue_sign.test.cjs        # 期望 20 passed / 0 failed
 
 # 签名回归（同 nonce/timestamp 应等于 HAR 签名）
 node -e "
@@ -153,7 +165,7 @@ node --test tests/lggov_sign.test.cjs
 node --test tests/jdcookie.test.cjs
 ```
 
-2026-10-21 复跑：奈雪 18 项通过。另用真实接口端到端跑过 v1.1.0（假 token）：请求顺序为 `condition → save`，`condition` 因无法确认状态而降级提交，`save` 返回 token 失效后停止并通知——降级链路与预期一致。
+2026-10-21 复跑：奈雪 20 项通过。另用真实接口端到端跑过 v1.1.0（假 token）：请求顺序为 `condition → save`，`condition` 因无法确认状态而降级提交，`save` 返回 token 失效后停止并通知——降级链路与预期一致。
 
 ## 关键文件索引
 
@@ -169,7 +181,7 @@ node --test tests/jdcookie.test.cjs
 
 ## 通用注意事项
 
-- **发布流程**：所有脚本经 GitHub raw 引用，修改必须 push 后才生效；Surge 有 CDN 缓存，约 5 分钟刷新，可手动更新模块强制刷新。
+- **发布流程**：所有脚本经 GitHub raw 引用，修改必须 push 后才生效；Surge 有 CDN 缓存，约 5 分钟刷新。脚本更新后在 Surge「外部资源」里点更新脚本即可，不需要重装模块。
 - **不要提交凭证**：Cookie、WSKEY、青龙 Client ID/Secret、accessToken 一律不入库、不进日志。`byhooi_naixue_state` 与 `jd_cookie_sync_state` 含凭证，不要公开导出。奈雪脚本里的 `openId` 与两个签名 key 是小程序前端公开常量，不属于凭证，可以留在源码里。
 - **不要编辑生成文件**：`Script/lggov_refresh.js` 由 `node scripts/build-lggov-refresh.cjs` 生成，业务逻辑只改 `Script/lggov_sign.js`，改动前先读 `docs/lggov_sign.md`。
 - **`Backup/` 目录**仅作历史备份，不是维护目标。`Module/Backup/naixue.sgmodule` 是旧的第三方脚本（gist 混淆版），本次新模块已取代它，不要再改旧的。

@@ -122,6 +122,25 @@ function conditionBody({ status, signCount = 3, infos = [] } = {}) {
   return JSON.stringify({ code: 0, success: true, data });
 }
 
+// 2026-10-21 实机抓到的真实 records 响应（脱敏后原样保留结构）。
+// 关键结论：data.status 为布尔、signCount 为数字、records[].date 补零、无 infos 字段。
+const REAL_RECORDS = JSON.stringify({
+  code: 0,
+  message: "",
+  data: {
+    status: true,
+    signCount: 1,
+    signCoins: null,
+    records: [
+      { date: "2026-10-01", status: false },
+      { date: "2026-10-02", status: false },
+      { date: "2026-10-19", status: false },
+      { date: "2026-10-20", status: false },
+      { date: "2026-10-21", status: true },
+    ],
+  },
+});
+
 function recordsBody({ status, days = [], signCount } = {}) {
   const data = {
     records: days.map((day) => ({ date: day.date, status: day.status })),
@@ -255,6 +274,41 @@ test("状态字段无法识别时按未知处理，仍照常提交签到", async
   assert.equal(result.calls.length, 4, "无法判断时必须继续提交，不能漏签");
   assert.match(result.calls[0].url, /records$/);
   assert.match(result.calls[1].url, /condition$/, "records 判不出时降级查 condition");
+  assert.equal(result.notifications[0][1], "签到成功 ✅");
+});
+
+test("真实 records 响应：已签到时只发 1 次请求且不提交", async () => {
+  const result = await run({
+    store: storeWith(state()),
+    clock: Date.UTC(2026, 9, 21, 1, 20), // 北京时间 2026-10-21 09:20
+    replies: [reply(REAL_RECORDS)],
+  });
+  assert.equal(result.calls.length, 1, "已签到不应调用 save");
+  assert.match(result.calls[0].url, /\/user\/sign\/records$/);
+  const body = JSON.parse(result.calls[0].body);
+  assert.equal(body.params.startDate, "2026-10", "startDate 必须是当月");
+
+  assert.equal(result.notifications.length, 1);
+  assert.equal(result.notifications[0][1], "今日已签到");
+  assert.match(result.notifications[0][2], /连签 1 天/);
+  assert.equal(result.saved().lastSignDate, "2026-10-21");
+});
+
+test("真实 records 响应：status 为 false 时提交并复查", async () => {
+  const pending = JSON.parse(REAL_RECORDS);
+  pending.data.status = false;
+  pending.data.records[4].status = false;
+
+  const result = await run({
+    store: storeWith(state()),
+    clock: Date.UTC(2026, 9, 21, 1, 20),
+    replies: [
+      reply(JSON.stringify(pending)),
+      reply(saveBody()),
+      reply(REAL_RECORDS), // 复查：已签
+    ],
+  });
+  assert.equal(result.calls.length, 3);
   assert.equal(result.notifications[0][1], "签到成功 ✅");
 });
 

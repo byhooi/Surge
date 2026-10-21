@@ -252,6 +252,10 @@
       "name": "奈雪点单签到",
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/naixue.png",
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/naixue.png"
+      ],
       "keys": [
         "byhooi_naixue_state",
         "byhooi_naixue_sign_key"

@@ -296,6 +296,10 @@
       "name": "龙岗图书馆多账号签到",
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/lglibrary.png",
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/lglibrary.png"
+      ],
       "keys": [
         "byhooi_lggov_accounts",
         "byhooi_lggov_lock"

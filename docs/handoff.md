@@ -61,6 +61,28 @@ v1.0.0 用 `POST /user/sign/save` 的返回作为签到结论：`code === 0 && d
 - **抓取 pattern**：`^https:\/\/tm-web\.pin-dao\.cn\/(?:user|naixue|chayuan|coupon)\/`（前缀匹配，`requires-body=1`）。已验证不会误命中 `evil.com`、`tm-web.pin-dao.cn.evil.com`。
 - **状态结构**（`byhooi_naixue_state`）：`token`、`common`、`params`、`headers`、`capturedAt`、`version`、`lastResult`、`lastSignDate`、`lastRunAt`、`lastConditionRaw`、`lastRecordsRaw`。
 
+### v1.1.0 为什么又错了：选错状态接口
+
+v1.1.0 用 `/user/sign/condition` 作为签到前查询的主接口。用户实机进了一次签到页，BoxJS 里 `lastConditionRaw` 为空。
+
+翻分包后发现原因：**签到页根本不调 `condition`**。
+
+| 页面 | 实际调用的接口 |
+| --- | --- |
+| `/naixue/sign-in`（签到页，chunk 88） | `postSignRecords`、`postUserAccount`、`postBaseUserInfo` |
+| `/naixue/points-mall`（奈雪币商店页，chunk 67/72/90） | `postSignCondition`（签到弹窗用） |
+
+`condition` 是商店页签到弹窗的状态，`records` 才是签到日历/签到页用的。两个接口的 `data` 里都有 `status`，很容易看错。
+
+附带发现第二个参数错误：**`records` 的 `startDate` 是月份 `YYYY-M`，不是日期**。前端是 `w + "-01"` 补成当月 1 号再查。v1.1.0 若真按日期传，可能一直查不到正确数据。
+
+### v1.2.0 设计要点（当前未提交版本）
+
+- **`records` 为主**：`startDate` 传当月（`signDate.split("-").slice(0,2).join("-")`）。
+- **`condition` 降级备用**：仅当 `records` 无法判定（接口异常/字段缺失）时才再查一次 `condition`，两次都判不出才继续提交。
+- **`records[]` 明细兜底**：顶层 `data.status` 缺失时，用当日明细 `{date, status}` 匹配。`normalizeDate()` 兼容 `2026-1-5` / `2026-01-05` / `20260105` 三种写法。
+- **`readSigned()` 集中在 `data.status`**：两个接口结构相同，共用一套解析，`normalizeFlag()` 处理布尔/数字/字符串。
+
 ### 仍然未验证的关键点
 
 `data.status` 的**真实取值类型**只来自前端代码推断，没有真实响应样本。用假 token 打过三个接口：
@@ -77,9 +99,9 @@ v1.0.0 用 `POST /user/sign/save` 的返回作为签到结论：`code === 0 && d
 
 | 文件 | 状态 | 说明 |
 | --- | --- | --- |
-| `Script/naixue_sign.js` | 修改 | v1.1.0：三步流程、`signDate` 不补零、`http-response` 记录、修 `$done` 重复调用 |
+| `Script/naixue_sign.js` | 修改 | v1.2.0：`records` 主接口 + `condition` 降级、月度 `startDate`、明细兜底 |
 | `Module/naixue_sign.sgmodule` | 修改 | 新增 `http-response` 规则（`condition`/`records`） |
-| `tests/naixue_sign.test.cjs` | 修改 | 16 项测试，覆盖三步流程、降级路径、响应记录 |
+| `tests/naixue_sign.test.cjs` | 修改 | 18 项测试，新增 records 明细判定与日期格式兼容 |
 | `docs/naixue_sign.md` | 修改 | 增「为什么不能只看 save 的返回」、三步流程表、响应记录说明 |
 | `boxjs/byhooi.boxjs.json` | 修改 | state 描述补充 `lastConditionRaw`/`lastRecordsRaw` |
 
@@ -97,13 +119,13 @@ v1.0.0 用 `POST /user/sign/save` 的返回作为签到结论：`code === 0 && d
 
 1. 安装模块、开 MITM、信任证书，确认 `tm-web.pin-dao.cn` 被解密。
 2. 微信打开奈雪点单小程序进入“我的 - 签到”，确认收到“已获取 accessToken”；再进一次确认**不重复通知**。
-3. **先核对 `status` 语义（最重要）**：进一次签到页后，在 BoxJS 打开 `byhooi_naixue_state`，看 `lastConditionRaw` 里 `data.status` 的真实类型与含义，确认与 `readSigned()` 的假设一致。若字段名或语义不符，改 `readSigned()` 并补测试。
-4. Surge 手动运行“奈雪点单签到”，按通知标题判断行为是否正确：
-   - 当天**已签**过 → 应为「今日已签到」，且 Surge 日志里只有 1 次 `condition` 请求、**没有** `save`；
-   - 当天**未签** → 应为「签到成功 ✅」，日志顺序为 `condition → save → condition`，通知里带连签天数。
+3. **先核对 `status` 语义（最重要）**：进一次**签到页**后，在 BoxJS 打开 `byhooi_naixue_state`，看 `lastRecordsRaw` 里 `data.status` 的真实类型与含义（`lastConditionRaw` 为空是正常的，那要进奈雪币商店页才有）。确认与 `readSigned()` 的假设一致；不符就改 `readSigned()` 并补测试。
+4. Surge 手动运行“奈雪点单签到”（`script-update-interval=0`，改了脚本必须重新安装模块才会拉新版），按通知标题判断行为是否正确：
+   - 当天**已签**过 → 应为「今日已签到」，且 Surge 日志里只有 1 次 `records` 请求、**没有** `save`；
+   - 当天**未签** → 应为「签到成功 ✅」，日志顺序为 `records → save → records`，通知里带连签天数。
 5. 次日检查定时任务是否成功；换门店/城市后重抓，确认收到“已更新签到参数”而非 token 通知。
 6. 若提示 `request sign ... is not valid`：说明前端换了 key，用 BoxJS 的 `byhooi_naixue_sign_key` 覆盖，并把新 key 写回 `SIGN_KEY_NAIXUE` / `SIGN_KEY_DEFAULT`（注意前端还有“默认 key”分支，非奈雪品牌走那条）。
-7. 若通知「签到未确认」，先看 `lastConditionRaw` 判断是接口没生效还是解析没对上，不要直接改成"看到 code 0 就说成功"。
+7. 若通知「签到未确认」，先看 `lastRecordsRaw` 判断是接口没生效还是解析没对上，不要直接改成"看到 code 0 就说成功"。
 
 ### P1：jdcookie v1.10.1 实机验收（延续上次交接，仍未执行）
 
@@ -114,7 +136,7 @@ v1.0.0 用 `POST /user/sign/save` 的返回作为签到结论：`code === 0 && d
 ```bash
 # 奈雪
 node --check Script/naixue_sign.js
-node --test tests/naixue_sign.test.cjs        # 期望 16 passed / 0 failed
+node --test tests/naixue_sign.test.cjs        # 期望 18 passed / 0 failed
 
 # 签名回归（同 nonce/timestamp 应等于 HAR 签名）
 node -e "
@@ -131,7 +153,7 @@ node --test tests/lggov_sign.test.cjs
 node --test tests/jdcookie.test.cjs
 ```
 
-2026-10-21 复跑：奈雪 16 项通过。另用真实接口端到端跑过 v1.1.0（假 token）：请求顺序为 `condition → save`，`condition` 因无法确认状态而降级提交，`save` 返回 token 失效后停止并通知——降级链路与预期一致。
+2026-10-21 复跑：奈雪 18 项通过。另用真实接口端到端跑过 v1.1.0（假 token）：请求顺序为 `condition → save`，`condition` 因无法确认状态而降级提交，`save` 返回 token 失效后停止并通知——降级链路与预期一致。
 
 ## 关键文件索引
 

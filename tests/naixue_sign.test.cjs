@@ -32,6 +32,7 @@ const HAR_NONCE = 542658;
 const HAR_TIMESTAMP = 1792568358;
 const HAR_SIGNATURE = "J3RMo4c0LUuZ7VXKfoNIC+lqmQA=";
 
+const RECORDS = "/user/sign/records";
 const CONDITION = "/user/sign/condition";
 const SAVE = "/user/sign/save";
 
@@ -121,6 +122,15 @@ function conditionBody({ status, signCount = 3, infos = [] } = {}) {
   return JSON.stringify({ code: 0, success: true, data });
 }
 
+function recordsBody({ status, days = [], signCount } = {}) {
+  const data = {
+    records: days.map((day) => ({ date: day.date, status: day.status })),
+  };
+  if (status !== undefined) data.status = status;
+  if (signCount !== undefined) data.signCount = signCount;
+  return JSON.stringify({ code: 0, success: true, data });
+}
+
 function saveBody(extra = {}) {
   return JSON.stringify({
     code: 0,
@@ -140,7 +150,7 @@ test("签名算法与抓包签名完全一致，且不依赖 Buffer/atob/crypto"
   const result = await run({
     store: storeWith(state()),
     clock: HAR_TIMESTAMP * 1000,
-    replies: [reply(conditionBody({ status: true }))],
+    replies: [reply(recordsBody({ status: true }))],
   });
   const body = JSON.parse(result.calls[0].body);
   assert.equal(body.common.openId, OPEN_ID);
@@ -152,7 +162,7 @@ test("品牌与版本决定签名密钥，可被 BoxJS 覆盖", async () => {
   const nai = await run({
     store: storeWith(state()),
     clock: HAR_TIMESTAMP * 1000,
-    replies: [reply(conditionBody({ status: true }))],
+    replies: [reply(recordsBody({ status: true }))],
   });
   const naiBody = JSON.parse(nai.calls[0].body);
   assert.equal(naiBody.common.signature, signature(signKey("SIGN_KEY_NAIXUE"), HAR_NONCE, HAR_TIMESTAMP));
@@ -160,7 +170,7 @@ test("品牌与版本决定签名密钥，可被 BoxJS 覆盖", async () => {
   const other = await run({
     store: storeWith(state({ params: Object.assign({}, PARAMS, { brand: 26000141 }) })),
     clock: HAR_TIMESTAMP * 1000,
-    replies: [reply(conditionBody({ status: true }))],
+    replies: [reply(recordsBody({ status: true }))],
   });
   const otherBody = JSON.parse(other.calls[0].body);
   assert.equal(otherBody.common.signature, signature(signKey("SIGN_KEY_DEFAULT"), HAR_NONCE, HAR_TIMESTAMP));
@@ -169,7 +179,7 @@ test("品牌与版本决定签名密钥，可被 BoxJS 覆盖", async () => {
     store: storeWith(state()),
     clock: HAR_TIMESTAMP * 1000,
     keys: { byhooi_naixue_sign_key: "MY-CUSTOM-KEY" },
-    replies: [reply(conditionBody({ status: true }))],
+    replies: [reply(recordsBody({ status: true }))],
   });
   const customBody = JSON.parse(custom.calls[0].body);
   assert.equal(customBody.common.signature, signature("MY-CUSTOM-KEY", HAR_NONCE, HAR_TIMESTAMP));
@@ -180,10 +190,10 @@ test("品牌与版本决定签名密钥，可被 BoxJS 覆盖", async () => {
 test("查到今日已签到则不再提交签到请求", async () => {
   const result = await run({
     store: storeWith(state()),
-    replies: [reply(conditionBody({ status: true, signCount: 7 }))],
+    replies: [reply(recordsBody({ status: true, signCount: 7 }))],
   });
   assert.equal(result.calls.length, 1, "已签到不应再调用 save");
-  assert.match(result.calls[0].url, /\/user\/sign\/condition$/);
+  assert.match(result.calls[0].url, /\/user\/sign\/records$/);
   assert.equal(result.notifications.length, 1);
   assert.equal(result.notifications[0][1], "今日已签到");
   assert.match(result.notifications[0][2], /连签 7 天/);
@@ -195,32 +205,37 @@ test("status 为 false 时提交签到，复查确认后报告成功", async () 
   const result = await run({
     store: storeWith(state()),
     replies: [
-      reply(conditionBody({ status: false, signCount: 2 })),
+      reply(recordsBody({ status: false, signCount: 2 })),
       reply(saveBody()),
-      reply(conditionBody({ status: true, signCount: 3, infos: ["每天签到可获得 1 奈雪币"] })),
+      reply(recordsBody({ status: true, signCount: 3 })),
     ],
   });
   assert.equal(result.calls.length, 3, "应为 查询 → 签到 → 复查");
-  assert.match(result.calls[0].url, /\/user\/sign\/condition$/);
+  assert.match(result.calls[0].url, /\/user\/sign\/records$/);
   assert.match(result.calls[1].url, /\/user\/sign\/save$/);
-  assert.match(result.calls[2].url, /\/user\/sign\/condition$/);
+  assert.match(result.calls[2].url, /\/user\/sign\/records$/);
 
   const saved = result.calls.map((call) => JSON.parse(call.body));
+  assert.equal(saved[0].params.startDate, "2030-1", "records 传当月，与前端一致");
+  assert.equal(saved[1].params.signDate, TODAY, "签到必须带当天日期");
+  assert.equal(saved[2].params.startDate, "2030-1", "复查同样查当月");
   saved.forEach((body) => {
-    assert.equal(body.params.signDate, TODAY, "三次请求都必须带当天日期");
     assert.equal(body.params.storeId, PARAMS.storeId, "门店参数必须保留");
+  });
+  [saved[0], saved[2]].forEach((body) => {
+    assert.equal(body.params.signDate, undefined, "records 不应带 signDate");
+    assert.ok(body.params.startDate, "records 必须带 startDate");
   });
 
   assert.equal(result.notifications[0][1], "签到成功 ✅");
   assert.match(result.notifications[0][2], /连签 3 天/);
-  assert.match(result.notifications[0][2], /奈雪币/);
   assert.equal(result.saved().lastSignDate, TODAY);
 });
 
 test("签到后复查仍为未签到时不谎报成功", async () => {
   const result = await run({
     store: storeWith(state()),
-    replies: [reply(conditionBody({ status: false })), reply(saveBody()), reply(conditionBody({ status: false, signCount: 2 }))],
+    replies: [reply(recordsBody({ status: false })), reply(saveBody()), reply(recordsBody({ status: false, signCount: 2 }))],
   });
   assert.equal(result.notifications[0][1], "签到未确认");
   assert.match(result.notifications[0][2], /仍为未签到/);
@@ -231,13 +246,62 @@ test("状态字段无法识别时按未知处理，仍照常提交签到", async
   const result = await run({
     store: storeWith(state()),
     replies: [
-      reply(JSON.stringify({ code: 0, data: { signCoins: [] } })), // 没有 status
+      reply(JSON.stringify({ code: 0, data: { records: [] } })), // records 里没有 status
+      reply(conditionBody({ status: false })), // 降级查 condition
       reply(saveBody()),
-      reply(conditionBody({ status: true })),
+      reply(recordsBody({ status: true })),
     ],
   });
-  assert.equal(result.calls.length, 3, "无法判断时必须继续提交，不能漏签");
+  assert.equal(result.calls.length, 4, "无法判断时必须继续提交，不能漏签");
+  assert.match(result.calls[0].url, /records$/);
+  assert.match(result.calls[1].url, /condition$/, "records 判不出时降级查 condition");
   assert.equal(result.notifications[0][1], "签到成功 ✅");
+});
+
+test("records 顶层没有 status 时，用当日明细判定", async () => {
+  const signed = await run({
+    store: storeWith(state()),
+    replies: [reply(recordsBody({ days: [
+      { date: "2030-1-1", status: true },
+      { date: "2029-12-31", status: true },
+    ] }))],
+  });
+  assert.equal(signed.calls.length, 1, "明细显示今日已签，不应提交");
+  assert.equal(signed.notifications[0][1], "今日已签到");
+
+  const pending = await run({
+    store: storeWith(state()),
+    replies: [
+      reply(recordsBody({ days: [{ date: "2030-1-1", status: false }] })),
+      reply(saveBody()),
+      reply(recordsBody({ status: true, signCount: 5 })),
+    ],
+  });
+  assert.equal(pending.calls.length, 3, "明细显示未签，应提交");
+  assert.equal(pending.notifications[0][1], "签到成功 ✅");
+
+  const others = await run({
+    store: storeWith(state()),
+    replies: [
+      // 只有昨天有记录，今天不在明细里 → 判定为未知，仍继续提交
+      reply(recordsBody({ days: [{ date: "2029-12-31", status: true }] })),
+      reply(recordsBody({ days: [] })),
+      reply(saveBody()),
+      reply(recordsBody({ status: true })),
+    ],
+  });
+  assert.equal(others.calls.length, 4);
+});
+
+test("records 的日期支持补零与紧凑格式", async () => {
+  for (const date of ["2030-01-01", "20300101", "2030-1-1"]) {
+    const result = await run({
+      store: storeWith(state()),
+      replies: [reply(recordsBody({ days: [{ date, status: true }] }))],
+    });
+    assert.equal(result.calls.length, 1, `date=${date} 应识别为今日已签`);
+    assert.equal(result.notifications[0][1], "今日已签到");
+  }
 });
 
 test("status 兼容字符串与数字形式", async () => {
@@ -252,7 +316,7 @@ test("status 兼容字符串与数字形式", async () => {
   for (const value of ["false", "0", 0]) {
     const result = await run({
       store: storeWith(state()),
-      replies: [reply(conditionBody({ status: value })), reply(saveBody()), reply(conditionBody({ status: true }))],
+      replies: [reply(conditionBody({ status: value })), reply(saveBody()), reply(recordsBody({ status: true }))],
     });
     assert.equal(result.calls.length, 3, `status=${JSON.stringify(value)} 应视为未签到并提交`);
   }
@@ -261,18 +325,28 @@ test("status 兼容字符串与数字形式", async () => {
 test("查询接口异常时降级为直接签到", async () => {
   const result = await run({
     store: storeWith(state()),
-    replies: [reply('{"code":-1,"message":"服务器内部异常"}'), reply(saveBody()), reply(conditionBody({ status: true }))],
+    replies: [
+      reply('{"code":-1,"message":"服务器内部异常"}'),
+      reply('{"code":-1,"message":"服务器内部异常"}'),
+      reply(saveBody()),
+      reply(recordsBody({ status: true })),
+    ],
   });
-  assert.equal(result.calls.length, 3);
+  assert.equal(result.calls.length, 4);
   assert.equal(result.notifications[0][1], "签到成功 ✅");
 });
 
 test("查询请求网络失败时仍尝试签到", async () => {
   const result = await run({
     store: storeWith(state()),
-    replies: [{ error: "The request timed out." }, reply(saveBody()), reply(conditionBody({ status: true }))],
+    replies: [
+      { error: "The request timed out." },
+      { error: "The request timed out." },
+      reply(saveBody()),
+      reply(recordsBody({ status: true })),
+    ],
   });
-  assert.equal(result.calls.length, 3);
+  assert.equal(result.calls.length, 4);
   assert.equal(result.notifications[0][1], "签到成功 ✅");
 });
 
@@ -282,7 +356,7 @@ test("签到接口返回已签到也视为完成，且不谎报本次新签", as
   const result = await run({
     store: storeWith(state()),
     replies: [
-      reply(conditionBody({ status: false })),
+      reply(recordsBody({ status: false })),
       reply(JSON.stringify({ code: 1000001, message: "今日已签到" })),
     ],
   });
@@ -296,7 +370,7 @@ test("凭证失效与签名被拒分别给出不同指引", async () => {
   const expired = await run({
     store: storeWith(state()),
     replies: [
-      reply(conditionBody({ status: false })),
+      reply(recordsBody({ status: false })),
       reply(JSON.stringify({ code: 1500000, message: "用户未登录，请登录！" })),
     ],
   });
@@ -306,21 +380,21 @@ test("凭证失效与签名被拒分别给出不同指引", async () => {
 
   const unauthorized = await run({
     store: storeWith(state()),
-    replies: [reply(conditionBody({ status: false })), reply("unauthorized", 401)],
+    replies: [reply(recordsBody({ status: false })), reply("unauthorized", 401)],
   });
   assert.equal(unauthorized.notifications[0][1], "签到失败");
   assert.match(unauthorized.notifications[0][2], /失效/);
 
   const rejected = await run({
     store: storeWith(state()),
-    replies: [reply(conditionBody({ status: false })), reply('{"message":"request sign is not valid"}', 400)],
+    replies: [reply(recordsBody({ status: false })), reply('{"message":"request sign is not valid"}', 400)],
   });
   assert.equal(rejected.notifications[0][1], "签到失败");
   assert.match(rejected.notifications[0][2], /拒绝/);
 
   const serverError = await run({
     store: storeWith(state()),
-    replies: [reply(conditionBody({ status: false })), reply("<html>500</html>", 500)],
+    replies: [reply(recordsBody({ status: false })), reply("<html>500</html>", 500)],
   });
   assert.equal(serverError.notifications[0][1], "签到失败");
   assert.match(serverError.notifications[0][2], /HTTP 500/);

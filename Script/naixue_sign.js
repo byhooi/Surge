@@ -1,5 +1,5 @@
 const SCRIPT_NAME = "奈雪点单签到";
-const SCRIPT_VERSION = "1.1.0";
+const SCRIPT_VERSION = "1.2.0";
 const STATE_KEY = "byhooi_naixue_state";
 const SIGN_KEY_OVERRIDE = "byhooi_naixue_sign_key";
 
@@ -204,8 +204,9 @@ function runSignIn() {
   log(`v${SCRIPT_VERSION} 开始，signDate=${signDate}，${describeParams(params)}`);
 
   // 第一步：先查今日状态。已签到就不再提交，避免重复请求。
-  sendJson(state, PATH_CONDITION, params, { signDate }, CHECK_TIMEOUT, (check) => {
-    const already = readSigned(check);
+  // 签到页（/naixue/sign-in）只会调用 records，condition 属于奈雪币商店页，因此以 records 为主。
+  checkSigned(state, params, signDate, deadline, (check) => {
+    const already = check.signed;
     if (already === true) {
       const summary = buildSummary("今日已签到", readSignCount(check), readSignInfos(check));
       finish(state, summary, { lastCheck: true, lastSignDate: signDate, checkedBeforeSign: true }, "今日已签到", summary);
@@ -236,8 +237,8 @@ function runSignIn() {
         finish(state, message, { lastCheck: null, lastSignDate: signDate }, "签到已提交", message);
         return;
       }
-      sendJson(state, PATH_CONDITION, params, { signDate }, CHECK_TIMEOUT, (verify) => {
-        const verified = readSigned(verify);
+      checkSigned(state, params, signDate, deadline, (verify) => {
+        const verified = verify.signed;
         const signCount = readSignCount(verify);
         const infos = readSignInfos(verify);
 
@@ -258,6 +259,27 @@ function runSignIn() {
   });
 }
 
+// records 是签到页真正使用的状态接口：data.status 为今日是否已签，data.records[] 为每日明细。
+// startDate 与前端一致，传当月（YYYY-M）。condition 只在奈雪币商店页出现，作为备用。
+function checkSigned(state, params, signDate, deadline, callback) {
+  const month = signDate.split("-").slice(0, 2).join("-");
+  sendJson(state, PATH_RECORDS, params, { startDate: month }, CHECK_TIMEOUT, (records) => {
+    const byRecords = readSigned(records);
+    if (byRecords !== null) {
+      callback(Object.assign({ source: "records" }, records, { signed: byRecords }));
+      return;
+    }
+    if (Date.now() > deadline) {
+      callback(Object.assign({ source: "records" }, records, { signed: null }));
+      return;
+    }
+    log(`records 无法判定状态（${preview(records.text)}），改用 condition 复查`);
+    sendJson(state, PATH_CONDITION, params, { signDate }, CHECK_TIMEOUT, (condition) => {
+      callback(Object.assign({ source: "condition" }, condition, { signed: readSigned(condition) }));
+    });
+  });
+}
+
 function finish(state, logMessage, patch, title, body) {
   log(logMessage.replace(/\n/g, " / "));
   patchState(Object.assign({ lastResult: logMessage, lastRunAt: Date.now() }, patch));
@@ -273,13 +295,32 @@ function buildSummary(headline, signCount, infos) {
   return lines.join("\n");
 }
 
-// status 语义来自小程序签到弹窗：`i && !i.status ? "立即签到" : "已签到"`。
-// 真实响应结构尚未实机核对，因此无法判定时返回 null，调用方按“未知”处理而不是当成已签。
+// status 语义来自小程序前端：
+//   签到弹窗 `i && !i.status ? "立即签到" : "已签到"`（condition）
+//   签到日历 `n.records && n.records.status`（records）
+// 两者都是顶层 data.status。无法判定时返回 null，调用方按“未知”处理而不是当成已签。
 function readSigned(result) {
-  if (!result || !result.json || !result.json.data) return null;
-  const data = result.json.data;
-  if (typeof data !== "object") return null;
-  const value = data.status;
+  const data = result && result.json && result.json.data;
+  if (!data || typeof data !== "object") return null;
+
+  const direct = normalizeFlag(data.status);
+  if (direct !== null) return direct;
+
+  // 兜底：records 每日明细里查今天。date 形如 2026-10-21，可能不带补零。
+  const records = Array.isArray(data.records) ? data.records : null;
+  if (records) {
+    const today = todayInChina();
+    const key = normalizeDate(today);
+    const hit = records.find((item) => item && normalizeDate(item.date) === key);
+    if (hit) {
+      const flag = normalizeFlag(hit.status);
+      if (flag !== null) return flag;
+    }
+  }
+  return null;
+}
+
+function normalizeFlag(value) {
   if (value === true || value === 1) return true;
   if (value === false || value === 0) return false;
   if (typeof value === "string") {
@@ -288,6 +329,18 @@ function readSigned(result) {
     if (text === "false" || text === "0" || text === "") return false;
   }
   return null;
+}
+
+// 把 2026-1-5 / 2026-01-05 / 20260105 统一成 2026-01-05 便于比较。
+function normalizeDate(value) {
+  const text = String(value == null ? "" : value).trim();
+  const dashed = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text);
+  if (dashed) {
+    return `${dashed[1]}-${dashed[2].padStart(2, "0")}-${dashed[3].padStart(2, "0")}`;
+  }
+  const compact = /^(\d{4})(\d{2})(\d{2})$/.exec(text);
+  if (compact) return `${compact[1]}-${compact[2]}-${compact[3]}`;
+  return text;
 }
 
 function readSignCount(result) {

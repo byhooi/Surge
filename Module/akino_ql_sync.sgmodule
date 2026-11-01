@@ -13,7 +13,7 @@ miniso同步 = type=http-request,pattern=^https:\/\/api-saas\.miniso\.com\/task-
 jtc同步 = type=http-request,pattern=^https:\/\/sytgate\.jslife\.com\.cn\/base-gateway\/integral\/v2\/task\/receive,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=jtc&accountIndex=0"
 Syed同步 = type=http-request,pattern=^https:\/\/molli2\.sycommercial\.com\/restful\/mall\/3867\/checkInRecord,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=Syed&accountIndex=0"
 blug同步 = type=http-request,pattern=^https:\/\/mini-jlbaisheng\.cs26\.com\/mini\/sign\/sign\?,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=blug&accountIndex=0"
-mixpark同步 = type=http-request,pattern=^https:\/\/www\.digitalflag\.cn\/gateway\/for-c\/checkin,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=mixpark&accountIndex=0"
+mixpark同步 = type=http-request,pattern=^https:\/\/www\.digitalflag\.cn\/gateway\/for-c\/checkin$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=mixpark&accountIndex=0"
 
 [MITM]
 hostname = %APPEND% mylink.komect.com, xiaodian.miyatech.com, weixin.dongfeng-honda.com, cn-cbu-gateway.ninebot.com, m.mallcoo.cn, api-saas.miniso.com, sytgate.jslife.com.cn, molli2.sycommercial.com, mini-jlbaisheng.cs26.com, www.digitalflag.cn

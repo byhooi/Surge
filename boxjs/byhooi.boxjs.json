@@ -82,6 +82,71 @@
       ]
     },
     {
+      "id": "byhooi_akino_ql",
+      "name": "akino 签到同步青龙",
+      "keys": [
+        "akino",
+        "ql_url",
+        "ql_client_id",
+        "ql_client_secret",
+        "ql_token",
+        "ql_token_expires"
+      ],
+      "descs_html": [
+        "<h4 align=\"center\">把 Surge 抓到的签到请求同步到青龙</h4>",
+        "<p style=\"text-align: center;\">安装签到模块后，打开对应小程序点一次签到即可自动抓取；点下方按钮手动同步，也可配 cron 每日自动同步。</p>",
+        "<p style=\"text-align: center;\">青龙连接信息与「京东 Cookie 青龙同步」共用，填一次即可。</p>"
+      ],
+      "settings": [
+        {
+          "id": "akino",
+          "name": "抓包数据（自动维护，请勿手改）",
+          "val": "{}",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 8,
+          "desc": "由 akino.js 自动写入，结构为 {record:{ckName:\"JSON字符串\"}}。手动修改会破坏同步，建议只读不写。"
+        },
+        {
+          "id": "ql_url",
+          "name": "青龙面板地址",
+          "val": "",
+          "type": "text",
+          "placeholder": "https://ql.example.com",
+          "desc": "与京东 Cookie 青龙同步共用同一项，无需重复填写"
+        },
+        {
+          "id": "ql_client_id",
+          "name": "青龙 Client ID",
+          "val": "",
+          "type": "text",
+          "placeholder": "请输入 Client ID",
+          "desc": "与京东 Cookie 青龙同步共用同一项"
+        },
+        {
+          "id": "ql_client_secret",
+          "name": "青龙 Client Secret",
+          "val": "",
+          "type": "text",
+          "placeholder": "请输入 Client Secret",
+          "desc": "与京东 Cookie 青龙同步共用同一项"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "同步签到数据到青龙",
+          "script": "https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js",
+          "script_timeout": 120
+        }
+      ],
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/qinglong",
+      "icons": [
+        "https://github.com/byhooi.png",
+        "https://github.com/byhooi.png"
+      ]
+    },
+    {
       "id": "byhooi_wskey_ql",
       "name": "京东 WSKEY 青龙同步",
       "keys": [

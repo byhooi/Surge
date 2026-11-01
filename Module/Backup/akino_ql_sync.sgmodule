@@ -1,0 +1,19 @@
+#!name=akino 抓包同步青龙
+#!desc=抓到签到请求时立即把数据推送到青龙环境变量，配合原 akino 模块使用，无需改动原模块
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+mylink同步 = type=http-request,pattern=^https:\/\/mylink\.komect\.com\/v1\/api\/eas\/sign\/sign_in,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=mylink&accountIndex=0"
+sdl同步 = type=http-request,pattern=^https:\/\/xiaodian\.miyatech\.com\/api\/coupon\/auth\/signIn,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=sdl&accountIndex=0"
+honda同步 = type=http-request,pattern=^https:\/\/weixin\.dongfeng-honda\.com\/weicheapi\/honda-center-docking\/marketingOperations\/adapterInterface,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=honda&accountIndex=0"
+ninebot同步 = type=http-request,pattern=^https:\/\/cn-cbu-gateway\.ninebot\.com\/portal\/api\/user-sign\/v2\/sign,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=ninebot&accountIndex=0"
+zyh同步 = type=http-request,pattern=^https:\/\/m\.mallcoo\.cn\/api\/user\/User\/CheckinV2,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=zyh&accountIndex=0"
+miniso同步 = type=http-request,pattern=^https:\/\/api-saas\.miniso\.com\/task-manage-platform\/api\/activity\/signInTask\/award\/receive,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=miniso&accountIndex=0"
+jtc同步 = type=http-request,pattern=^https:\/\/sytgate\.jslife\.com\.cn\/base-gateway\/integral\/v2\/task\/receive,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=jtc&accountIndex=0"
+Syed同步 = type=http-request,pattern=^https:\/\/molli2\.sycommercial\.com\/restful\/mall\/3867\/checkInRecord,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=Syed&accountIndex=0"
+blug同步 = type=http-request,pattern=^https:\/\/mini-jlbaisheng\.cs26\.com\/mini\/sign\/sign,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=blug&accountIndex=0"
+mixpark同步 = type=http-request,pattern=^https:\/\/www\.digitalflag\.cn\/gateway\/for-c\/checkin,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=mixpark&accountIndex=0"
+
+[MITM]
+hostname = %APPEND% mylink.komect.com, xiaodian.miyatech.com, weixin.dongfeng-honda.com, cn-cbu-gateway.ninebot.com, m.mallcoo.cn, api-saas.miniso.com, sytgate.jslife.com.cn, molli2.sycommercial.com, mini-jlbaisheng.cs26.com, www.digitalflag.cn

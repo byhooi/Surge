@@ -1,14 +1,14 @@
 #!name=捷停车签到
-#!desc=捷停车每日自动签到，捷停车App打开获取 userId ，填写模块参数可禁用脚本。
-#!arguments=定时签到:15 9 * * *,禁用脚本:获取捷停车userId,禁用MITM:hostname
-#!arguments-desc=定时签到：Cron表达式，默认每日 9:15 执行。\n\n禁用脚本：禁用获取授权脚本，输入 # 表示禁用。\n\n禁用MITM：禁用MITM主机名，输入 # 表示禁用。
-#!category=🎈 Bingo
-#!system=ios
+#!category=Record module
+#!desc=捷停车自动签到重放及获取token脚本
+#!arguments=scriptName:捷停车,ckName:jtc,cron:6 8 * * *,hostname:sytgate.jslife.com.cn,regx:^https:\/\/sytgate\.jslife\.com\.cn\/base-gateway\/integral\/v2\/task\/receive,path:"",bodyRegx:"",isGetCookie:1,accountIndex:0,禁用MITM:hostname
+#!arguments-desc= ☆　　╱╲*╱╲　☆\n ╱╳+▲╱　　╲　☆\n╱╱ ◢◣+　　╳╲ \n╱ +◢█◣　／　　╲☆\n☆　◢██◣   Sakura \n _▂▂█▂▂   樱花交流会·2.0.0 \n若是对你有所帮助～不妨点个star🌟!:|\n\n[参数设置]\n ├ scriptName: 脚本名称，默认由捷径生成\n ├ ckName: 变量名称，默认由捷径生成\n ├ cron: 定时运行，默认30 0 * * *\n ├ hostname: mitm域名，默认由捷径生成\n ├ regx: 匹配正则，默认由捷径生成\n ├ isGetCookie:获取ck开关，0关闭，1打开\n ├ accountIndex: 账号数组下标，默认为0\n ├ bodyRegx: 正则匹配body，默认留空\n ├ 禁用MITM: 获取时填 hostname，禁用时填 #\n └ path: 通知result的子路径，为空则返回全部 \n\n[脚本说明]\n├作者: @Sliverkiss\n├频道: @sliverkiss_blog\n└致谢: @mieqq、@xream、@id77
 
 [Script]
-捷停车签到 = type=cron, cronexp="{{{定时签到}}}", timeout=60, script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/jparking_sign.js, script-update-interval=0
+{{{scriptName}}}_获取cookie = type=http-request,pattern={{{regx}}},script-path=https://raw.githubusercontent.com/Sliverkiss/surge_auto_sign/refs/heads/main/akino.js,requires-body=1,max-size=0,argument="scriptName={{{scriptName}}}&ckName={{{ckName}}}&path={{{path}}}&isGetCookie={{{isGetCookie}}}&accountIndex={{{accountIndex}}}&bodyRegx={{{bodyRegx}}}"
 
-{{{禁用脚本}}} = type=http-request, pattern=^https:\/\/sytgate\.jslife\.com\.cn\/core-gateway\/order\/carno\/pay\/info, requires-body=1, max-size=0, script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/jparking_sign.js
+{{{scriptName}}} = type=cron,cronexp="{{{cron}}}",script-path=https://raw.githubusercontent.com/Sliverkiss/surge_auto_sign/refs/heads/main/akino.js,script-update-interval=0,timeout=3600,wake-system=1,engine=jsc,argument="scriptName={{{scriptName}}}&ckName={{{ckName}}}&path={{{path}}}&isGetCookie={{{isGetCookie}}}&accountIndex={{{accountIndex}}}&bodyRegx={{{bodyRegx}}}"
 
 [MITM]
-{{{禁用MITM}}} = %APPEND% sytgate.jslife.com.cn
+{{{禁用MITM}}} = %APPEND% {{{hostname}}}
+

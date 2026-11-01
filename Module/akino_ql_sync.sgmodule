@@ -16,5 +16,6 @@ blug同步 = type=http-request,pattern=^https:\/\/mini-jlbaisheng\.cs26\.com\/mi
 mixpark同步 = type=http-request,pattern=^https:\/\/www\.digitalflag\.cn\/gateway\/for-c\/checkin$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=mixpark&accountIndex=0"
 
 1hai同步 = type=http-request,pattern=^https:\/\/app\.1hai\.cn\/SignCenter\/UserAssets\/SignIn(?:\?.*)?$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=1hai&accountIndex=0"
+huazhu同步 = type=http-request,pattern=^https:\/\/appgw\.huazhu\.com\/,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/byhooi/qinglong/master/tools/akino_ql_sync.js,argument="ckName=huazhu&tokenPath=cookie:userToken"
 [MITM]
-hostname = %APPEND% mylink.komect.com, xiaodian.miyatech.com, weixin.dongfeng-honda.com, cn-cbu-gateway.ninebot.com, m.mallcoo.cn, api-saas.miniso.com, sytgate.jslife.com.cn, molli2.sycommercial.com, mini-jlbaisheng.cs26.com, www.digitalflag.cn, app.1hai.cn
+hostname = %APPEND% mylink.komect.com, xiaodian.miyatech.com, weixin.dongfeng-honda.com, cn-cbu-gateway.ninebot.com, m.mallcoo.cn, api-saas.miniso.com, sytgate.jslife.com.cn, molli2.sycommercial.com, mini-jlbaisheng.cs26.com, www.digitalflag.cn, app.1hai.cn, appgw.huazhu.com

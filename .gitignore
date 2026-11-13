@@ -1,5 +1,6 @@
-# Claude Code 本地配置
-.claude/settings.local.json
+# AI 助手本地目录（配置、会话缓存等，不纳入版本控制）
+.claude/
+.agents/
 
 # HAR files
 *.har
@@ -12,3 +13,6 @@ agents.md
 
 # HANDOFF 交接文档（任意大小写 / 前后缀 / 扩展名，任意目录层级）
 *[Hh][Aa][Nn][Dd][Oo][Ff][Ff]*
+
+# WorkBuddy 本地数据（记忆日志等，不纳入版本控制）
+.workbuddy/

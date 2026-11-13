@@ -1,0 +1,7 @@
+#!name=AgentRouter 签到
+#!desc=AgentRouter 每日自动登录签到，查看奖励、余额与累计消耗。首次使用前请在 BoxJS「AgentRouter 签到」填写账号和密码。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+AgentRouter签到 = type=cron,cronexp=0 9 * * *,timeout=60,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/agentrouter/agentrouter.js,img-url=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/agentrouter/icon.png

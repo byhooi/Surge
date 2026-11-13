@@ -1,0 +1,12 @@
+#!name=小米商城
+#!desc=捕获小米商城 App 的 Cookie 与 userId，并每日 8:15 定时签到。首次使用请打开小米商城 App →「米金商城」→ 点签到触发捕获。
+#!category=🎈 Bingo
+#!system=ios
+
+[MITM]
+hostname = %APPEND% shop-api.retail.mi.com
+
+[Script]
+小米商城 Cookie = type=http-request,pattern=^https:\/\/shop-api\.retail\.mi\.com\/mtop\/mf\/act\/infinite\/(do|done),requires-body=false,max-size=0,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/mishop/mishop.cookie.js,img-url=https://raw.githubusercontent.com/MaYIHEI/pin/refs/heads/main/app/mishop.png
+
+小米商城签到 = type=cron,cronexp=15 8 * * *,timeout=60,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/mishop/mishop.js,img-url=https://raw.githubusercontent.com/MaYIHEI/pin/refs/heads/main/app/mishop.png

@@ -1,0 +1,12 @@
+#!name=扫描全能王签到
+#!desc=捕获扫描全能王 App 的 Token 并每日 10:15 定时签到。首次使用请打开扫描全能王 App 任意页停留，触发 get_user_attribute 请求。
+#!category=🎈 Bingo
+#!system=ios
+
+[MITM]
+hostname = %APPEND% api-cs.intsig.net
+
+[Script]
+扫描全能王 Cookie = type=http-request,pattern=^https:\/\/api-cs\.intsig\.net\/user\/cs\/get_user_attribute,requires-body=false,max-size=0,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/camscanner/camscanner.cookie.js,img-url=https://raw.githubusercontent.com/MaYIHEI/pin/refs/heads/main/app/camscanner.png
+
+扫描全能王签到 = type=cron,cronexp=15 10 * * *,timeout=120,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/camscanner/camscanner.js,img-url=https://raw.githubusercontent.com/MaYIHEI/pin/refs/heads/main/app/camscanner.png

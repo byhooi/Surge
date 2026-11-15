@@ -368,6 +368,45 @@
           "desc": "填入需要运行重放模块的ckName"
         }
       ]
+    },
+    {
+      "id": "byhooi_mishop_sign",
+      "name": "小米商城签到",
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge",
+      "keys": [
+        "byhooi_mishop_accounts",
+        "byhooi_mishop_lock"
+      ],
+      "descs_html": [
+        "<p>安装 mishop_sign.sgmodule 后，在米家 App 打开「小米商城 → 签到」页一次即可捕获 serviceToken 与签到活动参数；默认每日 8:20 对已捕获的每个活动（不同 actId）领取米金，同一天不重复签到。</p>",
+        "<p>换账号、换设备或凭证失效后，重新打开签到页会自动覆盖凭证。确认不再使用时清空账号 JSON，或把 enabled 改为 false 暂停该账号。</p>"
+      ],
+      "settings": [
+        {
+          "id": "byhooi_mishop_accounts",
+          "name": "账号与活动列表（含登录凭证）",
+          "val": "[]",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 8,
+          "desc": "自动维护的 JSON 数组。token 为 serviceToken，headers 为抓包时的请求头模板，activities 为每个签到活动（actId/taskToken），lastSignDate 为最近确认成功的签到日期，lastResult 为最近一次结果。整体清空为 [] 可移除全部账号。"
+        },
+        {
+          "id": "byhooi_mishop_lock",
+          "name": "任务锁（自动维护）",
+          "val": "",
+          "type": "text",
+          "desc": "通常无需修改，用于避免定时任务与手动执行重叠；异常中断后 150 秒自动失效。"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "手动执行小米商城签到",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/mishop_sign.js",
+          "script_timeout": 120
+        }
+      ]
     }
   ]
 }

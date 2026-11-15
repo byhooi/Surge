@@ -1,0 +1,14 @@
+#!name=小米商城签到
+#!desc=捕获米家 App 内「小米商城」的 serviceToken 与签到活动参数，每日对已捕获的每个签到活动领取米金。首次使用请在米家 App →「小米商城」→ 签到页打开一次。
+#!arguments=定时签到:20 8 * * *,禁用抓取:小米商城获取凭证,禁用MITM:hostname
+#!arguments-desc=定时签到：Cron 表达式，默认每日 8:20 执行，按设备时区计算。\n\n禁用抓取：输入 # 可停用凭证捕获脚本；平时保持默认，需要重新捕获时改回。\n\n禁用MITM：输入 # 可停用 MITM 主机名，停用后无法捕获新凭证，签到仍按已保存数据执行。\n\n一个账号可对应多个签到活动（不同 actId），脚本按天去重。换账号或凭证失效后，重新打开签到页即可更新。多账号管理见 BoxJS「小米商城签到」。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+小米商城签到 = type=cron,cronexp="{{{定时签到}}}",wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mishop_sign.js,script-update-interval=0
+
+{{{禁用抓取}}} = type=http-request,pattern=^https:\/\/shop-api\.retail\.mi\.com\/mtop\/mf\/act\/infinite\/(?:do|done)(?:\?.*)?$,requires-body=1,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mishop_sign.js,script-update-interval=0
+
+[MITM]
+{{{禁用MITM}}} = %APPEND% shop-api.retail.mi.com

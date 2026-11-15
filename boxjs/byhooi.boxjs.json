@@ -374,6 +374,10 @@
       "name": "小米商城签到",
       "author": "@byhooi",
       "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/xcmi.png",
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/xcmi.png"
+      ],
       "keys": [
         "byhooi_mishop_accounts",
         "byhooi_mishop_lock"

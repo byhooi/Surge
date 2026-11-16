@@ -1,11 +1,16 @@
 const SCRIPT_NAME = "小米商城签到";
-const SCRIPT_VERSION = "1.1.0";
+const SCRIPT_VERSION = "1.2.0";
 const ACCOUNTS_KEY = "byhooi_mishop_accounts";
 const LOCK_KEY = "byhooi_mishop_lock";
 const ORIGIN = "https://shop-api.retail.mi.com";
 const SIGN_PATH = "/mtop/mf/act/infinite/done";
 const CAPTURE_PATTERN = /^https:\/\/shop-api\.retail\.mi\.com\/mtop\/mf\/act\/infinite\/(?:do|done)(?:\?.*)?$/;
 const ACT_ID_PATTERN = /^[0-9a-f]{24}$/i;
+// actId 前 8 位与各自的奖品池同源，用它把活动映射成可读名称；未知活动退回前缀。
+const ACTIVITY_NAMES = {
+  "6af6cd34": "米家商城签到",
+  "6706c069": "米金商城签到",
+};
 const TASK_TYPE = 110;
 const REQUEST_TIMEOUT = 12;
 const RUN_BUDGET_MS = 90000;
@@ -46,7 +51,7 @@ function captureRequest() {
     const result = upsertAccount(token, sanitizeHeaders(headers), activity);
     if (result.changed) {
       const detail = result.added
-        ? `已记录账号与活动，定时任务将对 ${result.activityCount} 个活动领取米金。可在 BoxJS 为该账号设置 name 昵称。`
+        ? `已记录账号与活动，定时任务将对 ${result.activityCount} 个活动领取米金。`
         : `已记录新活动，当前共 ${result.activityCount} 个活动。`;
       log(`${detail} actId ${activity.actId}`);
       $notification.post(SCRIPT_NAME, result.added ? "已添加签到账号" : "已更新签到活动", detail);
@@ -197,11 +202,14 @@ function httpPost(account, payload) {
   });
 }
 
-// 返回 { skipped, message, awards }：message 用于日志与 lastResult，awards 用于合并通知。
+// 返回 { skipped, message, awards, series }：message 用于日志与 lastResult，
+// awards 用于标题合计，series 是连续签到天数（doneInSeriesCount）。
 async function signActivity(account, activity) {
   const today = dateInChina();
   if (activity.lastSignDate === today) {
-    return { skipped: true, message: `今日已签到${activity.lastResult ? `（${activity.lastResult}）` : ""}`, awards: [] };
+    const day = Number(activity.lastSeries);
+    const dayText = Number.isFinite(day) && day > 0 ? `（连续签到第 ${day} 天）` : "";
+    return { skipped: true, message: `今日已签到${dayText}`, awards: [] };
   }
   const result = await httpPost(account, [
     {},
@@ -219,16 +227,18 @@ async function signActivity(account, activity) {
     name: item.customAwardName || item.awardName || "奖励",
     value: item.awardValue,
   }));
-  const series = data.taskInfo && Number(data.taskInfo.doneInSeriesCount);
+  const series = Number(data.taskInfo && data.taskInfo.doneInSeriesCount);
+  const day = Number.isFinite(series) && series > 0 ? series : 0;
   const text = gained.map((item) => `${item.name} +${item.value}`).join("、");
   return {
     skipped: false,
-    message: Number.isFinite(series) && series > 0 ? `${text}（系列内第 ${series} 次）` : text,
+    message: day ? `${text}（连续签到第 ${day} 天）` : text,
     awards: gained,
+    series: day,
   };
 }
 
-// 通知按账号合并奖励，避免同一账号多个活动刷出多行同类信息。
+// 标题只给奖励合计，正文按活动逐行展示，便于看出每个活动签到到第几天。
 function summarizeAwards(awards) {
   const bucket = new Map();
   for (const award of awards || []) {
@@ -254,33 +264,19 @@ function formatAwards(bucket) {
   return parts.join("、");
 }
 
-function accountLine(summary) {
-  const parts = [];
-  const gained = formatAwards(summarizeAwards(summary.awards));
-  if (gained) parts.push(gained);
-  if (summary.signed > 1) parts.push(`${summary.signed} 个活动已签到`);
-  if (summary.skipped) {
-    parts.push(summary.signed ? `${summary.skipped} 个已跳过` : `今日已签到${summary.skipped > 1 ? `（${summary.skipped} 个活动）` : ""}`);
-  }
-  if (!parts.length) parts.push("今日已签到");
-  return `${summary.label}：${parts.join("，")}`;
-}
-
-function notifyResult(summaries, failures, budgetHit) {
-  const allAwards = [];
-  for (const summary of summaries) allAwards.push(...summary.awards);
-  const gained = formatAwards(summarizeAwards(allAwards));
+function notifyResult(lines, failures, awards, budgetHit) {
+  const gained = formatAwards(summarizeAwards(awards));
   let title = "今日已签到";
   if (failures.length && gained) title = `部分成功 · ${gained} · 失败 ${failures.length}`;
   else if (failures.length) title = `签到失败 · ${failures.length} 项`;
   else if (gained) title = `签到成功 · ${gained}`;
-  const lines = summaries.map(accountLine);
+  const body = lines.slice();
   if (failures.length) {
-    lines.push("失败：");
-    for (const item of failures) lines.push(`· ${item}`);
+    body.push("失败：");
+    for (const item of failures) body.push(`· ${item}`);
   }
-  if (budgetHit) lines.push("本轮时间或活动配额不足，剩余活动请稍后手动执行");
-  $notification.post(SCRIPT_NAME, title, lines.join("\n") || "没有需要处理的活动");
+  if (budgetHit) body.push("本轮时间或活动配额不足，剩余活动请稍后手动执行");
+  $notification.post(SCRIPT_NAME, title, body.join("\n") || "没有需要处理的活动");
 }
 
 async function runTask() {
@@ -300,8 +296,9 @@ async function runTask() {
       return;
     }
     const started = Date.now();
-    const summaries = [];
+    const lines = [];
     const failures = [];
+    const awards = [];
     let processed = 0;
     let budgetHit = false;
     let accountCount = 0;
@@ -313,8 +310,7 @@ async function runTask() {
         break;
       }
       accountCount++;
-      const accountLabel = label(account, index);
-      const summary = { label: accountLabel, awards: [], signed: 0, skipped: 0 };
+      const accountLabel = label(index);
       if (!account.activities.length) {
         failures.push(`${accountLabel}：未捕获到活动，请重新打开签到页`);
       }
@@ -324,23 +320,19 @@ async function runTask() {
           break;
         }
         processed++;
-        const tag = `${accountLabel} · ${shortActId(activity.actId)}`;
+        const tag = `${accountLabel} · ${activityName(activity.actId)}`;
         let message;
         try {
           if (!activity.taskToken) throw new Error("缺少 taskToken，请重新打开签到页捕获");
           const outcome = await signActivity(account, activity);
           message = outcome.message;
-          if (outcome.skipped) {
-            summary.skipped++;
-          } else {
-            summary.signed++;
-            for (const award of outcome.awards) summary.awards.push(award);
-            patchActivity(account.token, activity.actId, {
-              lastSignDate: dateInChina(),
-              lastResult: message,
-              lastRunAt: Date.now(),
-            });
+          if (!outcome.skipped) {
+            for (const award of outcome.awards) awards.push(award);
+            const patch = { lastSignDate: dateInChina(), lastResult: message, lastRunAt: Date.now() };
+            if (outcome.series) patch.lastSeries = outcome.series;
+            patchActivity(account.token, activity.actId, patch);
           }
+          lines.push(`${tag}：${message}`);
         } catch (error) {
           message = `失败：${error.message || error}`;
           failures.push(`${tag}：${error.message || error}`);
@@ -348,10 +340,9 @@ async function runTask() {
         }
         log(`${tag}：${message}`);
       }
-      if (summary.signed || summary.skipped) summaries.push(summary);
       if (budgetHit) break;
     }
-    notifyResult(summaries, failures, budgetHit);
+    notifyResult(lines, failures, awards, budgetHit);
   } finally {
     releaseLock(lock);
   }
@@ -385,19 +376,13 @@ function getHeader(headers, name) {
   return key ? headers[key] : undefined;
 }
 
-function label(account, index) {
-  // 昵称由用户在 BoxJS 的 name 字段自定义，未设置时退回脱敏 token。
-  const name = typeof account.name === "string" ? account.name.trim() : "";
-  return name || `账号${index + 1}(${maskToken(account.token)})`;
+function label(index) {
+  return `账号${index + 1}`;
 }
 
-function maskToken(token) {
-  const text = String(token || "");
-  return text.length > 8 ? `****${text.slice(-4)}` : "****";
-}
-
-function shortActId(actId) {
-  return String(actId || "").slice(0, 6);
+function activityName(actId) {
+  const key = String(actId || "").slice(0, 8).toLowerCase();
+  return ACTIVITY_NAMES[key] || `活动 ${key || "未知"}`;
 }
 
 function dateInChina(time = Date.now()) {

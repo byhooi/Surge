@@ -385,7 +385,7 @@
       "descs_html": [
         "<p>安装 mishop_sign.sgmodule 后，在米家 App 打开「小米商城 → 签到」页一次即可捕获 serviceToken 与签到活动参数；默认每日 8:20 对已捕获的每个活动（不同 actId）领取米金，同一天不重复签到。</p>",
         "<p>换账号、换设备或凭证失效后，重新打开签到页会自动覆盖凭证。确认不再使用时清空账号 JSON，或把 enabled 改为 false 暂停该账号。</p>",
-        "<p>通知里的账号标签默认显示脱敏 token；在对应账号对象里加 <code>\"name\": \"小号\"</code> 即可换成昵称。</p>"
+        "<p>通知按活动逐行展示，标题给奖励合计，正文形如 <code>账号1 · 米金商城签到：米金 +5（连续签到第 4 天）</code>；同一活动每天只领一次。</p>"
       ],
       "settings": [
         {
@@ -395,7 +395,7 @@
           "type": "textarea",
           "autoGrow": true,
           "rows": 8,
-          "desc": "自动维护的 JSON 数组。token 为 serviceToken，name 为可选昵称（填写后通知与日志显示昵称，留空则显示账号N(****末4位)），headers 为抓包时的请求头模板，activities 为每个签到活动（actId/taskToken），lastSignDate 为最近确认成功的签到日期，lastResult 为最近一次结果。整体清空为 [] 可移除全部账号。"
+          "desc": "自动维护的 JSON 数组。token 为 serviceToken，headers 为抓包时的请求头模板，activities 为每个签到活动（actId/taskToken），lastSignDate 为最近确认成功的签到日期，lastResult 为最近一次结果，lastSeries 为连续签到天数。整体清空为 [] 可移除全部账号。"
         },
         {
           "id": "byhooi_mishop_lock",

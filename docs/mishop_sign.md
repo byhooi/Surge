@@ -45,7 +45,7 @@ Cookie: serviceToken=<serviceToken>
 
 | 情况 | 处理 |
 | --- | --- |
-| `code === 0` 且 `awardList` 里有成功奖励 | 记录 `lastSignDate`，通知写清奖励与系列内第几次 |
+| `code === 0` 且 `awardList` 里有成功奖励 | 记录 `lastSignDate`，奖励计入账号与全局合计 |
 | `code !== 0` 或 `success === false` | 视为失败，**不写** `lastSignDate`，下次仍会重试 |
 | `code === 0` 但奖励为空 | 视为失败（可能已签或未到发放条件），**不写** `lastSignDate` |
 | HTTP 非 2xx、非 JSON、网络错误 | 视为失败，不写 `lastSignDate` |
@@ -62,15 +62,25 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Module/mishop_sign.sgmodule
 2. 打开米家 App →「小米商城」→ 签到页，点一次签到（这一步只是为了让脚本抓到请求）。
 3. 收到「已添加签到账号」通知即完成，之后由定时任务执行。默认每日 8:20（设备时区）。
 4. 换账号或换设备时，用目标账号重新打开签到页，脚本按 `serviceToken` 归档，新账号会单独追加。
+5. 想要好认的账号名，在 BoxJS「账号与活动列表」里给对应对象加 `"name": "小号"`；不加则显示脱敏 token。
 
 `script-update-interval=0` 只表示不自动轮询，脚本更新后在 Surge「外部资源」手动更新即可。
 
 ## 结果判定
 
+通知按账号合并，不再一个活动一行：
+
+- 标题：带状态词。成功时 `签到成功 · 米金 +10`（多账号、多活动累加）；部分失败时 `部分成功 · 米金 +5 · 失败 1`；全失败时 `签到失败 · n 项`；全部跳过时是 `今日已签到`。
+- 正文：每个账号一行，如 `账号1(****0001)：米金 +10，2 个活动已签到`；失败统一列在 `失败：` 之后，带账号标签与 `actId` 前 6 位。
+- 账号标签可用昵称：在 BoxJS「账号与活动列表」对应账号对象里加 `"name": "小号"`，之后通知与日志都显示 `小号`；留空或删掉该字段则退回 `账号N(****末4位)`。
+- 「系列内第几次」只写入 BoxJS 的 `lastResult`，不进通知，避免同账号多活动刷出多行同类信息。
+
 | 通知标题 | 含义 |
 | --- | --- |
-| `1 个活动，失败 0` | 本轮涉及的活动中没有失败（含「今日已签到，跳过」） |
-| `n 个活动，失败 m` | 有 m 个活动失败，正文逐行给出原因 |
+| `签到成功 · 米金 +10` | 本轮全部成功，标题附带奖励合计 |
+| `部分成功 · 米金 +5 · 失败 1` | 有成功也有失败，正文`失败：`后逐行给出原因 |
+| `签到失败 · n 项` | 本轮没有任何成功领取 |
+| `今日已签到` | 所有活动当天已领过，未发请求 |
 | 没有已捕获的账号 | 未抓包，按上文第 2 步操作 |
 | 任务未完成 | 账号数据损坏或其他异常，原数据未被覆盖 |
 
@@ -84,7 +94,7 @@ https://raw.githubusercontent.com/byhooi/Surge/main/Module/mishop_sign.sgmodule
 
 | Key | 说明 |
 | --- | --- |
-| `byhooi_mishop_accounts` | 自动维护的 JSON 数组：`token`（serviceToken）、`headers`（请求头模板）、`activities`（actId/taskToken/lastSignDate/lastResult）。含凭证，请勿分享；清空为 `[]` 可移除全部账号，`enabled: false` 可单独停用。 |
+| `byhooi_mishop_accounts` | 自动维护的 JSON 数组：`token`（serviceToken）、`name`（可选昵称，用于通知与日志）、`headers`（请求头模板）、`activities`（actId/taskToken/lastSignDate/lastResult）。含凭证，请勿分享；清空为 `[]` 可移除全部账号，`enabled: false` 可单独停用。 |
 | `byhooi_mishop_lock` | 任务锁，异常中断后 150 秒自动失效。 |
 
 ## 本地验证
@@ -94,7 +104,7 @@ node --check Script/mishop_sign.js
 node --test tests/mishop_sign.test.cjs
 ```
 
-测试覆盖：抓包解析与请求头去噪、重复捕获不重复通知、新活动追加、无 `serviceToken`/无活动参数时不写入、签到请求体与 URL 与抓包一致、当天已签到跳过、业务失败不写签到日期、`code 0` 但无奖励、HTTP 502、锁占用、无账号提示、账号数据损坏不覆盖、多账号多活动逐个请求。
+测试覆盖：抓包解析与请求头去噪、重复捕获不重复通知、新活动追加、无 `serviceToken`/无活动参数时不写入、签到请求体与 URL 与抓包一致、当天已签到跳过、业务失败不写签到日期、`code 0` 但无奖励、HTTP 502、锁占用、无账号提示、账号数据损坏不覆盖、多账号多活动逐个请求、同一账号多活动通知合并累加、部分失败时标题与正文分区、`name` 昵称优先于脱敏 token。
 
 自动化测试不能替代实机验证：发布后请用真实账号确认抓取通知、手动执行的通知结论，以及次日定时任务是否成功。
 

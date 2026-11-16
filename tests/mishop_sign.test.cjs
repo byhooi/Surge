@@ -15,6 +15,11 @@ const ACT_B = "6af6cd340918c14f2652d046";
 const TOKEN = "test-service-token-0000000000000001";
 const SIGN_URL = "https://shop-api.retail.mi.com/mtop/mf/act/infinite/done";
 
+// 通知里的账号标签由脚本按 token 末 4 位脱敏生成。
+function accountLabel(token, index = 1) {
+  return `账号${index}(${token.length > 8 ? `****${token.slice(-4)}` : "****"})`;
+}
+
 function requestBody(actId, taskToken) {
   return JSON.stringify([{}, { taskToken, actId, taskType: 110 }]);
 }
@@ -214,9 +219,10 @@ test("签到成功：按抓包结构发起请求并记录当天日期", async ()
     { taskToken: "task-a", actId: ACT_A, taskType: 110 },
   ]);
   assert.equal(notifications.length, 1);
-  assert.equal(notifications[0][1], "1 个活动，失败 0");
-  assert.match(notifications[0][2], /米金 \+5（系列内第 3 次）/);
+  assert.equal(notifications[0][1], "签到成功 · 米金 +5");
+  assert.ok(notifications[0][2].includes(`${accountLabel(TOKEN)}：米金 +5`));
   const [saved] = stored(store);
+  assert.match(saved.activities[0].lastResult, /米金 \+5（系列内第 3 次）/);
   assert.equal(saved.activities[0].lastSignDate, TODAY);
   assert.equal(store.get(LOCK_KEY), "");
 });
@@ -227,15 +233,16 @@ test("当天已签到：不发请求并跳过", async () => {
   ]);
   const { notifications, calls } = await runTask({ store, replies: [] });
   assert.equal(calls.length, 0);
-  assert.match(notifications[0][2], /今日已签到（米金 \+5），跳过/);
-  assert.equal(notifications[0][1], "1 个活动，失败 0");
+  assert.equal(notifications[0][1], "今日已签到");
+  assert.ok(notifications[0][2].includes(`${accountLabel(TOKEN)}：今日已签到`));
+  assert.doesNotMatch(notifications[0][2], /系列内/);
 });
 
 test("业务失败：不写 lastSignDate，下一次仍会重试", async () => {
   const store = storeWith([account()]);
   const { notifications } = await runTask({ store, replies: [{ body: failBody(10001, "任务已完成") }] });
-  assert.equal(notifications[0][1], "1 个活动，失败 1");
-  assert.match(notifications[0][2], /失败：任务已完成/);
+  assert.equal(notifications[0][1], "签到失败 · 1 项");
+  assert.ok(notifications[0][2].includes(`失败：\n· ${accountLabel(TOKEN)} · 6706c0：任务已完成`));
   assert.equal(stored(store)[0].activities[0].lastSignDate, undefined);
 });
 
@@ -243,7 +250,7 @@ test("code 为 0 但没有奖励：不确认为签到成功", async () => {
   const store = storeWith([account()]);
   const body = JSON.stringify({ code: 0, success: true, data: { taskInfo: { doneInSeriesCount: 2 }, awardList: [] } });
   const { notifications } = await runTask({ store, replies: [{ body }] });
-  assert.equal(notifications[0][1], "1 个活动，失败 1");
+  assert.equal(notifications[0][1], "签到失败 · 1 项");
   assert.match(notifications[0][2], /未发放奖励/);
   assert.equal(stored(store)[0].activities[0].lastSignDate, undefined);
 });
@@ -251,7 +258,7 @@ test("code 为 0 但没有奖励：不确认为签到成功", async () => {
 test("HTTP 与网络错误不会写入签到日期", async () => {
   const store = storeWith([account()]);
   const { notifications } = await runTask({ store, replies: [{ status: 502, body: "bad gateway" }] });
-  assert.match(notifications[0][2], /失败：HTTP 502/);
+  assert.match(notifications[0][2], /HTTP 502/);
   assert.equal(stored(store)[0].activities[0].lastSignDate, undefined);
 });
 
@@ -295,7 +302,49 @@ test("多账号多活动：逐个请求，已签到的活动跳过", async () =>
   const { notifications, calls } = await runTask({ store, replies: [{ body: okBody(2) }, { body: okBody(1) }] });
   assert.equal(calls.length, 2);
   assert.equal(calls[1].headers.Cookie, `serviceToken=${secondToken}`);
-  assert.equal(notifications[0][1], "3 个活动，失败 0");
+  assert.equal(notifications[0][1], "签到成功 · 米金 +10");
+  assert.ok(notifications[0][2].includes(`${accountLabel(TOKEN)}：米金 +5，1 个已跳过`));
+  assert.ok(notifications[0][2].includes(`${accountLabel(secondToken, 2)}：米金 +5`));
+  assert.doesNotMatch(notifications[0][2], /系列内/);
   const touched = stored(store)[0].activities.find((item) => item.actId === ACT_B);
   assert.equal(touched.lastSignDate, TODAY);
+});
+
+test("同一账号多个活动：通知合并为一行并累加奖励", async () => {
+  const store = storeWith([
+    account({
+      activities: [
+        { actId: ACT_A, taskToken: "task-a" },
+        { actId: ACT_B, taskToken: "task-b" },
+      ],
+    }),
+  ]);
+  const { notifications } = await runTask({ store, replies: [{ body: okBody(2) }, { body: okBody(4) }] });
+  assert.equal(notifications[0][1], "签到成功 · 米金 +10");
+  assert.equal(notifications[0][2], `${accountLabel(TOKEN)}：米金 +10，2 个活动已签到`);
+});
+
+test("部分活动失败：标题带失败数，正文分开列出原因", async () => {
+  const store = storeWith([
+    account({
+      activities: [
+        { actId: ACT_A, taskToken: "task-a" },
+        { actId: ACT_B, taskToken: "task-b" },
+      ],
+    }),
+  ]);
+  const { notifications } = await runTask({ store, replies: [{ body: okBody(2) }, { body: failBody(10001, "活动已下线") }] });
+  assert.equal(notifications[0][1], "部分成功 · 米金 +5 · 失败 1");
+  assert.ok(notifications[0][2].includes(`${accountLabel(TOKEN)}：米金 +5`));
+  assert.ok(notifications[0][2].includes(`失败：\n· ${accountLabel(TOKEN)} · 6af6cd：活动已下线`));
+});
+
+test("账号昵称：name 字段优先于脱敏 token，留空时退回脱敏", async () => {
+  const named = storeWith([account({ name: "小号" })]);
+  const first = await runTask({ store: named, replies: [{ body: okBody(2) }] });
+  assert.equal(first.notifications[0][2], "小号：米金 +5");
+
+  const blank = storeWith([account({ name: "  " })]);
+  const second = await runTask({ store: blank, replies: [{ body: okBody(2) }] });
+  assert.equal(second.notifications[0][2], `${accountLabel(TOKEN)}：米金 +5`);
 });

@@ -31,6 +31,7 @@ var LANG = 'cn';
 var USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
 var LOGIN_EXTEND = { deviceType: 'android', version: '2.9.5' };
 var REQUEST_TIMEOUT = 12;   // 秒，Surge $httpClient 显式超时；默认值偏短会误报 timeout
+var LOGIN_TIMEOUT = 30;     // 秒，登录要下发 token，实测比查询类接口慢得多
 var RETRY_DELAY_MS = 1500;  // 网络错误重试间隔
 
 var API = {
@@ -378,7 +379,7 @@ function postApi(api, payload, account, extraHeader, callback) {
     url: API_BASE,
     headers: headers,
     body: typeof body === 'string' ? body : '',
-    timeout: REQUEST_TIMEOUT,
+    timeout: api === API.login ? LOGIN_TIMEOUT : REQUEST_TIMEOUT,
     'auto-redirect': false,
     'auto-cookie': false
   };

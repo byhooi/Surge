@@ -325,3 +325,17 @@ test('登录请求超时不重试（验证码一次性）', () => {
   assert.deepEqual(run.requests, ['honda.app.telLogin']);
   assert.equal(run.store.byhooi_honda_code, '');
 });
+
+test('登录请求使用 30 秒超时，查询类请求用 12 秒', () => {
+  const run = runScript({
+    store: { byhooi_honda_phone: FAKE_PHONE, byhooi_honda_code: '123456' },
+    responses: Object.assign({
+      'honda.app.telLogin': { result: 1, rows: { accessToken: 'tok', userInfo: { uuid: 'uuid-9' } } }
+    }, SIGN_RESPONSES)
+  });
+  const pairs = run.requests.map((api, index) => [api, run.timeouts[index]]);
+  assert.deepEqual(pairs[0], ['honda.app.telLogin', 30]);
+  for (const [api, timeout] of pairs.slice(1)) {
+    assert.equal(timeout, 12, api + ' 应使用 12 秒超时');
+  }
+});

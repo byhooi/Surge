@@ -1,0 +1,9 @@
+#!name=东风本田签到
+#!desc=用手机号+短信验证码一次性登录换取 Token，之后每日自动签到。Token 失效会通知重新登录，无需开启 MITM。
+#!arguments=定时签到:20 8 * * *
+#!arguments-desc=定时签到：Cron 表达式，默认每日 8:20 执行，按设备时区计算。\n\n网关要求每次请求都带 SHA512 签名与新鲜时间戳（旧抓包重放会被拒：1121 时间不一致 / 174 密钥签名错误 / 178 签名已失效），因此本模块不再重放抓包，而是用官方 H5 的 appid/appkey 自行签名。\n\n首次使用：在 BoxJS「东风本田签到」填手机号 → 运行脚本收验证码 → 填验证码后再运行一次，即完成登录并签到。
+#!category=🎈 Bingo
+#!system=ios
+
+[Script]
+东风本田签到 = type=cron,cronexp="{{{定时签到}}}",argument=sign,wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/honda_sign.js,script-update-interval=0

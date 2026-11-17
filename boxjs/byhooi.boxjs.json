@@ -412,6 +412,58 @@
           "script_timeout": 120
         }
       ]
+    },
+    {
+      "id": "byhooi_honda_sign",
+      "name": "东风本田签到",
+      "author": "@byhooi",
+      "repo": "https://github.com/byhooi/Surge",
+      "icons": [
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/honda.png",
+        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/honda.png"
+      ],
+      "keys": [
+        "byhooi_honda_phone",
+        "byhooi_honda_code",
+        "byhooi_honda_account"
+      ],
+      "descs_html": [
+        "<p>安装 honda_sign.sgmodule 后使用。网关已强制「新鲜时间戳 + SHA512 签名」，旧抓包重放会返回 1121/174/178，所以本脚本不再重放抓包，而是用官方 H5 的 appid/appkey 自行签名。</p>",
+        "<p>首次登录：填手机号 → 运行「登录 / 签到」脚本收取验证码 → 把验证码填进「短信验证码」再运行一次。验证码用完自动清空，Token 与 uuid 保存在「账号数据」里。</p>",
+        "<p>Token 失效（返回 1001/147）会自动清空并通知，手动运行一次即可重新获取验证码。清空「账号数据」可强制重新登录。请注意令牌与手机号属于个人凭证，不要外传。</p>"
+      ],
+      "settings": [
+        {
+          "id": "byhooi_honda_phone",
+          "name": "手机号",
+          "val": "",
+          "type": "text",
+          "desc": "注册东风本田账号的手机号，仅保存在本机，用于接收短信验证码。"
+        },
+        {
+          "id": "byhooi_honda_code",
+          "name": "短信验证码",
+          "val": "",
+          "type": "text",
+          "desc": "收到短信后填这里，再运行一次脚本即完成登录；登录成功后脚本会自动清空该字段。"
+        },
+        {
+          "id": "byhooi_honda_account",
+          "name": "账号数据（自动维护）",
+          "val": "",
+          "type": "textarea",
+          "autoGrow": true,
+          "rows": 6,
+          "desc": "脚本写入的 telephone / uuid / token / updatedAt，请勿手改；清空会强制重新登录。"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "登录 / 签到",
+          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/honda_sign.js",
+          "script_timeout": 120
+        }
+      ]
     }
   ]
 }

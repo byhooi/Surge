@@ -23,8 +23,10 @@ function runScript(options) {
   const store = Object.assign({}, opts.store);
   const requests = [];
   const notifications = [];
+  const timeouts = [];
   let doneCount = 0;
   const responses = opts.responses || {};
+  const failures = Object.assign({}, opts.failures);
 
   const sandbox = {
     console: { log() {} },
@@ -39,6 +41,11 @@ function runScript(options) {
       post(request, callback) {
         const api = request.headers.api;
         requests.push(api);
+        timeouts.push(request.timeout);
+        if (failures[api] > 0) {
+          failures[api] -= 1;
+          return callback('HTTP request timeout');
+        }
         const payload = typeof responses[api] === 'function' ? responses[api](request) : responses[api];
         callback(null, { status: 200 }, JSON.stringify(payload === undefined ? {} : payload));
       }
@@ -47,7 +54,7 @@ function runScript(options) {
 
   vm.createContext(sandbox);
   vm.runInContext(SCRIPT_SRC, sandbox, { filename: 'honda_sign.js' });
-  return { store, requests, notifications, doneCount: () => doneCount };
+  return { store, requests, notifications, timeouts, doneCount: () => doneCount };
 }
 
 test('sha512 与 node:crypto 结果一致', () => {
@@ -278,4 +285,43 @@ test('非 JSON 响应带上状态码，便于排查网关错误', () => {
   vm.createContext(sandbox);
   vm.runInContext(SCRIPT_SRC, sandbox, { filename: 'honda_sign.js' });
   assert.equal(sandbox.__done, 1);
+});
+
+test('每个请求都带显式 timeout，避免 Surge 默认超时误报', () => {
+  const account = JSON.stringify({ uuid: 'uuid-1', token: 'tok-1' });
+  const run = runScript({ argument: 'sign', store: { byhooi_honda_account: account }, responses: SIGN_RESPONSES });
+  assert.ok(run.timeouts.length > 0);
+  for (const value of run.timeouts) assert.equal(value, 12);
+});
+
+test('网络超时会重试一次，成功则不报错', () => {
+  const account = JSON.stringify({ uuid: 'uuid-1', token: 'tok-1' });
+  const run = runScript({
+    argument: 'sign',
+    store: { byhooi_honda_account: account },
+    responses: SIGN_RESPONSES,
+    failures: { 'honda.app.sign.signDayState': 1 }
+  });
+  assert.equal(run.requests.filter((api) => api === 'honda.app.sign.signDayState').length, 2);
+  assert.equal(run.notifications[0][0], '签到成功');
+  assert.equal(run.doneCount(), 1);
+});
+
+test('发短信失败不重试，避免重复计费', () => {
+  const run = runScript({
+    store: { byhooi_honda_phone: FAKE_PHONE },
+    failures: { 'honda.app.login.getValidCode2': 5 }
+  });
+  assert.deepEqual(run.requests, ['honda.app.login.getValidCode2']);
+  assert.equal(run.notifications[0][0], '验证码发送失败');
+  assert.match(run.notifications[0][1], /耗时 0 秒/);
+});
+
+test('登录请求超时不重试（验证码一次性）', () => {
+  const run = runScript({
+    store: { byhooi_honda_phone: FAKE_PHONE, byhooi_honda_code: '123456' },
+    failures: { 'honda.app.telLogin': 5 }
+  });
+  assert.deepEqual(run.requests, ['honda.app.telLogin']);
+  assert.equal(run.store.byhooi_honda_code, '');
 });

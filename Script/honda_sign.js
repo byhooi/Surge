@@ -30,6 +30,8 @@ var APP_CODE = 'hondaapp';
 var LANG = 'cn';
 var USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
 var LOGIN_EXTEND = { deviceType: 'android', version: '2.9.5' };
+var REQUEST_TIMEOUT = 12;   // 秒，Surge $httpClient 显式超时；默认值偏短会误报 timeout
+var RETRY_DELAY_MS = 1500;  // 网络错误重试间隔
 
 var API = {
   sendCode: 'honda.app.login.getValidCode2',
@@ -352,6 +354,18 @@ function buildHeaders(api, body, account) {
   };
 }
 
+var RETRYABLE = {};
+RETRYABLE[API.signState] = true;
+RETRYABLE[API.sign] = true;
+RETRYABLE[API.track] = true;
+RETRYABLE[API.memberInfo] = true;
+// 发短信会重复计费、登录码一次性，都不重试
+
+function later(fn, ms) {
+  if (typeof setTimeout === 'function') setTimeout(fn, ms);
+  else fn();
+}
+
 function postApi(api, payload, account, extraHeader, callback) {
   var body = buildBody(payload);
   var built = buildHeaders(api, body, account);
@@ -359,24 +373,43 @@ function postApi(api, payload, account, extraHeader, callback) {
   if (extraHeader) {
     Object.keys(extraHeader).forEach(function (k) { headers[k] = extraHeader[k]; });
   }
-  var request = { url: API_BASE, headers: headers, body: typeof body === 'string' ? body : '' };
+  // 显式给 timeout：Surge 默认超时偏短，网关偶发抖动会被误判为失败
+  var request = {
+    url: API_BASE,
+    headers: headers,
+    body: typeof body === 'string' ? body : '',
+    timeout: REQUEST_TIMEOUT,
+    'auto-redirect': false,
+    'auto-cookie': false
+  };
 
   if (typeof $httpClient === 'undefined') {
     return callback('当前环境不支持 $httpClient');
   }
 
-  $httpClient.post(request, function (error, response, data) {
-    if (error) return callback(String(error));
-    var parsed = null;
-    try {
-      parsed = JSON.parse(data);
-    } catch (e) {
-      // 把状态码与正文片段带进诊断，否则 502/HTML 错误页只能显示「未知返回」
-      var status = response && response.status ? 'HTTP ' + response.status + ' ' : '';
-      parsed = { result: '', msg: status + String(data || '').slice(0, 80) };
-    }
-    callback(null, parsed, data || '');
-  });
+  var started = Date.now();
+  var attempts = 0;
+
+  function attempt() {
+    attempts += 1;
+    $httpClient.post(request, function (error, response, data) {
+      if (error) {
+        if (attempts < 2 && RETRYABLE[api]) return later(attempt, RETRY_DELAY_MS);
+        return callback(String(error) + '（耗时 ' + Math.round((Date.now() - started) / 100) / 10 + ' 秒）');
+      }
+      var parsed = null;
+      try {
+        parsed = JSON.parse(data);
+      } catch (e) {
+        // 把状态码与正文片段带进诊断，否则 502/HTML 错误页只能显示「未知返回」
+        var status = response && response.status ? 'HTTP ' + response.status + ' ' : '';
+        parsed = { result: '', msg: status + String(data || '').slice(0, 80) };
+      }
+      callback(null, parsed, data || '');
+    });
+  }
+
+  attempt();
 }
 
 function parseResult(response) {

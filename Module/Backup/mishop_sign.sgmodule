@@ -6,9 +6,9 @@
 #!system=ios
 
 [Script]
-小米商城签到 = type=cron,cronexp="{{{定时签到}}}",wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mishop_sign.js,script-update-interval=0
+小米商城签到 = type=cron,cronexp="{{{定时签到}}}",wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/Backup/mishop_sign.js,script-update-interval=0
 
-{{{禁用抓取}}} = type=http-request,pattern=^https:\/\/shop-api\.retail\.mi\.com\/mtop\/mf\/act\/infinite\/(?:do|done)(?:\?.*)?$,requires-body=1,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/mishop_sign.js,script-update-interval=0
+{{{禁用抓取}}} = type=http-request,pattern=^https:\/\/shop-api\.retail\.mi\.com\/mtop\/mf\/act\/infinite\/(?:do|done)(?:\?.*)?$,requires-body=1,max-size=0,binary-body-mode=0,timeout=30,script-path=https://raw.githubusercontent.com/byhooi/Surge/main/Script/Backup/mishop_sign.js,script-update-interval=0
 
 [MITM]
 {{{禁用MITM}}} = %APPEND% shop-api.retail.mi.com

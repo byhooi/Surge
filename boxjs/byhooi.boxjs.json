@@ -456,51 +456,6 @@
         "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tsif.png",
         "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tsif.png"
       ]
-    },
-    {
-      "id": "byhooi_sfsy_sign",
-      "name": "顺丰速运签到",
-      "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge",
-      "keys": [
-        "byhooi_sfsy_state",
-        "byhooi_sfsy_cookie"
-      ],
-      "descs_html": [
-        "<p>安装 sfsy_sign.sgmodule 或在 Surge 中手动导入模块，然后在顺丰速运小程序打开「我的 - 积分」页面一次，脚本会自动捕获 JSESSIONID 登录凭证，默认每日 8:30 自动签到。</p>",
-        "<p>签到前先查 getTodaySign，已签到则不重复提交；提交后展示连续天数与本次奖励（券名、积分）。凭证失效时通知提示重新打开小程序会员页。</p>",
-        "<p>凭证只保存在本机持久化存储，不上传；如需清空，把状态清成 {} 即可，之后重新打开小程序会再次捕获。</p>"
-      ],
-      "settings": [
-        {
-          "id": "byhooi_sfsy_state",
-          "name": "凭证与签到状态（自动维护）",
-          "val": "{}",
-          "type": "textarea",
-          "autoGrow": true,
-          "rows": 8,
-          "desc": "脚本自动写入 JSON：cookie、sessionId、userAgent、referer、lastResult、lastSignDate、积分余额等，一般不需要手动修改；改成 {} 可清空凭证，之后重新打开小程序会员页再次捕获"
-        },
-        {
-          "id": "byhooi_sfsy_cookie",
-          "name": "Cookie 覆盖（可选）",
-          "val": "",
-          "type": "text",
-          "placeholder": "留空表示使用自动捕获的凭证",
-          "desc": "自动捕获失效时可手动粘贴浏览器或小程序的完整 Cookie（至少包含 JSESSIONID），填写后优先于自动捕获值使用"
-        }
-      ],
-      "scripts": [
-        {
-          "name": "手动执行顺丰签到",
-          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/sfsy_sign.js",
-          "script_timeout": 60
-        }
-      ],
-      "icons": [
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/upff.png",
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/upff.png"
-      ]
     }
   ]
 }

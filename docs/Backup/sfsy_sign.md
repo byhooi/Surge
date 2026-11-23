@@ -1,4 +1,13 @@
-# 顺丰速运签到
+# 顺丰速运签到（已归档）
+
+> **状态：已归档，不再维护。**
+>
+> 归档原因：登录态是服务端会话 Cookie `JSESSIONID`，小程序关闭后约半小时到数小时即失效，实测隔夜必然失效，无法支持无人值守的每日 cron。
+> 已验证没有可离线续期的凭证：`Cookie: token=<运行时token>`、header `token`、body `token` 三种方式请求 `getTodaySign` 均返回 `100111 用户信息失效`，`queryUserInfo` 用 body token 同样失效。
+>
+> 文件位置：`Module/Backup/sfsy_sign.sgmodule`、`Script/Backup/sfsy_sign.js`；BoxJS 中的 `byhooi_sfsy_sign` 应用已移除。
+>
+> 如需恢复：把模块和脚本移回 `Module/`、`Script/`，改回 `script-path`，重新在 BoxJS 添加应用。恢复后仍然只能「打开小程序会员页 → 手动触发」这种方式使用。
 
 ## 模块说明
 

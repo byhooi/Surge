@@ -420,42 +420,6 @@
           "script_timeout": 120
         }
       ]
-    },
-    {
-      "id": "byhooi_tongcheng_sign",
-      "name": "同程旅行签到",
-      "author": "@byhooi",
-      "repo": "https://github.com/byhooi/Surge",
-      "keys": [
-        "byhooi_tongcheng_state"
-      ],
-      "descs_html": [
-        "<p>安装 tongcheng_sign.sgmodule 后，在微信打开同程旅行小程序并进入“签到”页面一次，脚本会自动捕获登录凭证；默认每天 8:21 自动签到。</p>",
-        "<p>签到前先查今日状态，已签到不会重复提交，提交后会复查服务端状态。凭证（TC-MALL-USER-TOKEN / TCSecTk）失效时会通知重新打开小程序签到页捕获。</p>",
-        "<p>凭证只保存在本机持久化存储中，不会上传。签到成功后小程序内的“做任务，赚里程积分”任务中心仍需手动完成。</p>"
-      ],
-      "settings": [
-        {
-          "id": "byhooi_tongcheng_state",
-          "name": "凭证与签到状态（自动维护）",
-          "val": "{}",
-          "type": "textarea",
-          "autoGrow": true,
-          "rows": 8,
-          "desc": "脚本自动写入 JSON：token、secTk、openId、请求头、lastResult、lastSignDate。一般无需修改；填 {} 可清除凭证，之后重新打开小程序签到页即可再次捕获。"
-        }
-      ],
-      "scripts": [
-        {
-          "name": "手动执行同程签到",
-          "script": "https://raw.githubusercontent.com/byhooi/Surge/main/Script/tongcheng_sign.js",
-          "script_timeout": 60
-        }
-      ],
-      "icons": [
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tsif.png",
-        "https://raw.githubusercontent.com/byhooi/Surge/main/icon/tsif.png"
-      ]
     }
   ]
 }

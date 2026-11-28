@@ -1,5 +1,8 @@
 # 同程旅行签到
 
+> [!WARNING]
+> **已停用归档**：同程小程序登录凭证（`TC-MALL-USER-TOKEN` / `TCSecTk`）服务端有效期约 24 小时，且登录续期与最新签到请求已走微信云托管加密网关（`wxgateway.com/__wx__/call`），Surge 无法自动续期。模块与脚本已归档至 `Module/Backup/tongcheng_sign.sgmodule` 与 `Script/Backup/tongcheng_sign.js`。
+
 ## 模块说明
 
 同程旅行小程序（appid `wx336dcaf6a1ecf632`）的里程签到入口在 `page/AC/sign/msindex/msindex`，接口全部走宿主域 `wx.17u.cn`：
